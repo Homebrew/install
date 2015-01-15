@@ -125,7 +125,6 @@ You have not agreed to the Xcode license.
 Before running the installer again please agree to the license by opening
 Xcode.app or running:
     sudo xcodebuild -license
-EOS
 EOABORT
 
 ohai "This script will install:"
