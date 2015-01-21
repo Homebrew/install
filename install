@@ -169,7 +169,7 @@ else
 end
 
 sudo "/bin/mkdir", HOMEBREW_CACHE unless File.directory? HOMEBREW_CACHE
-sudo "/bin/chmod", "g+rwx", HOMEBREW_CACHE
+sudo "/bin/chmod", "g+rwx", HOMEBREW_CACHE if chmod? HOMEBREW_CACHE
 
 if macos_version >= "10.9"
   developer_dir = `/usr/bin/xcode-select -print-path 2>/dev/null`.chomp
