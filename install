@@ -90,7 +90,7 @@ def git
 end
 
 def chmod?(d)
-  File.directory? d and (not File.readable? d or not File.writable? d or not File.executable? d)
+  File.directory?(d) && !(File.readable?(d) && File.writable?(d) && File.executable?(d))
 end
 
 def chgrp?(d)
