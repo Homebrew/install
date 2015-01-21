@@ -89,6 +89,14 @@ def git
   @git
 end
 
+def chmod?(d)
+  File.directory? d and (not File.readable? d or not File.writable? d or not File.executable? d)
+end
+
+def chgrp?(d)
+  !File.grpowned?(d)
+end
+
 # Invalidate sudo timestamp before exiting
 at_exit { Kernel.system "/usr/bin/sudo", "-k" }
 
@@ -136,9 +144,8 @@ chmods = %w( . bin etc include lib lib/pkgconfig Library sbin share var var/log 
              share/man/man1 share/man/man2 share/man/man3 share/man/man4
              share/man/man5 share/man/man6 share/man/man7 share/man/man8
              share/info share/doc share/aclocal ).
-            map{ |d| "#{HOMEBREW_PREFIX}/#{d}" }.
-            select{ |d| File.directory? d and (not File.readable? d or not File.writable? d or not File.executable? d) }
-chgrps = chmods.reject{ |d| File.stat(d).grpowned? }
+             map { |d| File.join(HOMEBREW_PREFIX, d) }.select { |d| chmod?(d) }
+chgrps = chmods.select { |d| chgrp?(d) }
 
 unless chmods.empty?
   ohai "The following directories will be made group writable:"
