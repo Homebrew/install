@@ -219,5 +219,4 @@ else
   puts "Install #{Tty.white}Xcode#{Tty.reset}: https://developer.apple.com/xcode" unless File.exist? "/usr/bin/cc"
 end
 
-puts "Run `brew doctor` #{Tty.white}before#{Tty.reset} you install anything"
 puts "Run `brew help` to get started"
