@@ -192,7 +192,7 @@ Dir.chdir HOMEBREW_PREFIX do
     system git, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*"
 
     args = git, "fetch", "origin", "master:refs/remotes/origin/master", "-n"
-    args << "--depth=1" if ARGV.include? "--fast"
+    args << "--depth=1" unless ARGV.include?("--full") || !ENV["HOMEBREW_DEVELOPER"].nil?
     system(*args)
 
     system git, "reset", "--hard", "origin/master"
