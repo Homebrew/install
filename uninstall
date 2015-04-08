@@ -31,10 +31,6 @@ class Array
 end
 
 class Pathname
-  def subdirs
-    children.select { |child| child.directory? }
-  end
-
   def resolved_path
     self.symlink? ? dirname+readlink : self
   end
@@ -131,7 +127,7 @@ if /darwin/i === RUBY_PLATFORM
     /Applications
     #{ENV["HOME"]}/Applications
   ].map do |p|
-    Pathname.new(p).subdirs.select do |app|
+    Pathname.new(p).children.select do |app|
       app.resolved_path.to_s.start_with? HOMEBREW_CELLAR.to_s
     end
   end.flatten
@@ -208,8 +204,8 @@ end
 ohai "Homebrew uninstalled!" unless options[:quiet]
 
 residual_files = []
-residual_files.concat(HOMEBREW_REPOSITORY.subdirs) if HOMEBREW_REPOSITORY.exist?
-residual_files.concat(HOMEBREW_PREFIX.subdirs) if HOMEBREW_PREFIX.exist?
+residual_files.concat(HOMEBREW_REPOSITORY.children) if HOMEBREW_REPOSITORY.exist?
+residual_files.concat(HOMEBREW_PREFIX.children) if HOMEBREW_PREFIX.exist?
 residual_files.uniq!
 
 unless residual_files.empty? || options[:quiet]
