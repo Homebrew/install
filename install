@@ -60,14 +60,21 @@ def wait_for_user
   abort unless c == 13 or c == 10
 end
 
-module Version
+class Version
+  include Comparable
+  attr_reader :parts
+
+  def initialize(str)
+    @parts = str.split(".").map { |i| i.to_i }
+  end
+
   def <=>(other)
-    split(".").map { |i| i.to_i } <=> other.split(".").map { |i| i.to_i }
+    parts <=> self.class.new(other).parts
   end
 end
 
 def macos_version
-  @macos_version ||= `/usr/bin/sw_vers -productVersion`.chomp[/10\.\d+/].extend(Version)
+  @macos_version ||= Version.new(`/usr/bin/sw_vers -productVersion`.chomp[/10\.\d+/])
 end
 
 def git
@@ -84,7 +91,7 @@ def git
   # Github only supports HTTPS fetches on 1.7.10 or later:
   # https://help.github.com/articles/https-cloning-errors
   `#{@git} --version` =~ /git version (\d\.\d+\.\d+)/
-  return if $1.nil? or $1.extend(Version) < "1.7.10"
+  return if $1.nil? or Version.new($1) < "1.7.10"
 
   @git
 end
