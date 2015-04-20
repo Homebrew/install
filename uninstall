@@ -106,7 +106,7 @@ end
 abort "Failed to fetch Homebrew .gitignore!" if gitignore.empty?
 
 $HOMEBREW_FILES = gitignore.split("\n").select { |line| line.start_with? "!" }.
-  map { |line| line.chomp "/" }.map { |line| line.gsub %r{^!?/}, "" }.
+  map { |line| line.chomp("/").gsub(%r{^!?/}, "") }.reject { |line|  line == "bin" }.
   map { |p| HOMEBREW_REPOSITORY/p }
 $HOMEBREW_FILES << HOMEBREW_REPOSITORY/".git"
 $HOMEBREW_FILES << HOMEBREW_CELLAR
