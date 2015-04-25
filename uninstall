@@ -133,8 +133,7 @@ if /darwin/i === RUBY_PLATFORM
   end.flatten
 end
 
-$HOMEBREW_FILES.select!(&:exist?)
-$HOMEBREW_FILES.sort!
+$HOMEBREW_FILES = $HOMEBREW_FILES.select(&:exist?).sort
 
 unless options[:quiet]
   warn "This script #{options[:dry_run] ? "would" : "will"} remove:"
