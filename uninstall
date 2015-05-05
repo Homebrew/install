@@ -126,8 +126,8 @@ if /darwin/i === RUBY_PLATFORM
   $HOMEBREW_FILES += %W[
     /Applications
     #{ENV["HOME"]}/Applications
-  ].map do |p|
-    Pathname.new(p).children.select do |app|
+  ].map { |p| Pathname.new(p) }.select(&:directory?).map do |p|
+    p.children.select do |app|
       app.resolved_path.to_s.start_with? HOMEBREW_CELLAR.to_s
     end
   end.flatten
