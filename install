@@ -60,6 +60,15 @@ def wait_for_user
   abort unless c == 13 or c == 10
 end
 
+def prompt str
+  loop do
+    print "#{str} (y/n): "
+    ans = gets.strip
+    return true if ans =~ /y/i
+    return false if ans =~ /n/i
+  end
+end
+
 class Version
   include Comparable
   attr_reader :parts
@@ -80,9 +89,9 @@ end
 def git
   @git ||= if ENV['GIT'] and File.executable? ENV['GIT']
     ENV['GIT']
-  elsif Kernel.system '/usr/bin/which -s git'
+  elsif Kernel.system('xcode-select -print-path 2>/dev/null') && Kernel.system('/usr/bin/which -s git')
     'git'
-  else
+  elsif Kernel.system('xcode-select -print-path 2>/dev/null')
     exe = `xcrun -find git 2>/dev/null`.chomp
     exe if $? && $?.success? && !exe.empty? && File.executable?(exe)
   end
@@ -135,7 +144,7 @@ not intentional, please restore the default permissions and try running the
 installer again:
     sudo chmod 775 #{HOMEBREW_PREFIX}
 EOABORT
-abort <<-EOABORT if `/usr/bin/xcrun clang 2>&1` =~ /license/ && !$?.success?
+abort <<-EOABORT if Kernel.system('xcode-select -print-path 2>/dev/null') && `/usr/bin/xcrun clang 2>&1` =~ /license/ && !$?.success?
 You have not agreed to the Xcode license.
 Before running the installer again please agree to the license by opening
 Xcode.app or running:
@@ -181,10 +190,13 @@ sudo "/bin/chmod", "g+rwx", HOMEBREW_CACHE if chmod? HOMEBREW_CACHE
 if macos_version >= "10.9"
   developer_dir = `/usr/bin/xcode-select -print-path 2>/dev/null`.chomp
   if developer_dir.empty? || !File.exist?("#{developer_dir}/usr/bin/git")
-    ohai "Installing the Command Line Tools (expect a GUI popup):"
-    sudo "/usr/bin/xcode-select", "--install"
-    puts "Press any key when the installation has completed."
-    getc
+    ohai "The Command Line Tools (CLT) are required to build most software."
+    if prompt "Install the Command Line Tools?"
+      ohai "Installing the Command Line Tools (expect a GUI popup):"
+      sudo "/usr/bin/xcode-select", "--install"
+      puts "Press any key when the installation has completed."
+      getc
+    end
   end
 end
 
