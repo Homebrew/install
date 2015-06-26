@@ -171,7 +171,12 @@ $HOMEBREW_FILES.each do |file|
   if options[:dry_run]
     puts "Would delete #{file}"
   else
-    FileUtils.rm_rf(file)
+    begin
+      FileUtils.rm_rf(file)
+    rescue => e
+      warn "Failed to delete #{file}"
+      puts e.message
+    end
   end
 end
 
