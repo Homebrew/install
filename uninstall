@@ -86,7 +86,7 @@ end.parse!
 if $HOMEBREW_PREFIX_CANDIDATES.empty? # Attempt to locate Homebrew unless `--path` is passed
   p = `brew --prefix` rescue ""
   $HOMEBREW_PREFIX_CANDIDATES << Pathname.new(p.strip) unless p.empty?
-  p = `command -v brew`
+  p = `command -v brew` rescue ""
   $HOMEBREW_PREFIX_CANDIDATES << Pathname.new(p.strip).dirname.parent unless p.empty?
   $HOMEBREW_PREFIX_CANDIDATES << Pathname.new("/usr/local") # Homebrew default path
   $HOMEBREW_PREFIX_CANDIDATES << Pathname.new("#{ENV["HOME"]}/.linuxbrew") # Linuxbrew default path
