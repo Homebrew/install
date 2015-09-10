@@ -2,9 +2,9 @@
 # This script installs to /usr/local only. To install elsewhere you can just
 # untar https://github.com/Homebrew/homebrew/tarball/master anywhere you like or
 # change the value of HOMEBREW_PREFIX.
-HOMEBREW_PREFIX = '/usr/local'
-HOMEBREW_CACHE = '/Library/Caches/Homebrew'
-HOMEBREW_REPO = 'https://github.com/Homebrew/homebrew'
+HOMEBREW_PREFIX = ENV['HOMEBREW_PREFIX'] || '/usr/local'
+HOMEBREW_CACHE = ENV['HOMEBREW_CACHE'] || '/Library/Caches/Homebrew'
+HOMEBREW_REPO = ENV['HOMEBREW_REPO'] || 'https://github.com/Homebrew/homebrew'
 
 module Tty extend self
   def blue; bold 34; end
