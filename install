@@ -141,6 +141,11 @@ Before running the installer again please agree to the license by opening
 Xcode.app or running:
     sudo xcodebuild -license
 EOABORT
+abort <<-EOABORT if !File.directory?(HOMEBREW_PREFIX) && macos_version >= "10.11"
+OS X 10.11 & above require an additional step to write into #{HOMEBREW_PREFIX}.
+Please follow the steps described here and then run the install script again:
+  https://git.io/vnC7w
+EOABORT
 
 ohai "This script will install:"
 puts "#{HOMEBREW_PREFIX}/bin/brew"
