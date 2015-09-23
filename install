@@ -125,7 +125,7 @@ EOABORT
 abort <<-EOABORT unless Dir["#{HOMEBREW_PREFIX}/.git/*"].empty?
 It appears Homebrew is already installed. If your intent is to reinstall you
 should do the following before running this installer again:
-    rm -rf #{HOMEBREW_PREFIX}/Cellar #{HOMEBREW_PREFIX}/.git && brew cleanup
+    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall)"
 EOABORT
 # Tests will fail if the prefix exists, but we don't have execution
 # permissions. Abort in this case.
