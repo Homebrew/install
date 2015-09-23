@@ -146,7 +146,7 @@ unless options[:quiet]
   $HOMEBREW_FILES.each(&:pretty_print)
 end
 
-unless options[:force] || options[:dry_run]
+if STDIN.tty? && (!options[:force] && !options[:dry_run])
   STDERR.print "Are you sure you want to uninstall Homebrew? [y/N] "
   abort unless gets.rstrip =~ /y|yes/i
 end
