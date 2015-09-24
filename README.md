@@ -1,4 +1,7 @@
 # Homebrew (un)installer
+
+[![Build Status](https://travis-ci.org/Homebrew/install.svg?branch=master)](https://travis-ci.org/Homebrew/install)
+
 ## Install Homebrew
 ```bash
 ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
