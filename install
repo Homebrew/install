@@ -126,10 +126,12 @@ you please; please refer to our homepage. If you still want to use this script
 set your user to be an Administrator in System Preferences or `su' to a
 non-root user with Administrator privileges.
 EOABORT
+contents = Dir.glob(HOMEBREW_PREFIX+"*/{*,.git*}").join(" ").gsub!(%r{#{HOMEBREW_PREFIX}/}, "")
 abort <<-EOABORT unless Dir["#{HOMEBREW_PREFIX}/.git/*"].empty?
 It appears Homebrew is already installed. If your intent is to reinstall you
 should do the following before running this installer again:
     ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall)"
+The current contents of #{HOMEBREW_PREFIX} are #{contents}
 EOABORT
 # Tests will fail if the prefix exists, but we don't have execution
 # permissions. Abort in this case.
