@@ -93,7 +93,7 @@ if $HOMEBREW_PREFIX_CANDIDATES.empty? # Attempt to locate Homebrew unless `--pat
 end
 
 HOMEBREW_PREFIX = $HOMEBREW_PREFIX_CANDIDATES.detect do |p|
-  p.directory? && (p/"bin/brew").executable?
+  p.directory? && (p/".git").exist? || (p/"bin/brew").executable?
 end
 abort "Failed to locate Homebrew!" if HOMEBREW_PREFIX.nil?
 
