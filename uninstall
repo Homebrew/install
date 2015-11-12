@@ -97,7 +97,7 @@ HOMEBREW_PREFIX = $HOMEBREW_PREFIX_CANDIDATES.detect do |p|
 end
 abort "Failed to locate Homebrew!" if HOMEBREW_PREFIX.nil?
 
-HOMEBREW_REPOSITORY = (HOMEBREW_PREFIX/"bin/brew").realpath.dirname.parent
+HOMEBREW_REPOSITORY = (HOMEBREW_PREFIX/".git").realpath.dirname || (HOMEBREW_PREFIX/"bin/brew").realpath.dirname.parent
 HOMEBREW_CELLAR = if (HOMEBREW_PREFIX/"Cellar").exist?
   HOMEBREW_PREFIX/"Cellar"
 else
