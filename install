@@ -201,10 +201,12 @@ sudo "/usr/bin/chgrp", "admin", HOMEBREW_CACHE if chgrp? HOMEBREW_CACHE
 if macos_version >= "10.9"
   developer_dir = `/usr/bin/xcode-select -print-path 2>/dev/null`.chomp
   if developer_dir.empty? || !File.exist?("#{developer_dir}/usr/bin/git")
-    ohai "Installing the Command Line Tools (expect a GUI popup):"
-    sudo "/usr/bin/xcode-select", "--install"
-    puts "Press any key when the installation has completed."
-    getc
+    ohai "Searching online for the Command Line Tools"
+    # This temporary file prompts software update to list the Command Line Tools
+    `touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress`
+    clt = `softwareupdate -l | grep "* Command Line Tools" | sed 's/^.*\\(Command Line Tools.*\\)/\\1/'`.chomp
+    ohai "Installing #{clt}"
+    `softwareupdate -i "#{clt}"`
   end
 end
 
