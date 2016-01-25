@@ -19,6 +19,7 @@ matrix:
 # This ensures the Command Line Tool install functionality is tested.
 before_script:
   - sudo rm -rf /Applications/Xcode.app /Library/Developer/CommandLineTools
+  - sudo pkgutil --forget com.apple.pkg.CLTools_Executables
 
 script:
   - ./uninstall -d

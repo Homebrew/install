@@ -215,16 +215,19 @@ if should_install_command_line_tools
   clt_label = `softwareupdate -l | grep -B 1 -E "Command Line (Developer|Tools)" | awk -F"*" '/^ +\\*/ {print $2}' | sed 's/^ *//' | head -n1`.chomp
   ohai "Installing #{clt_label}"
   sudo "/usr/sbin/softwareupdate", "-i", clt_label
-  sudo "/bin/rm", clt_placeholder
+  sudo "/bin/rm", "-f", clt_placeholder
 end
 
 # Headless install may have failed, so fallback to original 'xcode-select' method
 if should_install_command_line_tools
-  ohai "Headless installation of Command Line Tools has failed"
-  ohai "Installing the Command Line Tools (expect a GUI popup):"
-  sudo "/usr/bin/xcode-select", "--install"
-  puts "Press any key when the installation has completed."
-  getc
+  if STDIN.tty?
+    ohai "Installing the Command Line Tools (expect a GUI popup):"
+    sudo "/usr/bin/xcode-select", "--install"
+    puts "Press any key when the installation has completed."
+    getc
+  else
+    abort "Unable to proceed with manual Command Line Tools install without user input."
+  end
 end
 
 ohai "Downloading and installing Homebrew..."
