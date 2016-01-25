@@ -15,6 +15,11 @@ matrix:
       osx_image: beta-xcode6.2
       rvm: system
 
+# Remove Xcode and CommandLineTools included in default OS X image.
+# This ensures the Command Line Tool install functionality is tested.
+before_script:
+  - sudo rm -rf /Applications/Xcode.app /Library/Developer/CommandLineTools
+
 script:
   - ./uninstall -d
   - ./uninstall -f
