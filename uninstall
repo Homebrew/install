@@ -211,8 +211,11 @@ if paths.any?
   puts "Would remove directories:" if options[:dry_run]
   system "/usr/bin/find", *args
 end
-# remove HOMEBREW_REPOSITORY HOMEBREW_PREFIX if they're empty.
-unless options[:dry_run]
+
+if options[:dry_run]
+  exit
+else
+  # remove HOMEBREW_REPOSITORY HOMEBREW_PREFIX if they're empty.
   Kernel.system "rmdir #{HOMEBREW_REPOSITORY} &>/dev/null"
   Kernel.system "rmdir #{HOMEBREW_PREFIX} &>/dev/null"
 end
