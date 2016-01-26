@@ -155,24 +155,26 @@ end
 ohai "Removing Homebrew installation..." unless options[:quiet]
 paths = %W[Frameworks bin etc include lib opt sbin share var].
   map { |p| HOMEBREW_PREFIX/p }.select(&:exist?).map(&:to_s)
-args = %W[-E] + paths + %W[-regex .*/info/([^.][^/]*\.info|dir)]
-if options[:dry_run]
-  args << "-print"
-else
-  args += %W[-exec /bin/bash -c]
-  args << "/usr/bin/install-info --delete --quiet {} \"$(dirname {})/dir\""
-  args << ";"
+if paths.any?
+  args = %W[-E] + paths + %W[-regex .*/info/([^.][^/]*\.info|dir)]
+  if options[:dry_run]
+    args << "-print"
+  else
+    args += %W[-exec /bin/bash -c]
+    args << "/usr/bin/install-info --delete --quiet {} \"$(dirname {})/dir\""
+    args << ";"
+  end
+  puts "Would delete:" if options[:dry_run]
+  system "/usr/bin/find", *args
+  args = paths + %W[-type l -lname */Cellar/*]
+  if options[:dry_run]
+    args << "-print"
+  else
+    args += %W[-exec unlink {} ;]
+  end
+  puts "Would delete:" if options[:dry_run]
+  system "/usr/bin/find", *args
 end
-puts "Would delete:" if options[:dry_run]
-system "/usr/bin/find", *args
-args = paths + %W[-type l -lname */Cellar/*]
-if options[:dry_run]
-  args << "-print"
-else
-  args += %W[-exec unlink {} ;]
-end
-puts "Would delete:" if options[:dry_run]
-system "/usr/bin/find", *args
 
 $HOMEBREW_FILES.each do |file|
   if options[:dry_run]
@@ -191,22 +193,24 @@ end
 ohai "Removing empty directories..." unless options[:quiet]
 paths = %W[Frameworks bin etc include lib opt sbin share var].
   map { |p| HOMEBREW_PREFIX/p }.select(&:exist?).map(&:to_s)
-args = paths + %W[-name .DS_Store]
-if options[:dry_run]
-  args << "-print"
-else
-  args << "-delete"
+if paths.any?
+  args = paths + %W[-name .DS_Store]
+  if options[:dry_run]
+    args << "-print"
+  else
+    args << "-delete"
+  end
+  puts "Would delete:" if options[:dry_run]
+  system "/usr/bin/find", *args
+  args = paths + %W[-depth -type d -empty]
+  if options[:dry_run]
+    args << "-print"
+  else
+    args += %W[-exec rmdir {} ;]
+  end
+  puts "Would remove directories:" if options[:dry_run]
+  system "/usr/bin/find", *args
 end
-puts "Would delete:" if options[:dry_run]
-system "/usr/bin/find", *args
-args = paths + %W[-depth -type d -empty]
-if options[:dry_run]
-  args << "-print"
-else
-  args += %W[-exec rmdir {} ;]
-end
-puts "Would remove directories:" if options[:dry_run]
-system "/usr/bin/find", *args
 # remove HOMEBREW_REPOSITORY HOMEBREW_PREFIX if they're empty.
 unless options[:dry_run]
   Kernel.system "rmdir #{HOMEBREW_REPOSITORY} &>/dev/null"
