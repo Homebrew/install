@@ -77,13 +77,10 @@ def macos_version
   @macos_version ||= Version.new(`/usr/bin/sw_vers -productVersion`.chomp[/10\.\d+/])
 end
 
-def should_install_command_line_tools
-  if macos_version >= "10.9"
-    developer_dir = `/usr/bin/xcode-select -print-path 2>/dev/null`.chomp
-    return developer_dir.empty? || !File.exist?("#{developer_dir}/usr/bin/git")
-  else
-    return false
-  end
+def should_install_command_line_tools?
+  return false if macos_version < "10.9"
+  developer_dir = `/usr/bin/xcode-select -print-path 2>/dev/null`.chomp
+  developer_dir.empty? || !File.exist?("#{developer_dir}/usr/bin/git")
 end
 
 def git
@@ -207,7 +204,7 @@ sudo "/bin/chmod", "g+rwx", HOMEBREW_CACHE if chmod? HOMEBREW_CACHE
 sudo "/usr/sbin/chown", ENV['USER'], HOMEBREW_CACHE if chown? HOMEBREW_CACHE
 sudo "/usr/bin/chgrp", "admin", HOMEBREW_CACHE if chgrp? HOMEBREW_CACHE
 
-if should_install_command_line_tools
+if should_install_command_line_tools?
   ohai "Searching online for the Command Line Tools"
   # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
   clt_placeholder = "/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
@@ -219,14 +216,14 @@ if should_install_command_line_tools
 end
 
 # Headless install may have failed, so fallback to original 'xcode-select' method
-if should_install_command_line_tools
+if should_install_command_line_tools?
   if STDIN.tty?
     ohai "Installing the Command Line Tools (expect a GUI popup):"
     sudo "/usr/bin/xcode-select", "--install"
     puts "Press any key when the installation has completed."
     getc
   else
-    abort "Unable to proceed with manual Command Line Tools install without user input."
+    abort "Error: Cannot proceed with manual Command Line Tools install without user input!"
   end
 end
 
