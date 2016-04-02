@@ -247,6 +247,8 @@ Dir.chdir HOMEBREW_PREFIX do
   end
 end
 
+system "#{HOMEBREW_PREFIX}/bin/brew", "tap", "homebrew/core"
+
 warn "#{HOMEBREW_PREFIX}/bin is not in your PATH." unless ENV['PATH'].split(':').include? "#{HOMEBREW_PREFIX}/bin"
 
 ohai "Installation successful!"
