@@ -107,7 +107,7 @@ end
 gitignore = begin
   (HOMEBREW_REPOSITORY/".gitignore").read
 rescue Errno::ENOENT
-  `curl -fsSL https://raw.githubusercontent.com/Homebrew/homebrew/master/.gitignore`
+  `curl -fsSL https://raw.githubusercontent.com/Homebrew/brew/master/.gitignore`
 end
 abort "Failed to fetch Homebrew .gitignore!" if gitignore.empty?
 
