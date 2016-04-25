@@ -269,4 +269,11 @@ end
 
 puts "Run `brew help` to get started"
 puts "Further documentation: https://git.io/brew-docs"
-puts "Anonymous aggregate user behaviour analytics documentation: https://git.io/brew-analytics"
+ohai "Homebrew has enabled anonymous aggregate user behaviour analytics"
+puts "Read the analytics documentation (and how to opt-out) here:"
+puts "  https://git.io/brew-analytics"
+if git
+  Dir.chdir HOMEBREW_PREFIX do
+    system git, "config", "--local", "--replace-all", "homebrew.analyticsmessage", "true"
+  end
+end
