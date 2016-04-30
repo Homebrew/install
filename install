@@ -125,7 +125,7 @@ Dir.chdir "/usr"
 abort "See Linuxbrew: http://linuxbrew.sh/" if /linux/i === RUBY_PLATFORM
 abort "MacOS too old, see: https://github.com/mistydemeo/tigerbrew" if macos_version < "10.6"
 abort "Don't run this as root!" if Process.uid == 0
-abort <<-EOABORT unless `groups`.split.include? "admin"
+abort <<-EOABORT unless `dsmemberutil checkmembership -U #{ENV['USER']} -G admin`.include? "user is a member"
 This script requires the user #{ENV['USER']} to be an Administrator. If this
 sucks for you then you can install Homebrew in your home directory or however
 you please; please refer to our homepage. If you still want to use this script
