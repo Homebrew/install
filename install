@@ -153,6 +153,9 @@ Before running the installer again please agree to the license by opening
 Xcode.app or running:
     sudo xcodebuild -license
 EOABORT
+abort <<-EOABORT if `/usr/bin/xcode-select -print-path 2>/dev/null` != `/usr/bin/xcrun /usr/bin/xcode-select -print-path 2>/dev/null`
+#{`xcrun xcode-select`}
+EOABORT
 
 ohai "This script will install:"
 puts "#{HOMEBREW_PREFIX}/bin/brew"
