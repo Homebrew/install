@@ -147,12 +147,6 @@ not intentional, please restore the default permissions and try running the
 installer again:
     sudo chmod 775 #{HOMEBREW_PREFIX}
 EOABORT
-abort <<-EOABORT if `/usr/bin/xcrun clang 2>&1` =~ /license/ && !$?.success?
-You have not agreed to the Xcode license.
-Before running the installer again please agree to the license by opening
-Xcode.app or running:
-    sudo xcodebuild -license
-EOABORT
 
 ohai "This script will install:"
 puts "#{HOMEBREW_PREFIX}/bin/brew"
@@ -223,6 +217,13 @@ if should_install_command_line_tools?
     abort "Error: Cannot proceed with manual Command Line Tools install without user input!"
   end
 end
+
+abort <<-EOABORT if `/usr/bin/xcrun clang 2>&1` =~ /license/ && !$?.success?
+You have not agreed to the Xcode license.
+Before running the installer again please agree to the license by opening
+Xcode.app or running:
+    sudo xcodebuild -license
+EOABORT
 
 ohai "Downloading and installing Homebrew..."
 Dir.chdir HOMEBREW_PREFIX do
