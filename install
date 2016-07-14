@@ -181,7 +181,7 @@ unless chgrps.empty?
   puts(*chgrps)
 end
 
-wait_for_user if STDIN.tty?
+wait_for_user if STDIN.tty? && !ENV["TRAVIS"]
 
 if File.directory? HOMEBREW_PREFIX
   sudo "/bin/chmod", "g+rwx", *chmods unless chmods.empty?
