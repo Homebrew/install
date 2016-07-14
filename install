@@ -5,6 +5,10 @@
 HOMEBREW_PREFIX = '/usr/local'
 HOMEBREW_CACHE = '/Library/Caches/Homebrew'
 HOMEBREW_REPO = 'https://github.com/Homebrew/brew'
+HOMEBREW_CORE = 'https://github.com/Homebrew/Homebrew-core'
+
+# no analytics during installation
+ENV["HOMEBREW_NO_ANALYTICS_THIS_RUN"] = "1"
 
 module Tty extend self
   def blue; bold 34; end
@@ -243,17 +247,21 @@ Dir.chdir HOMEBREW_PREFIX do
     system(*args)
 
     system git, "reset", "--hard", "origin/master"
+
+    system "#{HOMEBREW_PREFIX}/bin/brew", "tap", "homebrew/core"
   else
     # -m to stop tar erroring out if it can't modify the mtime for root owned directories
     # pipefail to cause the exit status from curl to propagate if it fails
     curl_flags = "fsSL"
+    core_tap = "#{HOMEBREW_PREFIX}/Library/Taps/homebrew/homebrew-core"
     system "/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} #{HOMEBREW_REPO}/tarball/master | /usr/bin/tar xz -m --strip 1'"
+
+    system "/bin/mkdir", "-p", core_tap
+    Dir.chdir core_tap do
+      system "/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} #{HOMEBREW_CORE}/tarball/master | /usr/bin/tar xz -m --strip 1'"
+    end
   end
 end
-
-# no analytics during installation
-ENV["HOMEBREW_NO_ANALYTICS_THIS_RUN"] = "1"
-system "#{HOMEBREW_PREFIX}/bin/brew", "tap", "homebrew/core"
 
 warn "#{HOMEBREW_PREFIX}/bin is not in your PATH." unless ENV['PATH'].split(':').include? "#{HOMEBREW_PREFIX}/bin"
 
