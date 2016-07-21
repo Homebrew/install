@@ -188,13 +188,13 @@ if File.directory? HOMEBREW_PREFIX
   sudo "/usr/sbin/chown", ENV['USER'], *chowns unless chowns.empty?
   sudo "/usr/bin/chgrp", "admin", *chgrps unless chgrps.empty?
 else
-  sudo "/bin/mkdir", HOMEBREW_PREFIX
+  sudo "/bin/mkdir", "-p", HOMEBREW_PREFIX
   sudo "/bin/chmod", "g+rwx", HOMEBREW_PREFIX
   # the group is set to wheel by default for some reason
   sudo "/usr/sbin/chown", "#{ENV['USER']}:admin", HOMEBREW_PREFIX
 end
 
-sudo "/bin/mkdir", HOMEBREW_CACHE unless File.directory? HOMEBREW_CACHE
+sudo "/bin/mkdir", "-p", HOMEBREW_CACHE unless File.directory? HOMEBREW_CACHE
 sudo "/bin/chmod", "g+rwx", HOMEBREW_CACHE if chmod? HOMEBREW_CACHE
 sudo "/usr/sbin/chown", ENV['USER'], HOMEBREW_CACHE if chown? HOMEBREW_CACHE
 sudo "/usr/bin/chgrp", "admin", HOMEBREW_CACHE if chgrp? HOMEBREW_CACHE
