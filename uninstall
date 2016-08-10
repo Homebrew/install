@@ -245,7 +245,7 @@ if /darwin/i === RUBY_PLATFORM && HOMEBREW_PREFIX.exist? &&
   puts <<-EOS
 You may want to restore /usr/local's original permissions
   sudo chmod 0755 /usr/local
-  sudo chgrp wheel /usr/local
+  sudo chown root:wheel /usr/local
 
 EOS
 end
