@@ -208,6 +208,7 @@ if should_install_command_line_tools?
   ohai "Installing #{clt_label}"
   sudo "/usr/sbin/softwareupdate", "-i", clt_label
   sudo "/bin/rm", "-f", clt_placeholder
+  sudo "/usr/bin/xcode-select", "--switch", "/Library/Developer/CommandLineTools"
 end
 
 # Headless install may have failed, so fallback to original 'xcode-select' method
@@ -217,6 +218,7 @@ if should_install_command_line_tools?
     sudo "/usr/bin/xcode-select", "--install"
     puts "Press any key when the installation has completed."
     getc
+    sudo "/usr/bin/xcode-select", "--switch", "/Library/Developer/CommandLineTools"
   else
     abort "Error: Cannot proceed with manual Command Line Tools install without user input!"
   end
