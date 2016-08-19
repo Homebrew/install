@@ -2,10 +2,10 @@
 # This script installs to /usr/local only. To install elsewhere you can just
 # untar https://github.com/Homebrew/brew/tarball/master anywhere you like or
 # change the value of HOMEBREW_PREFIX.
-HOMEBREW_PREFIX = "/usr/local"
-HOMEBREW_CACHE = "#{ENV["HOME"]}/Library/Caches/Homebrew"
-HOMEBREW_REPO = "https://github.com/Homebrew/brew"
-HOMEBREW_CORE = "https://github.com/Homebrew/Homebrew-core"
+HOMEBREW_PREFIX = "/usr/local".freeze
+HOMEBREW_CACHE = "#{ENV["HOME"]}/Library/Caches/Homebrew".freeze
+BREW_REPO = "https://github.com/Homebrew/brew".freeze
+CORE_TAP_REPO = "https://github.com/Homebrew/homebrew-core".freeze
 
 # no analytics during installation
 ENV["HOMEBREW_NO_ANALYTICS_THIS_RUN"] = "1"
@@ -238,7 +238,7 @@ Dir.chdir HOMEBREW_PREFIX do
     system git, "init", "-q"
 
     # "git remote add" will fail if the remote is defined in the global config
-    system git, "config", "remote.origin.url", HOMEBREW_REPO
+    system git, "config", "remote.origin.url", BREW_REPO
     system git, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*"
 
     # ensure we don't munge line endings on checkout
@@ -256,11 +256,11 @@ Dir.chdir HOMEBREW_PREFIX do
     # pipefail to cause the exit status from curl to propagate if it fails
     curl_flags = "fsSL"
     core_tap = "#{HOMEBREW_PREFIX}/Library/Taps/homebrew/homebrew-core"
-    system "/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} #{HOMEBREW_REPO}/tarball/master | /usr/bin/tar xz -m --strip 1'"
+    system "/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} #{BREW_REPO}/tarball/master | /usr/bin/tar xz -m --strip 1'"
 
     system "/bin/mkdir", "-p", core_tap
     Dir.chdir core_tap do
-      system "/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} #{HOMEBREW_CORE}/tarball/master | /usr/bin/tar xz -m --strip 1'"
+      system "/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} #{CORE_TAP_REPO}/tarball/master | /usr/bin/tar xz -m --strip 1'"
     end
   end
 end
