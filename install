@@ -161,31 +161,46 @@ puts "#{HOMEBREW_PREFIX}/share/zsh/site-functions/_brew"
 puts "#{HOMEBREW_PREFIX}/etc/bash_completion.d/brew"
 puts "#{HOMEBREW_REPOSITORY}/Library/..."
 
-chmods = %w( . bin etc etc/bash_completion.d include lib lib/pkgconfig Library sbin share var var/log share/locale share/man
-             share/man/man1 share/man/man2 share/man/man3 share/man/man4
-             share/man/man5 share/man/man6 share/man/man7 share/man/man8
-             share/info share/doc share/aclocal share/zsh share/zsh/site-functions ).
-             map { |d| File.join(HOMEBREW_PREFIX, d) }.select { |d| chmod?(d) }
+group_chmods = %w( . bin etc etc/bash_completion.d Frameworks include lib lib/pkgconfig Library sbin share var var/log share/locale share/man
+                   share/man/man1 share/man/man2 share/man/man3 share/man/man4
+                   share/man/man5 share/man/man6 share/man/man7 share/man/man8
+                   share/info share/doc share/aclocal share/zsh share/zsh/site-functions ).
+                   map { |d| File.join(HOMEBREW_PREFIX, d) }.select { |d| chmod?(d) }
+# zsh refuses to read from these directories if group writable
+user_chmods = %w( share/zsh share/zsh/site-functions ).
+                  map { |d| File.join(HOMEBREW_PREFIX, d) }.select { |d| chmod?(d) }
+chmods = group_chmods + user_chmods
 chowns = chmods.select { |d| chown?(d) }
 chgrps = chmods.select { |d| chgrp?(d) }
+mkdirs = %w( Cellar Frameworks bin etc include lib opt sbin share var ).
+             map { |d| File.join(HOMEBREW_PREFIX, d) }.reject { |d| File.directory?(d) }
 
-unless chmods.empty?
-  ohai "The following directories will be made group writable:"
-  puts(*chmods)
+unless group_chmods.empty?
+  ohai "The following existing directories will be made group writable:"
+  puts(*group_chmods)
+end
+unless user_chmods.empty?
+  ohai "The following existing directories will be made writable:"
+  puts(*user_chmods)
 end
 unless chowns.empty?
-  ohai "The following directories will have their owner set to #{Tty.underline 39}#{ENV['USER']}#{Tty.reset}:"
+  ohai "The following existing directories will have their owner set to #{Tty.underline 39}#{ENV['USER']}#{Tty.reset}:"
   puts(*chowns)
 end
 unless chgrps.empty?
-  ohai "The following directories will have their group set to #{Tty.underline 39}admin#{Tty.reset}:"
+  ohai "The following existing directories will have their group set to #{Tty.underline 39}admin#{Tty.reset}:"
   puts(*chgrps)
+end
+unless mkdirs.empty?
+  ohai "The following new directories will be created:"
+  puts(*mkdirs)
 end
 
 wait_for_user if STDIN.tty? && !ENV["TRAVIS"]
 
 if File.directory? HOMEBREW_PREFIX
-  sudo "/bin/chmod", "g+rwx", *chmods unless chmods.empty?
+  sudo "/bin/chmod", "g+rwx", *group_chmods unless group_chmods.empty?
+  sudo "/bin/chmod", "u+rwx", *user_chmods unless user_chmods.empty?
   sudo "/usr/sbin/chown", ENV['USER'], *chowns unless chowns.empty?
   sudo "/usr/bin/chgrp", "admin", *chgrps unless chgrps.empty?
 else
@@ -193,6 +208,13 @@ else
   sudo "/bin/chmod", "g+rwx", HOMEBREW_PREFIX
   # the group is set to wheel by default for some reason
   sudo "/usr/sbin/chown", "#{ENV['USER']}:admin", HOMEBREW_PREFIX
+end
+
+unless mkdirs.empty?
+  sudo "/bin/mkdir", "-p", *mkdirs
+  sudo "/bin/chmod", "g+rwx", *mkdirs
+  sudo "/usr/sbin/chown", ENV['USER'], *mkdirs
+  sudo "/usr/bin/chgrp", "admin", *mkdirs
 end
 
 sudo "/bin/mkdir", "-p", HOMEBREW_CACHE unless File.directory? HOMEBREW_CACHE
