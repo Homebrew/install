@@ -3,7 +3,7 @@
 # untar https://github.com/Homebrew/brew/tarball/master anywhere you like or
 # change the value of HOMEBREW_PREFIX.
 HOMEBREW_PREFIX = "/usr/local".freeze
-HOMEBREW_REPOSITORY = HOMEBREW_PREFIX
+HOMEBREW_REPOSITORY = "/usr/local/Homebrew".freeze
 HOMEBREW_CACHE = "#{ENV["HOME"]}/Library/Caches/Homebrew".freeze
 BREW_REPO = "https://github.com/Homebrew/brew".freeze
 CORE_TAP_REPO = "https://github.com/Homebrew/homebrew-core".freeze
@@ -155,24 +155,24 @@ EOABORT
 
 ohai "This script will install:"
 puts "#{HOMEBREW_PREFIX}/bin/brew"
-puts "#{HOMEBREW_PREFIX}/share/doc/homebrew"
-puts "#{HOMEBREW_PREFIX}/share/man/man1/brew.1"
-puts "#{HOMEBREW_PREFIX}/share/zsh/site-functions/_brew"
-puts "#{HOMEBREW_PREFIX}/etc/bash_completion.d/brew"
-puts "#{HOMEBREW_REPOSITORY}/Library/..."
+if git
+  puts "#{HOMEBREW_PREFIX}/share/doc/homebrew"
+  puts "#{HOMEBREW_PREFIX}/share/man/man1/brew.1"
+  puts "#{HOMEBREW_PREFIX}/share/zsh/site-functions/_brew"
+  puts "#{HOMEBREW_PREFIX}/etc/bash_completion.d/brew"
+end
+puts "#{HOMEBREW_REPOSITORY}"
 
-group_chmods = %w( . bin etc etc/bash_completion.d Frameworks include lib lib/pkgconfig Library sbin share var var/log share/locale share/man
-                   share/man/man1 share/man/man2 share/man/man3 share/man/man4
-                   share/man/man5 share/man/man6 share/man/man7 share/man/man8
-                   share/info share/doc share/aclocal share/zsh share/zsh/site-functions ).
+group_chmods = %w( bin etc Frameworks include lib sbin share var ).
                    map { |d| File.join(HOMEBREW_PREFIX, d) }.select { |d| chmod?(d) }
 # zsh refuses to read from these directories if group writable
-user_chmods = %w( share/zsh share/zsh/site-functions ).
+zsh_dirs = %w( share/zsh share/zsh/site-functions )
+user_chmods = zsh_dirs.
                   map { |d| File.join(HOMEBREW_PREFIX, d) }.select { |d| chmod?(d) }
 chmods = group_chmods + user_chmods
 chowns = chmods.select { |d| chown?(d) }
 chgrps = chmods.select { |d| chgrp?(d) }
-mkdirs = %w( Cellar Frameworks bin etc include lib opt sbin share var ).
+mkdirs = %w( Cellar Homebrew Frameworks bin etc include lib opt sbin share share/zsh share/zsh/site-functions var ).
              map { |d| File.join(HOMEBREW_PREFIX, d) }.reject { |d| File.directory?(d) }
 
 unless group_chmods.empty?
@@ -205,14 +205,13 @@ if File.directory? HOMEBREW_PREFIX
   sudo "/usr/bin/chgrp", "admin", *chgrps unless chgrps.empty?
 else
   sudo "/bin/mkdir", "-p", HOMEBREW_PREFIX
-  sudo "/bin/chmod", "g+rwx", HOMEBREW_PREFIX
-  # the group is set to wheel by default for some reason
-  sudo "/usr/sbin/chown", "#{ENV['USER']}:admin", HOMEBREW_PREFIX
+  sudo "/usr/sbin/chown", "root:wheel", HOMEBREW_PREFIX
 end
 
 unless mkdirs.empty?
   sudo "/bin/mkdir", "-p", *mkdirs
   sudo "/bin/chmod", "g+rwx", *mkdirs
+  sudo "/bin/chmod", "u+rwx", *zsh_dirs
   sudo "/usr/sbin/chown", ENV['USER'], *mkdirs
   sudo "/usr/bin/chgrp", "admin", *mkdirs
 end
@@ -273,13 +272,19 @@ Dir.chdir HOMEBREW_REPOSITORY do
 
     system git, "reset", "--hard", "origin/master"
 
+    system "ln", "-sf", "#{HOMEBREW_REPOSITORY}/bin/brew", "#{HOMEBREW_PREFIX}/bin/brew"
+
     system "#{HOMEBREW_PREFIX}/bin/brew", "tap", "homebrew/core"
+
+    system "#{HOMEBREW_PREFIX}/bin/brew", "update"
   else
     # -m to stop tar erroring out if it can't modify the mtime for root owned directories
     # pipefail to cause the exit status from curl to propagate if it fails
     curl_flags = "fsSL"
     core_tap = "#{HOMEBREW_PREFIX}/Library/Taps/homebrew/homebrew-core"
     system "/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} #{BREW_REPO}/tarball/master | /usr/bin/tar xz -m --strip 1'"
+
+    system "ln", "-sf", "#{HOMEBREW_REPOSITORY}/bin/brew", "#{HOMEBREW_PREFIX}/bin/brew"
 
     system "/bin/mkdir", "-p", core_tap
     Dir.chdir core_tap do
@@ -309,5 +314,14 @@ puts "  https://git.io/brew-analytics"
 if git
   Dir.chdir HOMEBREW_REPOSITORY do
     system git, "config", "--local", "--replace-all", "homebrew.analyticsmessage", "true"
+  end
+else
+  puts "Run `brew update` to complete installation by installing:"
+  if git
+    puts "#{HOMEBREW_PREFIX}/share/doc/homebrew"
+    puts "#{HOMEBREW_PREFIX}/share/man/man1/brew.1"
+    puts "#{HOMEBREW_PREFIX}/share/zsh/site-functions/_brew"
+    puts "#{HOMEBREW_PREFIX}/etc/bash_completion.d/brew"
+    puts "#{HOMEBREW_REPOSITORY}/.git"
   end
 end
