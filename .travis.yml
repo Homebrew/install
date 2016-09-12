@@ -15,3 +15,4 @@ script:
   - ./uninstall -f
   - ./install
   - brew install ack
+  - ./uninstall -f
