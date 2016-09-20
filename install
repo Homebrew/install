@@ -280,7 +280,7 @@ Dir.chdir HOMEBREW_REPOSITORY do
 
     system "#{HOMEBREW_PREFIX}/bin/brew", "tap", "homebrew/core"
 
-    system "#{HOMEBREW_PREFIX}/bin/brew", "update"
+    system "#{HOMEBREW_PREFIX}/bin/brew", "update", "--force"
   else
     # -m to stop tar erroring out if it can't modify the mtime for root owned directories
     # pipefail to cause the exit status from curl to propagate if it fails
@@ -320,7 +320,7 @@ if git
     system git, "config", "--local", "--replace-all", "homebrew.analyticsmessage", "true"
   end
 else
-  puts "Run `brew update` to complete installation by installing:"
+  puts "Run `brew update --force` to complete installation by installing:"
   if git
     puts "#{HOMEBREW_PREFIX}/share/doc/homebrew"
     puts "#{HOMEBREW_PREFIX}/share/man/man1/brew.1"
