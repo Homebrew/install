@@ -8,7 +8,7 @@
 ```
 
 More installation information and options at:
-https://github.com/Homebrew/homebrew/blob/master/share/doc/homebrew/Installation.md#installation.
+https://github.com/Homebrew/brew/blob/master/docs/Installation.md#installation.
 
 ## Uninstall Homebrew
 ```bash
