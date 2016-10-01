@@ -93,7 +93,11 @@ if $HOMEBREW_PREFIX_CANDIDATES.empty? # Attempt to locate Homebrew unless `--pat
 end
 
 HOMEBREW_PREFIX = $HOMEBREW_PREFIX_CANDIDATES.detect do |p|
-  p.directory? && (p/".git").exist? || (p/"bin/brew").executable?
+  next unless p.directory?
+  if p.to_s == "/usr/local" && File.exist?("/usr/local/Homebrew/.git")
+    next true
+  end
+  (p/".git").exist? || (p/"bin/brew").executable?
 end
 abort "Failed to locate Homebrew!" if HOMEBREW_PREFIX.nil?
 
@@ -121,7 +125,21 @@ $HOMEBREW_FILES = gitignore.split("\n").select { |line| line.start_with? "!" }.
   map { |line| line.chomp("/").gsub(%r{^!?/}, "") }.
   reject { |line| %w[bin share share/doc].include?(line) }.
   map { |p| HOMEBREW_REPOSITORY/p }
-$HOMEBREW_FILES << HOMEBREW_REPOSITORY/".git"
+if HOMEBREW_PREFIX.to_s != HOMEBREW_REPOSITORY.to_s
+  $HOMEBREW_FILES << HOMEBREW_REPOSITORY
+  $HOMEBREW_FILES += %w[
+    bin/brew
+    etc/bash_completion.d/brew
+    share/doc/homebrew
+    share/man/man1/brew.1
+    share/man/man1/brew-cask.1
+    share/zsh/site-functions/_brew
+    share/zsh/site-functions/_brew_cask
+    var/homebrew/locks/update
+  ].map { |p| HOMEBREW_PREFIX/p }
+else
+  $HOMEBREW_FILES << HOMEBREW_REPOSITORY/".git"
+end
 $HOMEBREW_FILES << HOMEBREW_CELLAR
 
 unless options[:skip_cache_and_logs]
@@ -196,8 +214,16 @@ $HOMEBREW_FILES.each do |file|
   end
 end
 
+# Invalidate sudo timestamp before exiting
+at_exit { Kernel.system "/usr/bin/sudo", "-k" }
+
+def sudo *args
+  ohai "/usr/bin/sudo", *args
+  system "/usr/bin/sudo", *args
+end
+
 ohai "Removing empty directories..." unless options[:quiet]
-paths = %W[Frameworks bin etc include lib opt sbin share var].
+paths = %W[Cellar Homebrew Frameworks bin etc include lib opt sbin share var].
   map { |p| HOMEBREW_PREFIX/p }.select(&:exist?).map(&:to_s)
 if paths.any?
   args = paths + %W[-name .DS_Store]
@@ -207,7 +233,7 @@ if paths.any?
     args << "-delete"
   end
   puts "Would delete:" if options[:dry_run]
-  system "/usr/bin/find", *args
+  sudo "/usr/bin/find", *args
   args = paths + %W[-depth -type d -empty]
   if options[:dry_run]
     args << "-print"
@@ -215,15 +241,18 @@ if paths.any?
     args += %W[-exec rmdir {} ;]
   end
   puts "Would remove directories:" if options[:dry_run]
-  system "/usr/bin/find", *args
+  sudo "/usr/bin/find", *args
 end
 
 if options[:dry_run]
   exit
 else
-  # remove HOMEBREW_REPOSITORY HOMEBREW_PREFIX if they're empty.
-  Kernel.system "rmdir #{HOMEBREW_REPOSITORY} &>/dev/null"
-  Kernel.system "rmdir #{HOMEBREW_PREFIX} &>/dev/null"
+  if HOMEBREW_PREFIX.to_s != "/usr/local" && HOMEBREW_PREFIX.exist?
+    sudo "rmdir", "#{HOMEBREW_PREFIX}"
+  end
+  if HOMEBREW_PREFIX.to_s != HOMEBREW_REPOSITORY.to_s && HOMEBREW_REPOSITORY.exist?
+    sudo "rmdir", "#{HOMEBREW_REPOSITORY}"
+  end
 end
 
 unless options[:quiet]
@@ -243,17 +272,7 @@ residual_files.uniq!
 unless residual_files.empty? || options[:quiet]
   puts "The following possible Homebrew files were not deleted:"
   residual_files.each(&:pretty_print)
-  puts "You may consider to remove them by yourself.\n"
-end
-
-if /darwin/i === RUBY_PLATFORM && HOMEBREW_PREFIX.exist? &&
-  HOMEBREW_PREFIX.to_s == "/usr/local" && !options[:quiet]
-  puts <<-EOS
-You may want to restore /usr/local's original permissions
-  sudo chmod 0755 /usr/local
-  sudo chown root:wheel /usr/local
-
-EOS
+  puts "You may wish to remove them yourself.\n"
 end
 
 exit 1 if $failed
