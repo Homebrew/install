@@ -162,8 +162,8 @@ group_chmods = %w( bin etc Frameworks include lib sbin share var
                    map { |d| File.join(HOMEBREW_PREFIX, d) }.select { |d| chmod?(d) }
 # zsh refuses to read from these directories if group writable
 zsh_dirs = %w( share/zsh share/zsh/site-functions )
-user_chmods = zsh_dirs.
-                  map { |d| File.join(HOMEBREW_PREFIX, d) }.select { |d| chmod?(d) }
+                  .map { |d| File.join(HOMEBREW_PREFIX, d) }
+user_chmods = zsh_dirs
 chmods = group_chmods + user_chmods
 chowns = chmods.select { |d| chown?(d) }
 chgrps = chmods.select { |d| chgrp?(d) }
@@ -196,6 +196,7 @@ wait_for_user if STDIN.tty? && !ENV["TRAVIS"]
 if File.directory? HOMEBREW_PREFIX
   sudo "/bin/chmod", "g+rwx", *group_chmods unless group_chmods.empty?
   sudo "/bin/chmod", "u+rwx", *user_chmods unless user_chmods.empty?
+  sudo "/bin/chmod", "g-w", *user_chmods unless user_chmods.empty?
   sudo "/usr/sbin/chown", ENV['USER'], *chowns unless chowns.empty?
   sudo "/usr/bin/chgrp", "admin", *chgrps unless chgrps.empty?
 else
@@ -206,10 +207,14 @@ end
 unless mkdirs.empty?
   sudo "/bin/mkdir", "-p", *mkdirs
   sudo "/bin/chmod", "g+rwx", *mkdirs
-  sudo "/bin/chmod", "u+rwx", *zsh_dirs
   sudo "/usr/sbin/chown", ENV['USER'], *mkdirs
   sudo "/usr/bin/chgrp", "admin", *mkdirs
+  unless user_chmods.empty?
+    sudo "/bin/chmod", "u+rwx", *user_chmods
+    sudo "/bin/chmod", "g-w", *user_chmods
+  end
 end
+
 
 sudo "/bin/mkdir", "-p", HOMEBREW_CACHE unless File.directory? HOMEBREW_CACHE
 sudo "/bin/chmod", "g+rwx", HOMEBREW_CACHE if chmod? HOMEBREW_CACHE
