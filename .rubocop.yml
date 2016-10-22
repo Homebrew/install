@@ -1,0 +1,146 @@
+AllCops:
+  TargetRubyVersion: 2.0
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/LineLength:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/ModuleLength:
+  CountComments: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+# favor parens-less DSL-style arguments
+Lint/AmbiguousOperator:
+  Enabled: false
+
+Lint/AssignmentInCondition:
+  Enabled: false
+
+Lint/EndAlignment:
+  AlignWith: variable
+
+Style/Alias:
+  EnforcedStyle: prefer_alias
+
+Style/AlignHash:
+  Enabled: false
+
+# `system` is a special case and aligns on second argument
+Style/AlignParameters:
+  Enabled: false
+
+Style/BarePercentLiterals:
+  EnforcedStyle: percent_q
+
+Style/BlockDelimiters:
+  EnforcedStyle: line_count_based
+
+Style/CaseIndentation:
+  IndentWhenRelativeTo: end
+
+Style/ClassAndModuleChildren:
+  EnforcedStyle: nested
+
+# percent-x is allowed for multiline
+Style/CommandLiteral:
+  EnforcedStyle: mixed
+
+# our current conditional style is established, clear and
+# requiring users to change that now would be confusing.
+Style/ConditionalAssignment:
+  Enabled: false
+
+Style/Documentation:
+ Enabled: false
+
+Style/EmptyLineBetweenDefs:
+  AllowAdjacentOneLineDefs: true
+
+# dashes in filenames are typical
+Style/FileName:
+  Regex: !ruby/regexp /^[\w\@\-\+\.]+(\.rb)?$/
+
+# depends_on a: :b looks weird in formulae.
+Style/HashSyntax:
+  EnforcedStyle: hash_rockets
+
+# disabled until it respects line length
+Style/IfUnlessModifier:
+  Enabled: false
+
+Style/IndentArray:
+  EnforcedStyle: special_inside_parentheses
+
+# only for numbers >= 1_000_000
+Style/NumericLiterals:
+  MinDigits: 7
+
+# zero-prefixed octal literals are just too widely used (and mostly understood)
+Style/NumericLiteralPrefix:
+  EnforcedOctalStyle: zero_only
+
+# consistency and readability when faced with string interpolation
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    '%':  '()'
+    '%i': '()'
+    '%q': '()'
+    '%Q': '()'
+    '%r': '{}'
+    '%s': '()'
+    '%w': '[]'
+    '%W': '[]'
+    '%x': '()'
+
+# we prefer Perl-style regex back references
+Style/PerlBackrefs:
+  Enabled: false
+
+Style/RaiseArgs:
+  EnforcedStyle: exploded
+
+# paths abound, easy escape
+Style/RegexpLiteral:
+  EnforcedStyle: slashes
+
+# conflicts with DSL-style path concatenation with `/`
+Style/SpaceAroundOperators:
+  Enabled: false
+
+# not a problem for typical shell users
+Style/SpecialGlobalVars:
+  Enabled: false
+
+# ruby style guide favorite
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+# consistency with above
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Style/TernaryParentheses:
+  Enabled: false
+
+# makes diffs nicer
+Style/TrailingCommaInLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/VariableNumber:
+  Enabled: false
+
+Style/WordArray:
+  Enabled: false
