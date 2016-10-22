@@ -78,17 +78,24 @@ class Version
   end
 end
 
+def force_curl?
+  ARGV.include?('--force-curl')
+end
+
 def macos_version
   @macos_version ||= Version.new(`/usr/bin/sw_vers -productVersion`.chomp[/10\.\d+/])
 end
 
 def should_install_command_line_tools?
+  return false if force_curl?
   return false if macos_version < "10.9"
   developer_dir = `/usr/bin/xcode-select -print-path 2>/dev/null`.chomp
   developer_dir.empty? || !File.exist?("#{developer_dir}/usr/bin/git")
 end
 
 def git
+  return false if force_curl?
+
   @git ||= if ENV['GIT'] and File.executable? ENV['GIT']
     ENV['GIT']
   elsif Kernel.system '/usr/bin/which -s git'
@@ -229,16 +236,12 @@ if should_install_command_line_tools?
 end
 
 # Headless install may have failed, so fallback to original 'xcode-select' method
-if should_install_command_line_tools?
-  if STDIN.tty?
-    ohai "Installing the Command Line Tools (expect a GUI popup):"
-    sudo "/usr/bin/xcode-select", "--install"
-    puts "Press any key when the installation has completed."
-    getc
-    sudo "/usr/bin/xcode-select", "--switch", "/Library/Developer/CommandLineTools"
-  else
-    abort "Error: Cannot proceed with manual Command Line Tools install without user input!"
-  end
+if should_install_command_line_tools? && STDIN.tty?
+  ohai "Installing the Command Line Tools (expect a GUI popup):"
+  sudo "/usr/bin/xcode-select", "--install"
+  puts "Press any key when the installation has completed."
+  getc
+  sudo "/usr/bin/xcode-select", "--switch", "/Library/Developer/CommandLineTools"
 end
 
 abort <<-EOABORT if `/usr/bin/xcrun clang 2>&1` =~ /license/ && !$?.success?
@@ -275,7 +278,7 @@ Dir.chdir HOMEBREW_REPOSITORY do
     # -m to stop tar erroring out if it can't modify the mtime for root owned directories
     # pipefail to cause the exit status from curl to propagate if it fails
     curl_flags = "fsSL"
-    core_tap = "#{HOMEBREW_PREFIX}/Library/Taps/homebrew/homebrew-core"
+    core_tap = "#{HOMEBREW_PREFIX}/Homebrew/Library/Taps/homebrew/homebrew-core"
     system "/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} #{BREW_REPO}/tarball/master | /usr/bin/tar xz -m --strip 1'"
 
     system "ln", "-sf", "#{HOMEBREW_REPOSITORY}/bin/brew", "#{HOMEBREW_PREFIX}/bin/brew"

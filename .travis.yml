@@ -11,6 +11,8 @@ before_script:
   - sudo pkgutil --forget com.apple.pkg.CLTools_Executables
 
 script:
+  - ./uninstall -f
+  - ./install --force-curl
   - ./uninstall -d
   - ./uninstall -f
   - ./install
