@@ -13,29 +13,51 @@ options = {
 }
 
 # global status to indicate whether there is anything wrong.
-$failed = false
+@failed = false
 
-module Tty extend self
-  def blue; bold 34; end
-  def white; bold 39; end
-  def red; underline 31; end
-  def reset; escape 0; end
-  def bold n; escape "1;#{n}" end
-  def underline n; escape "4;#{n}" end
-  def escape n; "\033[#{n}m" if STDOUT.tty? end
+module Tty
+  module_function
+
+  def blue
+    bold 34
+  end
+
+  def white
+    bold 39
+  end
+
+  def red
+    underline 31
+  end
+
+  def reset
+    escape 0
+  end
+
+  def bold(n)
+    escape "1;#{n}"
+  end
+
+  def underline(n)
+    escape "4;#{n}"
+  end
+
+  def escape(n)
+    "\033[#{n}m" if STDOUT.tty?
+  end
 end
 
 class Array
   def shell_s
     cp = dup
     first = cp.shift
-    cp.map{ |arg| arg.gsub " ", "\\ " }.unshift(first) * " "
+    cp.map { |arg| arg.gsub " ", "\\ " }.unshift(first).join(" ")
   end
 end
 
 class Pathname
   def resolved_path
-    self.symlink? ? dirname+readlink : self
+    symlink? ? dirname+readlink : self
   end
 
   def /(other)
@@ -43,9 +65,9 @@ class Pathname
   end
 
   def pretty_print
-    if self.symlink?
+    if symlink?
       puts to_s + " -> " + resolved_path.to_s
-    elsif self.directory?
+    elsif directory?
       puts to_s + "/"
     else
       puts to_s
@@ -53,46 +75,60 @@ class Pathname
   end
 end
 
-def ohai *args
+def ohai(*args)
   puts "#{Tty.blue}==>#{Tty.white} #{args.shell_s}#{Tty.reset}"
 end
 
-def warn warning
+def warn(warning)
   puts "#{Tty.red}Warning#{Tty.reset}: #{warning.chomp}"
 end
 
-def system *args
-  unless Kernel.system(*args)
-    warn "Failed during: #{args.shell_s}"
-    $failed = true
-  end
+def system(*args)
+  return if Kernel.system(*args)
+  warn "Failed during: #{args.shell_s}"
+  @failed = true
 end
 
 ####################################################################### script
 
-$HOMEBREW_PREFIX_CANDIDATES=[]
+homebrew_prefix_candidates = []
 
 OptionParser.new do |opts|
   opts.banner = "Homebrew Uninstaller\nUsage: ./uninstall [options]"
   opts.summary_width = 16
-  opts.on("-pPATH", "--path=PATH", "Sets Homebrew prefix. Defaults to /usr/local.") { |p| $HOMEBREW_PREFIX_CANDIDATES << Pathname.new(p) }
-  opts.on("--skip-cache-and-logs", "Skips removal of HOMEBREW_CACHE and HOMEBREW_LOGS.") { |p| options[:skip_cache_and_logs] = true }
+  opts.on("-pPATH", "--path=PATH", "Sets Homebrew prefix. Defaults to /usr/local.") { |p| homebrew_prefix_candidates << Pathname.new(p) }
+  opts.on("--skip-cache-and-logs", "Skips removal of HOMEBREW_CACHE and HOMEBREW_LOGS.") { |_p| options[:skip_cache_and_logs] = true }
   opts.on("-f", "--force", "Uninstall without prompting.") { options[:force] = true }
   opts.on("-q", "--quiet", "Suppress all output.") { options[:quiet] = true }
   opts.on("-d", "--dry-run", "Simulate uninstall but don't remove anything.") { options[:dry_run] = true }
-  opts.on_tail("-h", "--help", "Display this message.") { puts opts; exit }
+  opts.on_tail("-h", "--help", "Display this message.") do
+    puts opts
+    exit
+  end
 end.parse!
 
-if $HOMEBREW_PREFIX_CANDIDATES.empty? # Attempt to locate Homebrew unless `--path` is passed
-  p = `brew --prefix` rescue ""
-  $HOMEBREW_PREFIX_CANDIDATES << Pathname.new(p.strip) unless p.empty?
-  p = `command -v brew` rescue `which brew` rescue ""
-  $HOMEBREW_PREFIX_CANDIDATES << Pathname.new(p.strip).dirname.parent unless p.empty?
-  $HOMEBREW_PREFIX_CANDIDATES << Pathname.new("/usr/local") # Homebrew default path
-  $HOMEBREW_PREFIX_CANDIDATES << Pathname.new("#{ENV["HOME"]}/.linuxbrew") # Linuxbrew default path
+if homebrew_prefix_candidates.empty? # Attempt to locate Homebrew unless `--path` is passed
+  prefix = begin
+    `brew --prefix`
+  rescue
+    ""
+  end
+  homebrew_prefix_candidates << Pathname.new(prefix.strip) unless prefix.empty?
+  prefix = begin
+    begin
+      `command -v brew`
+    rescue
+      `which brew`
+    end
+  rescue
+    ""
+  end
+  homebrew_prefix_candidates << Pathname.new(prefix.strip).dirname.parent unless prefix.empty?
+  homebrew_prefix_candidates << Pathname.new("/usr/local") # Homebrew default path
+  homebrew_prefix_candidates << Pathname.new("#{ENV["HOME"]}/.linuxbrew") # Linuxbrew default path
 end
 
-HOMEBREW_PREFIX = $HOMEBREW_PREFIX_CANDIDATES.detect do |p|
+HOMEBREW_PREFIX = homebrew_prefix_candidates.detect do |p|
   next unless p.directory?
   if p.to_s == "/usr/local" && File.exist?("/usr/local/Homebrew/.git")
     next true
@@ -121,13 +157,14 @@ rescue Errno::ENOENT
 end
 abort "Failed to fetch Homebrew .gitignore!" if gitignore.empty?
 
-$HOMEBREW_FILES = gitignore.split("\n").select { |line| line.start_with? "!" }.
-  map { |line| line.chomp("/").gsub(%r{^!?/}, "") }.
-  reject { |line| %w[bin share share/doc].include?(line) }.
-  map { |p| HOMEBREW_REPOSITORY/p }
+homebrew_files = gitignore.split("\n")
+                          .select { |line| line.start_with? "!" }
+                          .map { |line| line.chomp("/").gsub(%r{^!?/}, "") }
+                          .reject { |line| %w[bin share share/doc].include?(line) }
+                          .map { |p| HOMEBREW_REPOSITORY/p }
 if HOMEBREW_PREFIX.to_s != HOMEBREW_REPOSITORY.to_s
-  $HOMEBREW_FILES << HOMEBREW_REPOSITORY
-  $HOMEBREW_FILES += %w[
+  homebrew_files << HOMEBREW_REPOSITORY
+  homebrew_files += %w[
     bin/brew
     etc/bash_completion.d/brew
     share/doc/homebrew
@@ -138,12 +175,12 @@ if HOMEBREW_PREFIX.to_s != HOMEBREW_REPOSITORY.to_s
     var/homebrew/locks/update
   ].map { |p| HOMEBREW_PREFIX/p }
 else
-  $HOMEBREW_FILES << HOMEBREW_REPOSITORY/".git"
+  homebrew_files << HOMEBREW_REPOSITORY/".git"
 end
-$HOMEBREW_FILES << HOMEBREW_CELLAR
+homebrew_files << HOMEBREW_CELLAR
 
 unless options[:skip_cache_and_logs]
-  $HOMEBREW_FILES += %W[
+  homebrew_files += %W[
     #{ENV["HOME"]}/Library/Caches/Homebrew
     #{ENV["HOME"]}/Library/Logs/Homebrew
     /Library/Caches/Homebrew
@@ -153,8 +190,8 @@ unless options[:skip_cache_and_logs]
   ].map { |p| Pathname.new(p) }
 end
 
-if /darwin/i === RUBY_PLATFORM
-  $HOMEBREW_FILES += %W[
+if RUBY_PLATFORM.to_s.downcase.include? "darwin"
+  homebrew_files += %W[
     /Applications
     #{ENV["HOME"]}/Applications
   ].map { |p| Pathname.new(p) }.select(&:directory?).map do |p|
@@ -164,11 +201,11 @@ if /darwin/i === RUBY_PLATFORM
   end.flatten
 end
 
-$HOMEBREW_FILES = $HOMEBREW_FILES.select(&:exist?).sort
+homebrew_files = homebrew_files.select(&:exist?).sort
 
 unless options[:quiet]
   warn "This script #{options[:dry_run] ? "would" : "will"} remove:"
-  $HOMEBREW_FILES.each(&:pretty_print)
+  homebrew_files.each(&:pretty_print)
 end
 
 if STDIN.tty? && (!options[:force] && !options[:dry_run])
@@ -177,30 +214,32 @@ if STDIN.tty? && (!options[:force] && !options[:dry_run])
 end
 
 ohai "Removing Homebrew installation..." unless options[:quiet]
-paths = %W[Frameworks bin etc include lib opt sbin share var].
-  map { |p| HOMEBREW_PREFIX/p }.select(&:exist?).map(&:to_s)
+paths = %w[Frameworks bin etc include lib opt sbin share var]
+        .map { |p| HOMEBREW_PREFIX/p }
+        .select(&:exist?)
+        .map(&:to_s)
 if paths.any?
-  args = %W[-E] + paths + %W[-regex .*/info/([^.][^/]*\.info|dir)]
+  args = %w[-E] + paths + %w[-regex .*/info/([^.][^/]*\.info|dir)]
   if options[:dry_run]
     args << "-print"
   else
-    args += %W[-exec /bin/bash -c]
+    args += %w[-exec /bin/bash -c]
     args << "/usr/bin/install-info --delete --quiet {} \"$(dirname {})/dir\""
     args << ";"
   end
   puts "Would delete:" if options[:dry_run]
   system "/usr/bin/find", *args
-  args = paths + %W[-type l -lname */Cellar/*]
+  args = paths + %w[-type l -lname */Cellar/*]
   if options[:dry_run]
     args << "-print"
   else
-    args += %W[-exec unlink {} ;]
+    args += %w[-exec unlink {} ;]
   end
   puts "Would delete:" if options[:dry_run]
   system "/usr/bin/find", *args
 end
 
-$HOMEBREW_FILES.each do |file|
+homebrew_files.each do |file|
   if options[:dry_run]
     puts "Would delete #{file}"
   else
@@ -209,7 +248,7 @@ $HOMEBREW_FILES.each do |file|
     rescue => e
       warn "Failed to delete #{file}"
       puts e.message
-      $failed = true
+      @failed = true
     end
   end
 end
@@ -217,16 +256,18 @@ end
 # Invalidate sudo timestamp before exiting
 at_exit { Kernel.system "/usr/bin/sudo", "-k" }
 
-def sudo *args
+def sudo(*args)
   ohai "/usr/bin/sudo", *args
   system "/usr/bin/sudo", *args
 end
 
 ohai "Removing empty directories..." unless options[:quiet]
-paths = %W[Cellar Homebrew Frameworks bin etc include lib opt sbin share var].
-  map { |p| HOMEBREW_PREFIX/p }.select(&:exist?).map(&:to_s)
+paths = %w[Cellar Homebrew Frameworks bin etc include lib opt sbin share var]
+        .map { |p| HOMEBREW_PREFIX/p }
+        .select(&:exist?)
+        .map(&:to_s)
 if paths.any?
-  args = paths + %W[-name .DS_Store]
+  args = paths + %w[-name .DS_Store]
   if options[:dry_run]
     args << "-print"
   else
@@ -234,11 +275,11 @@ if paths.any?
   end
   puts "Would delete:" if options[:dry_run]
   sudo "/usr/bin/find", *args
-  args = paths + %W[-depth -type d -empty]
+  args = paths + %w[-depth -type d -empty]
   if options[:dry_run]
     args << "-print"
   else
-    args += %W[-exec rmdir {} ;]
+    args += %w[-exec rmdir {} ;]
   end
   puts "Would remove directories:" if options[:dry_run]
   sudo "/usr/bin/find", *args
@@ -248,15 +289,15 @@ if options[:dry_run]
   exit
 else
   if HOMEBREW_PREFIX.to_s != "/usr/local" && HOMEBREW_PREFIX.exist?
-    sudo "rmdir", "#{HOMEBREW_PREFIX}"
+    sudo "rmdir", HOMEBREW_PREFIX.to_s
   end
   if HOMEBREW_PREFIX.to_s != HOMEBREW_REPOSITORY.to_s && HOMEBREW_REPOSITORY.exist?
-    sudo "rmdir", "#{HOMEBREW_REPOSITORY}"
+    sudo "rmdir", HOMEBREW_REPOSITORY.to_s
   end
 end
 
 unless options[:quiet]
-  if $failed
+  if @failed
     warn "Homebrew partially uninstalled (but there were steps that failed)!"
     puts "To finish uninstalling rerun this script with `sudo`."
   else
@@ -275,4 +316,4 @@ unless residual_files.empty? || options[:quiet]
   puts "You may wish to remove them yourself.\n"
 end
 
-exit 1 if $failed
+exit 1 if @failed
