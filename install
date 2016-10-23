@@ -192,9 +192,9 @@ group_chmods = %w[ bin etc Frameworks include lib sbin share var
                .map { |d| File.join(HOMEBREW_PREFIX, d) }
                .select { |d| chmod?(d) }
 # zsh refuses to read from these directories if group writable
-zsh_dirs = %w( share/zsh share/zsh/site-functions )
-                  .map { |d| File.join(HOMEBREW_PREFIX, d) }
-                  .select { |d| chmod?(d) }
+zsh_dirs = %w[share/zsh share/zsh/site-functions]
+           .map { |d| File.join(HOMEBREW_PREFIX, d) }
+           .select { |d| chmod?(d) }
 user_chmods = zsh_dirs
 chmods = group_chmods + user_chmods
 chowns = chmods.select { |d| chown?(d) }
