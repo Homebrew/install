@@ -142,8 +142,8 @@ def user_only_chmod?(d)
   mode = File.stat(d).mode & 0b111_111_111
   # u = (mode >> 6) & 0b111
   # g = (mode >> 3) & 0b111
-  # o = (mode >> 0) & 0b111 
-  return mode != 0o755
+  # o = (mode >> 0) & 0b111
+  mode != 0755
 end
 
 def chmod?(d)
