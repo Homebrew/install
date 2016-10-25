@@ -139,10 +139,10 @@ end
 
 def user_only_chmod?(d)
   return false unless File.directory?(d)
-  mode = File.stat(d).mode & 0b111_111_111
-  # u = (mode >> 6) & 0b111
-  # g = (mode >> 3) & 0b111
-  # o = (mode >> 0) & 0b111
+  mode = File.stat(d).mode & 0777
+  # u = (mode >> 6) & 07
+  # g = (mode >> 3) & 07
+  # o = (mode >> 0) & 07
   mode != 0755
 end
 
