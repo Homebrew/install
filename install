@@ -137,6 +137,15 @@ def git
   @git
 end
 
+def user_only_chmod?(d)
+  return false unless File.directory?(d)
+  mode = File.stat(d).mode & 0777
+  # u = (mode >> 6) & 07
+  # g = (mode >> 3) & 07
+  # o = (mode >> 0) & 07
+  mode != 0755
+end
+
 def chmod?(d)
   File.directory?(d) && !(File.readable?(d) && File.writable?(d) && File.executable?(d))
 end
@@ -193,9 +202,8 @@ group_chmods = %w[ bin etc Frameworks include lib sbin share var
                .select { |d| chmod?(d) }
 # zsh refuses to read from these directories if group writable
 zsh_dirs = %w[share/zsh share/zsh/site-functions]
-user_chmods = zsh_dirs
-              .map { |d| File.join(HOMEBREW_PREFIX, d) }
-              .select { |d| chmod?(d) }
+           .map { |d| File.join(HOMEBREW_PREFIX, d) }
+user_chmods = zsh_dirs.select { |d| user_only_chmod?(d) }
 chmods = group_chmods + user_chmods
 chowns = chmods.select { |d| chown?(d) }
 chgrps = chmods.select { |d| chgrp?(d) }
@@ -208,7 +216,7 @@ unless group_chmods.empty?
   puts(*group_chmods)
 end
 unless user_chmods.empty?
-  ohai "The following existing directories will be made writable:"
+  ohai "The following existing directories will be made writable by user only:"
   puts(*user_chmods)
 end
 unless chowns.empty?
@@ -228,7 +236,7 @@ wait_for_user if STDIN.tty? && !ENV["TRAVIS"]
 
 if File.directory? HOMEBREW_PREFIX
   sudo "/bin/chmod", "g+rwx", *group_chmods unless group_chmods.empty?
-  sudo "/bin/chmod", "u+rwx", *user_chmods unless user_chmods.empty?
+  sudo "/bin/chmod", "755", *user_chmods unless user_chmods.empty?
   sudo "/usr/sbin/chown", ENV["USER"], *chowns unless chowns.empty?
   sudo "/usr/bin/chgrp", "admin", *chgrps unless chgrps.empty?
 else
@@ -239,7 +247,7 @@ end
 unless mkdirs.empty?
   sudo "/bin/mkdir", "-p", *mkdirs
   sudo "/bin/chmod", "g+rwx", *mkdirs
-  sudo "/bin/chmod", "u+rwx", *zsh_dirs
+  sudo "/bin/chmod", "755", *zsh_dirs
   sudo "/usr/sbin/chown", ENV["USER"], *mkdirs
   sudo "/usr/bin/chgrp", "admin", *mkdirs
 end
