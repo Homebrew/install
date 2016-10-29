@@ -197,19 +197,19 @@ group_chmods = %w[ bin etc Frameworks include lib sbin share var
                    etc/bash_completion.d lib/pkgconfig var/log
                    share/aclocal share/doc share/info share/locale share/man
                    share/man/man1 share/man/man2 share/man/man3 share/man/man4
-                   share/man/man5 share/man/man6 share/man/man7 share/man/man8]
-               .map { |d| File.join(HOMEBREW_PREFIX, d) }
-               .select { |d| chmod?(d) }
+                   share/man/man5 share/man/man6 share/man/man7 share/man/man8].
+               map { |d| File.join(HOMEBREW_PREFIX, d) }.
+               select { |d| chmod?(d) }
 # zsh refuses to read from these directories if group writable
-zsh_dirs = %w[share/zsh share/zsh/site-functions]
-           .map { |d| File.join(HOMEBREW_PREFIX, d) }
+zsh_dirs = %w[share/zsh share/zsh/site-functions].
+           map { |d| File.join(HOMEBREW_PREFIX, d) }
 user_chmods = zsh_dirs.select { |d| user_only_chmod?(d) }
 chmods = group_chmods + user_chmods
 chowns = chmods.select { |d| chown?(d) }
 chgrps = chmods.select { |d| chgrp?(d) }
-mkdirs = %w[Cellar Homebrew Frameworks bin etc include lib opt sbin share share/zsh share/zsh/site-functions var]
-         .map { |d| File.join(HOMEBREW_PREFIX, d) }
-         .reject { |d| File.directory?(d) }
+mkdirs = %w[Cellar Homebrew Frameworks bin etc include lib opt sbin share share/zsh share/zsh/site-functions var].
+         map { |d| File.join(HOMEBREW_PREFIX, d) }.
+         reject { |d| File.directory?(d) }
 
 unless group_chmods.empty?
   ohai "The following existing directories will be made group writable:"
