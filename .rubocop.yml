@@ -1,5 +1,10 @@
-AllCops:
-  TargetRubyVersion: 2.0
+# Ruby 1.8 compatibility (for OS X < 10.10)
+Style/DotPosition:
+  EnforcedStyle: trailing
+Style/HashSyntax:
+  EnforcedStyle: hash_rockets
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: no_comma
 
 Metrics/AbcSize:
   Enabled: false
@@ -73,10 +78,6 @@ Style/EmptyLineBetweenDefs:
 Style/FileName:
   Regex: !ruby/regexp /^[\w\@\-\+\.]+(\.rb)?$/
 
-# depends_on a: :b looks weird in formulae.
-Style/HashSyntax:
-  EnforcedStyle: hash_rockets
-
 # disabled until it respects line length
 Style/IfUnlessModifier:
   Enabled: false
@@ -134,10 +135,6 @@ Style/StringLiteralsInInterpolation:
 
 Style/TernaryParentheses:
   Enabled: false
-
-# makes diffs nicer
-Style/TrailingCommaInLiteral:
-  EnforcedStyleForMultiline: comma
 
 Style/VariableNumber:
   Enabled: false

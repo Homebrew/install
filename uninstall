@@ -9,7 +9,7 @@ options = {
   :force => false,
   :quiet => false,
   :dry_run => false,
-  :skip_cache_and_logs => false,
+  :skip_cache_and_logs => false
 }
 
 # global status to indicate whether there is anything wrong.
@@ -157,11 +157,11 @@ rescue Errno::ENOENT
 end
 abort "Failed to fetch Homebrew .gitignore!" if gitignore.empty?
 
-homebrew_files = gitignore.split("\n")
-                          .select { |line| line.start_with? "!" }
-                          .map { |line| line.chomp("/").gsub(%r{^!?/}, "") }
-                          .reject { |line| %w[bin share share/doc].include?(line) }
-                          .map { |p| HOMEBREW_REPOSITORY/p }
+homebrew_files = gitignore.split("\n").
+                 select { |line| line.start_with? "!" }.
+                 map { |line| line.chomp("/").gsub(%r{^!?/}, "") }.
+                 reject { |line| %w[bin share share/doc].include?(line) }.
+                 map { |p| HOMEBREW_REPOSITORY/p }
 if HOMEBREW_PREFIX.to_s != HOMEBREW_REPOSITORY.to_s
   homebrew_files << HOMEBREW_REPOSITORY
   homebrew_files += %w[
@@ -214,10 +214,10 @@ if STDIN.tty? && (!options[:force] && !options[:dry_run])
 end
 
 ohai "Removing Homebrew installation..." unless options[:quiet]
-paths = %w[Frameworks bin etc include lib opt sbin share var]
-        .map { |p| HOMEBREW_PREFIX/p }
-        .select(&:exist?)
-        .map(&:to_s)
+paths = %w[Frameworks bin etc include lib opt sbin share var].
+        map { |p| HOMEBREW_PREFIX/p }.
+        select(&:exist?).
+        map(&:to_s)
 if paths.any?
   args = %w[-E] + paths + %w[-regex .*/info/([^.][^/]*\.info|dir)]
   if options[:dry_run]
@@ -262,10 +262,10 @@ def sudo(*args)
 end
 
 ohai "Removing empty directories..." unless options[:quiet]
-paths = %w[Cellar Homebrew Frameworks bin etc include lib opt sbin share var]
-        .map { |p| HOMEBREW_PREFIX/p }
-        .select(&:exist?)
-        .map(&:to_s)
+paths = %w[Cellar Homebrew Frameworks bin etc include lib opt sbin share var].
+        map { |p| HOMEBREW_PREFIX/p }.
+        select(&:exist?).
+        map(&:to_s)
 if paths.any?
   args = paths + %w[-name .DS_Store]
   if options[:dry_run]
