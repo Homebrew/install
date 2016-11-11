@@ -158,8 +158,9 @@ def chgrp?(d)
   !File.grpowned?(d)
 end
 
-# Invalidate sudo timestamp before exiting
-at_exit { Kernel.system "/usr/bin/sudo", "-k" }
+# Invalidate sudo timestamp before exiting (if it wasn't active before).
+Kernel.system "/usr/bin/sudo -n -v 2>/dev/null"
+at_exit { Kernel.system "/usr/bin/sudo", "-k" } unless $?.success?
 
 # The block form of Dir.chdir fails later if Dir.CWD doesn't exist which I
 # guess is fair enough. Also sudo prints a warning message for no good reason
