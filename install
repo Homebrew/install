@@ -64,6 +64,7 @@ def system(*args)
 end
 
 def sudo(*args)
+  args.unshift("-A") unless ENV["SUDO_ASKPASS"].nil?
   ohai "/usr/bin/sudo", *args
   system "/usr/bin/sudo", *args
 end
