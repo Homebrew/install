@@ -22,24 +22,16 @@ module Tty
     bold 34
   end
 
-  def white
-    bold 39
-  end
-
   def red
-    underline 31
+    bold 31
   end
 
   def reset
     escape 0
   end
 
-  def bold(n)
+  def bold(n = 39)
     escape "1;#{n}"
-  end
-
-  def underline(n)
-    escape "4;#{n}"
   end
 
   def escape(n)
@@ -76,7 +68,7 @@ class Pathname
 end
 
 def ohai(*args)
-  puts "#{Tty.blue}==>#{Tty.white} #{args.shell_s}#{Tty.reset}"
+  puts "#{Tty.blue}==>#{Tty.bold} #{args.shell_s}#{Tty.reset}"
 end
 
 def warn(warning)
