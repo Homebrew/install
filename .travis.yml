@@ -7,7 +7,7 @@ rvm: system
 # Remove Xcode and CommandLineTools included in default macOS image.
 # This ensures the Command Line Tool install functionality is tested.
 before_script:
-  - sudo rm -rf /Applications/Xcode.app /Library/Developer/CommandLineTools
+  - travis_wait sudo rm -rf /Applications/Xcode.app /Library/Developer/CommandLineTools
   - sudo pkgutil --forget com.apple.pkg.CLTools_Executables
   - sudo gem install rubocop
 
