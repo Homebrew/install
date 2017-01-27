@@ -170,6 +170,7 @@ else
   homebrew_files << HOMEBREW_REPOSITORY/".git"
 end
 homebrew_files << HOMEBREW_CELLAR
+homebrew_files << HOMEBREW_PREFIX/"Caskroom"
 
 unless options[:skip_cache_and_logs]
   homebrew_files += %W[
