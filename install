@@ -335,7 +335,7 @@ print "\a"
 ohai "Homebrew has enabled anonymous aggregate user behaviour analytics."
 puts <<-EOS
 #{Tty.bold}Read the analytics documentation (and how to opt-out) here:
-  #{Tty.underline}https://git.io/brew-analytics#{Tty.reset}
+  #{Tty.underline}http://docs.brew.sh/Analytics.html#{Tty.reset}
 
 EOS
 
