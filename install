@@ -370,4 +370,4 @@ end
 
 puts "- Run `brew help` to get started"
 puts "- Further documentation: "
-puts "    #{Tty.underline}https://git.io/brew-docs#{Tty.reset}"
+puts "    #{Tty.underline}http://docs.brew.sh#{Tty.reset}"
