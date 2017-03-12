@@ -7,8 +7,7 @@
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
 
-More installation information and options at:
-https://github.com/Homebrew/brew/blob/master/docs/Installation.md#installation.
+More installation information and options at http://docs.brew.sh/Installation.html.
 
 ## Uninstall Homebrew
 ```bash
