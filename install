@@ -297,8 +297,7 @@ Dir.chdir HOMEBREW_REPOSITORY do
     # ensure we don't munge line endings on checkout
     system git, "config", "core.autocrlf", "false"
 
-    args = git, "fetch", "origin", "master:refs/remotes/origin/master",
-           "--tags", "--force"
+    args = git, "fetch", "origin", "master:refs/remotes/origin/master", "--force"
     args << "--depth=1" unless ARGV.include?("--full") || !ENV["HOMEBREW_DEVELOPER"].nil?
     system(*args)
 
