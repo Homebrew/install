@@ -1,5 +1,5 @@
 # Ruby 1.8 compatibility (for OS X < 10.10)
-Style/DotPosition:
+Layout/DotPosition:
   EnforcedStyle: trailing
 Style/HashSyntax:
   EnforcedStyle: hash_rockets
@@ -40,11 +40,11 @@ Lint/EndAlignment:
 Style/Alias:
   EnforcedStyle: prefer_alias
 
-Style/AlignHash:
+Layout/AlignHash:
   Enabled: false
 
 # `system` is a special case and aligns on second argument
-Style/AlignParameters:
+Layout/AlignParameters:
   Enabled: false
 
 Style/BarePercentLiterals:
@@ -53,7 +53,7 @@ Style/BarePercentLiterals:
 Style/BlockDelimiters:
   EnforcedStyle: line_count_based
 
-Style/CaseIndentation:
+Layout/CaseIndentation:
   EnforcedStyle: end
 
 Style/ClassAndModuleChildren:
@@ -71,7 +71,7 @@ Style/ConditionalAssignment:
 Style/Documentation:
  Enabled: false
 
-Style/EmptyLineBetweenDefs:
+Layout/EmptyLineBetweenDefs:
   AllowAdjacentOneLineDefs: true
 
 # dashes in filenames are typical
@@ -82,7 +82,7 @@ Style/FileName:
 Style/IfUnlessModifier:
   Enabled: false
 
-Style/IndentArray:
+Layout/IndentArray:
   EnforcedStyle: special_inside_parentheses
 
 # only for numbers >= 1_000_000
@@ -118,7 +118,7 @@ Style/RegexpLiteral:
   EnforcedStyle: slashes
 
 # conflicts with DSL-style path concatenation with `/`
-Style/SpaceAroundOperators:
+Layout/SpaceAroundOperators:
   Enabled: false
 
 # not a problem for typical shell users
@@ -140,4 +140,8 @@ Style/VariableNumber:
   Enabled: false
 
 Style/WordArray:
+  Enabled: false
+
+# don't have a helper in install/uninstall
+Layout/IndentHeredoc:
   Enabled: false
