@@ -202,7 +202,7 @@ unless options[:quiet]
 end
 
 if STDIN.tty? && (!options[:force] && !options[:dry_run])
-  STDERR.print "Are you sure you want to uninstall Homebrew? [y/N] "
+  STDERR.print "Are you sure you want to uninstall Homebrew? This will remove your installed packages! [y/N] "
   abort unless gets.rstrip =~ /y|yes/i
 end
 
