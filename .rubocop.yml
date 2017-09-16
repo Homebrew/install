@@ -3,6 +3,8 @@ Layout/DotPosition:
   EnforcedStyle: trailing
 Style/HashSyntax:
   EnforcedStyle: hash_rockets
+Style/SymbolProc:
+  Enabled: false
 Style/TrailingCommaInArguments:
   EnforcedStyleForMultiline: no_comma
 
@@ -75,7 +77,7 @@ Layout/EmptyLineBetweenDefs:
   AllowAdjacentOneLineDefs: true
 
 # dashes in filenames are typical
-Style/FileName:
+Naming/FileName:
   Regex: !ruby/regexp /^[\w\@\-\+\.]+(\.rb)?$/
 
 # disabled until it respects line length
@@ -136,7 +138,7 @@ Style/StringLiteralsInInterpolation:
 Style/TernaryParentheses:
   Enabled: false
 
-Style/VariableNumber:
+Naming/VariableNumber:
   Enabled: false
 
 Style/WordArray:
@@ -144,4 +146,10 @@ Style/WordArray:
 
 # don't have a helper in install/uninstall
 Layout/IndentHeredoc:
+  Enabled: false
+
+Lint/RescueWithoutErrorClass:
+  Enabled: false
+
+Naming/HeredocDelimiterNaming:
   Enabled: false
