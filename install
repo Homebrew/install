@@ -91,7 +91,7 @@ class Version
   attr_reader :parts
 
   def initialize(str)
-    @parts = str.split(".").map(&:to_i)
+    @parts = str.split(".").map { |p| p.to_i }
   end
 
   def <=>(other)
@@ -167,7 +167,7 @@ Dir.chdir "/usr"
 
 ####################################################################### script
 abort "See Linuxbrew: http://linuxbrew.sh/" if RUBY_PLATFORM.to_s.downcase.include?("linux")
-abort "MacOS too old, see: https://github.com/mistydemeo/tigerbrew" if macos_version < "10.6"
+abort "Mac OS X too old, see: https://github.com/mistydemeo/tigerbrew" if macos_version < "10.5"
 abort "Don't run this as root!" if Process.uid.zero?
 abort <<-EOABORT unless `dsmemberutil checkmembership -U "#{ENV["USER"]}" -G admin`.include? "user is a member"
 This script requires the user #{ENV["USER"]} to be an Administrator.
@@ -311,6 +311,7 @@ Dir.chdir HOMEBREW_REPOSITORY do
     # -m to stop tar erroring out if it can't modify the mtime for root owned directories
     # pipefail to cause the exit status from curl to propagate if it fails
     curl_flags = "fsSL"
+    curl_flags += "k" if macos_version < "10.6"
     core_tap = "#{HOMEBREW_PREFIX}/Homebrew/Library/Taps/homebrew/homebrew-core"
     system "/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} #{BREW_REPO}/tarball/master | /usr/bin/tar xz -m --strip 1'"
 
