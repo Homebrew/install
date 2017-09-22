@@ -299,7 +299,6 @@ Dir.chdir HOMEBREW_REPOSITORY do
 
     args = git, "fetch", "origin", "master:refs/remotes/origin/master",
            "--tags", "--force"
-    args << "--depth=1" unless ARGV.include?("--full") || !ENV["HOMEBREW_DEVELOPER"].nil?
     system(*args)
 
     system git, "reset", "--hard", "origin/master"
