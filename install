@@ -284,6 +284,10 @@ Xcode.app or running:
     sudo xcodebuild -license
 EOABORT
 
+[HOMEBREW_REPOSITORY].each do |hbr|
+  sudo "/usr/sbin/chown", ENV["USER"], hbr if chown? hbr
+end
+
 ohai "Downloading and installing Homebrew..."
 Dir.chdir HOMEBREW_REPOSITORY do
   if git
@@ -303,7 +307,7 @@ Dir.chdir HOMEBREW_REPOSITORY do
 
     system git, "reset", "--hard", "origin/master"
 
-    system "ln", "-sf", "#{HOMEBREW_REPOSITORY}/bin/brew", "#{HOMEBREW_PREFIX}/bin/brew"
+    system "ln", "-sf", "#{HOMEBREW_REPOSITORY}/bin/brew", "#{HOMEBREW_PREFIX}/bin/brew" if "#{HOMEBREW_REPOSITORY}" != "#{HOMEBREW_PREFIX}"
 
     system "#{HOMEBREW_PREFIX}/bin/brew", "update", "--force"
   else
