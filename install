@@ -227,6 +227,9 @@ unless mkdirs.empty?
   ohai "The following new directories will be created:"
   puts(*mkdirs)
 end
+if should_install_command_line_tools?
+  ohai "The Xcode Command Line Tools will be installed."
+end
 
 wait_for_user if STDIN.tty? && !ENV["TRAVIS"]
 
