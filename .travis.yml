@@ -1,7 +1,7 @@
 language: ruby
 os: osx
-osx_image: xcode8.3
-rvm: system
+osx_image: xcode9.0
+rvm: 2.3.3
 
 # Remove Xcode and CommandLineTools included in default macOS image.
 # This ensures the Command Line Tool install functionality is tested.
