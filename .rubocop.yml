@@ -148,7 +148,7 @@ Style/WordArray:
 Layout/IndentHeredoc:
   Enabled: false
 
-Lint/RescueWithoutErrorClass:
+Style/RescueStandardError:
   Enabled: false
 
 Naming/HeredocDelimiterNaming:
