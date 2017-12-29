@@ -110,8 +110,8 @@ end
 def should_install_command_line_tools?
   return false if force_curl?
   return false if macos_version < "10.9"
-  developer_dir = `/usr/bin/xcode-select -print-path 2>/dev/null`.chomp
-  developer_dir.empty? || !File.exist?("#{developer_dir}/usr/bin/git")
+  !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git") ||
+    !File.exist?("/usr/include/iconv.h")
 end
 
 def git
