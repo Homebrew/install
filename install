@@ -295,13 +295,13 @@ Dir.chdir HOMEBREW_REPOSITORY do
 
     # "git remote add" will fail if the remote is defined in the global config
     system git, "config", "remote.origin.url", BREW_REPO
-    system git, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*"
+    system git, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*", "--depth=1"
 
     # ensure we don't munge line endings on checkout
     system git, "config", "core.autocrlf", "false"
 
     args = git, "fetch", "origin", "master:refs/remotes/origin/master",
-           "--tags", "--force"
+           "--tags", "--force", "--depth=1"
     system(*args)
 
     system git, "reset", "--hard", "origin/master"
