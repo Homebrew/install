@@ -313,7 +313,7 @@ Dir.chdir HOMEBREW_REPOSITORY do
     # -m to stop tar erroring out if it can't modify the mtime for root owned directories
     # pipefail to cause the exit status from curl to propagate if it fails
     curl_flags = "fsSL"
-    curl_flags += "k" if macos_version < "10.6"
+    curl_flags += "k" if macos_version <= "10.7"
     core_tap = "#{HOMEBREW_PREFIX}/Homebrew/Library/Taps/homebrew/homebrew-core"
     system "/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} #{BREW_REPO}/tarball/master | /usr/bin/tar xz -m --strip 1'"
 
