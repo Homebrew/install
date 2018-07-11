@@ -9,6 +9,11 @@ HOMEBREW_OLD_CACHE = "/Library/Caches/Homebrew".freeze
 BREW_REPO = "https://github.com/Homebrew/brew".freeze
 CORE_TAP_REPO = "https://github.com/Homebrew/homebrew-core".freeze
 
+# TODO: bump version when new macOS is released
+MACOS_LATEST_SUPPORTED = "10.13".freeze
+# TODO: bump version when new macOS is released
+MACOS_OLDEST_SUPPORTED = "10.11".freeze
+
 # no analytics during installation
 ENV["HOMEBREW_NO_ANALYTICS_THIS_RUN"] = "1"
 ENV["HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT"] = "1"
@@ -184,6 +189,32 @@ not intentional, please restore the default permissions and try running the
 installer again:
     sudo chmod 775 #{HOMEBREW_PREFIX}
 EOABORT
+
+# TODO: bump version when new macOS is released
+if macos_version > MACOS_LATEST_SUPPORTED ||
+   macos_version < MACOS_OLDEST_SUPPORTED
+
+  who = "We"
+  if macos_version > MACOS_LATEST_SUPPORTED
+    what = "pre-release version"
+  elsif macos_version < MACOS_OLDEST_SUPPORTED
+    who << " (and Apple)"
+    what = "old version"
+  else
+    return
+  end
+  ohai "You are using macOS #{macos_version.parts.join(".")}."
+  ohai "#{who} do not provide support for this #{what}."
+
+  puts <<-EOS
+This installation may not succeed.
+After installation, you will encounter build failures and other breakages.
+Please create pull-requests instead of asking for help on Homebrew's
+GitHub, Discourse, Twitter or IRC. As you are running this #{what},
+you are responsible for resolving any issues you experience.
+
+  EOS
+end
 
 ohai "This script will install:"
 puts "#{HOMEBREW_PREFIX}/bin/brew"
