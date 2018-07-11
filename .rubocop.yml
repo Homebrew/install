@@ -36,7 +36,7 @@ Lint/AmbiguousOperator:
 Lint/AssignmentInCondition:
   Enabled: false
 
-Lint/EndAlignment:
+Layout/EndAlignment:
   EnforcedStyleAlignWith: variable
 
 Style/Alias:
@@ -152,4 +152,7 @@ Style/RescueStandardError:
   Enabled: false
 
 Naming/HeredocDelimiterNaming:
+  Enabled: false
+
+Naming/UncommunicativeMethodParamName:
   Enabled: false
