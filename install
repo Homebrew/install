@@ -304,6 +304,11 @@ if should_install_command_line_tools?
   sudo "/usr/sbin/softwareupdate", "-i", clt_label
   sudo "/bin/rm", "-f", clt_placeholder
   sudo "/usr/bin/xcode-select", "--switch", "/Library/Developer/CommandLineTools"
+  
+  if macos_version > "10.13"
+    # Tell CLT to install header files to /usr/include
+    sudo "installer", "-pkg", "/Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg", "-target", "/"
+  end
 end
 
 # Headless install may have failed, so fallback to original 'xcode-select' method
