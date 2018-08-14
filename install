@@ -377,6 +377,11 @@ puts <<-EOS
 
 EOS
 
+ohai "Homebrew is run entirely by unpaid volunteers. Please consider donating:"
+puts <<-EOS
+  #{Tty.underline}https://github.com/Homebrew/brew#donations#{Tty.reset}
+EOS
+
 if git
   Dir.chdir HOMEBREW_REPOSITORY do
     system git, "config", "--local", "--replace-all", "homebrew.analyticsmessage", "true"
