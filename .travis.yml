@@ -19,3 +19,7 @@ script:
   - ./install
   - brew install ack
   - ./uninstall -f
+
+branches:
+  only:
+    - master
