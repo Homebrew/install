@@ -385,6 +385,7 @@ EOS
 if git
   Dir.chdir HOMEBREW_REPOSITORY do
     system git, "config", "--local", "--replace-all", "homebrew.analyticsmessage", "true"
+    system git, "config", "--local", "--replace-all", "homebrew.caskanalyticsmessage", "true"
   end
 end
 
