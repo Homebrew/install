@@ -18,6 +18,8 @@ MACOS_OLDEST_SUPPORTED = "10.11".freeze
 ENV["HOMEBREW_NO_ANALYTICS_THIS_RUN"] = "1"
 ENV["HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT"] = "1"
 
+FORCE_NO_INSTALL_COMMAND_LINE_TOOLS = ENV["NO_CLI"] === "true"
+
 module Tty
   module_function
 
@@ -113,6 +115,7 @@ def macos_version
 end
 
 def should_install_command_line_tools?
+  return false if FORCE_NO_INSTALL_COMMAND_LINE_TOOLS
   return false if force_curl?
   return false if macos_version < "10.9"
   if macos_version > "10.13"
