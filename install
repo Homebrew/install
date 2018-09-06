@@ -224,23 +224,31 @@ puts "#{HOMEBREW_PREFIX}/share/zsh/site-functions/_brew"
 puts "#{HOMEBREW_PREFIX}/etc/bash_completion.d/brew"
 puts HOMEBREW_REPOSITORY.to_s
 
-group_chmods = %w[ bin bin/brew etc Frameworks include lib sbin share var
-                   etc/bash_completion.d lib/pkgconfig var/log
-                   share/aclocal share/doc share/info share/locale share/man
-                   share/man/man1 share/man/man2 share/man/man3 share/man/man4
-                   share/man/man5 share/man/man6 share/man/man7 share/man/man8].
+# Keep relatively in sync with
+# https://github.com/Homebrew/brew/blob/master/Library/Homebrew/keg.rb
+group_chmods = %w[bin etc include lib sbin share opt var
+                  Frameworks
+                  etc/bash_completion.d lib/pkgconfig
+                  share/aclocal share/doc share/info share/locale share/man
+                  share/man/man1 share/man/man2 share/man/man3 share/man/man4
+                  share/man/man5 share/man/man6 share/man/man7 share/man/man8
+                  var/log
+                  bin/brew].
                map { |d| File.join(HOMEBREW_PREFIX, d) }.
                select { |d| chmod?(d) }
 # zsh refuses to read from these directories if group writable
 zsh_dirs = %w[share/zsh share/zsh/site-functions].
            map { |d| File.join(HOMEBREW_PREFIX, d) }
+mkdirs = %w[bin etc include lib sbin share var opt
+            share/zsh share/zsh/site-functions
+            Cellar Caskroom Homebrew Frameworks].
+         map { |d| File.join(HOMEBREW_PREFIX, d) }.
+         reject { |d| File.directory?(d) }
+
 user_chmods = zsh_dirs.select { |d| user_only_chmod?(d) }
 chmods = group_chmods + user_chmods
 chowns = chmods.select { |d| chown?(d) }
 chgrps = chmods.select { |d| chgrp?(d) }
-mkdirs = %w[Cellar Homebrew Frameworks bin etc include lib opt sbin share share/zsh share/zsh/site-functions var].
-         map { |d| File.join(HOMEBREW_PREFIX, d) }.
-         reject { |d| File.directory?(d) }
 
 unless group_chmods.empty?
   ohai "The following existing directories will be made group writable:"
