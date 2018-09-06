@@ -164,7 +164,7 @@ if HOMEBREW_PREFIX.to_s != HOMEBREW_REPOSITORY.to_s
     share/man/man1/brew-cask.1
     share/zsh/site-functions/_brew
     share/zsh/site-functions/_brew_cask
-    var/homebrew/locks/update
+    var/homebrew
   ].map { |p| HOMEBREW_PREFIX/p }
 else
   homebrew_files << HOMEBREW_REPOSITORY/".git"
@@ -255,7 +255,8 @@ def sudo(*args)
 end
 
 ohai "Removing empty directories..." unless options[:quiet]
-paths = %w[Cellar Homebrew Frameworks bin etc include lib opt sbin share var].
+paths = %w[bin etc include lib opt sbin share var
+           Caskroom Cellar Homebrew Frameworks].
         map { |p| HOMEBREW_PREFIX/p }.
         select(&:exist?).
         map(&:to_s)
