@@ -8,10 +8,9 @@ rvm: system
 before_script:
   - travis_wait sudo rm -rf /Applications/Xcode.app /Library/Developer/CommandLineTools
   - sudo pkgutil --forget com.apple.pkg.CLTools_Executables
-  - sudo gem install rubocop
 
 script:
-  - rubocop
+  - bundle exec rubocop
   - ./uninstall -d
   - ./uninstall -f
   - ./install --force-curl
