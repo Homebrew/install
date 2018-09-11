@@ -1,5 +1,6 @@
 #!/System/Library/Frameworks/Ruby.framework/Versions/Current/usr/bin/ruby
 
+require "English"
 require "fileutils"
 require "optparse"
 require "pathname"
@@ -30,12 +31,12 @@ module Tty
     escape 0
   end
 
-  def bold(n = 39)
-    escape "1;#{n}"
+  def bold(code = 39)
+    escape "1;#{code}"
   end
 
-  def escape(n)
-    "\033[#{n}m" if STDOUT.tty?
+  def escape(code)
+    "\033[#{code}m" if STDOUT.tty?
   end
 end
 
@@ -77,6 +78,7 @@ end
 
 def system(*args)
   return if Kernel.system(*args)
+
   warn "Failed during: #{args.shell_s}"
   @failed = true
 end
@@ -100,31 +102,34 @@ OptionParser.new do |opts|
 end.parse!
 
 if homebrew_prefix_candidates.empty? # Attempt to locate Homebrew unless `--path` is passed
-  prefix = begin
-    `brew --prefix`
-  rescue
-    ""
-  end
-  homebrew_prefix_candidates << Pathname.new(prefix.strip) unless prefix.empty?
-  prefix = begin
+  prefix =
     begin
-      `command -v brew`
+      `brew --prefix`
     rescue
-      `which brew`
+      ""
     end
-  rescue
-    ""
-  end
+  homebrew_prefix_candidates << Pathname.new(prefix.strip) unless prefix.empty?
+  prefix =
+    begin
+      begin
+        `command -v brew`
+      rescue
+        `which brew`
+      end
+    rescue
+      ""
+    end
   homebrew_prefix_candidates << Pathname.new(prefix.strip).dirname.parent unless prefix.empty?
   homebrew_prefix_candidates << Pathname.new("/usr/local") # Homebrew default path
   homebrew_prefix_candidates << Pathname.new("#{ENV["HOME"]}/.linuxbrew") # Linuxbrew default path
 end
 
-HOMEBREW_PREFIX = homebrew_prefix_candidates.detect do |p|
+HOMEBREW_PREFIX = homebrew_prefix_candidates.find do |p|
   next unless p.directory?
   if p.to_s == "/usr/local" && File.exist?("/usr/local/Homebrew/.git")
     next true
   end
+
   (p/".git").exist? || (p/"bin/brew").executable?
 end
 abort "Failed to locate Homebrew!" if HOMEBREW_PREFIX.nil?
@@ -142,11 +147,12 @@ else
   HOMEBREW_REPOSITORY/"Cellar"
 end
 
-gitignore = begin
-  (HOMEBREW_REPOSITORY/".gitignore").read
-rescue Errno::ENOENT
-  `curl -fsSL https://raw.githubusercontent.com/Homebrew/brew/master/.gitignore`
-end
+gitignore =
+  begin
+    (HOMEBREW_REPOSITORY/".gitignore").read
+  rescue Errno::ENOENT
+    `curl -fsSL https://raw.githubusercontent.com/Homebrew/brew/master/.gitignore`
+  end
 abort "Failed to fetch Homebrew .gitignore!" if gitignore.empty?
 
 homebrew_files = gitignore.split("\n").
