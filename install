@@ -238,7 +238,7 @@ group_chmods = %w[bin etc include lib sbin share opt var
                   share/aclocal share/doc share/info share/locale share/man
                   share/man/man1 share/man/man2 share/man/man3 share/man/man4
                   share/man/man5 share/man/man6 share/man/man7 share/man/man8
-                  var/log
+                  var/log var/homebrew var/homebrew/linked
                   bin/brew].
                map { |d| File.join(HOMEBREW_PREFIX, d) }.
                select { |d| chmod?(d) }
@@ -247,6 +247,7 @@ zsh_dirs = %w[share/zsh share/zsh/site-functions].
            map { |d| File.join(HOMEBREW_PREFIX, d) }
 mkdirs = %w[bin etc include lib sbin share var opt
             share/zsh share/zsh/site-functions
+            var/homebrew var/homebrew/linked
             Cellar Caskroom Homebrew Frameworks].
          map { |d| File.join(HOMEBREW_PREFIX, d) }.
          reject { |d| File.directory?(d) }
