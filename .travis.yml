@@ -11,13 +11,13 @@ before_script:
 
 script:
   - bundle exec rubocop
-  - ./uninstall -d
-  - ./uninstall -f
+  - ./uninstall -d >/dev/null
+  - ./uninstall -f >/dev/null
   - ./install --force-curl
-  - ./uninstall -f
+  - ./uninstall -f >/dev/null
   - ./install
   - brew install ack
-  - ./uninstall -f
+  - ./uninstall -f >/dev/null
 
 branches:
   only:
