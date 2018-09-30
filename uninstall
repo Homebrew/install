@@ -90,11 +90,17 @@ homebrew_prefix_candidates = []
 OptionParser.new do |opts|
   opts.banner = "Homebrew Uninstaller\nUsage: ./uninstall [options]"
   opts.summary_width = 16
-  opts.on("-pPATH", "--path=PATH", "Sets Homebrew prefix. Defaults to /usr/local.") { |p| homebrew_prefix_candidates << Pathname.new(p) }
-  opts.on("--skip-cache-and-logs", "Skips removal of HOMEBREW_CACHE and HOMEBREW_LOGS.") { |_p| options[:skip_cache_and_logs] = true }
+  opts.on("-pPATH", "--path=PATH", "Sets Homebrew prefix. Defaults to /usr/local.") do |p|
+    homebrew_prefix_candidates << Pathname.new(p)
+  end
+  opts.on("--skip-cache-and-logs", "Skips removal of HOMEBREW_CACHE and HOMEBREW_LOGS.") do
+    options[:skip_cache_and_logs] = true
+  end
   opts.on("-f", "--force", "Uninstall without prompting.") { options[:force] = true }
   opts.on("-q", "--quiet", "Suppress all output.") { options[:quiet] = true }
-  opts.on("-d", "--dry-run", "Simulate uninstall but don't remove anything.") { options[:dry_run] = true }
+  opts.on("-d", "--dry-run", "Simulate uninstall but don't remove anything.") do
+    options[:dry_run] = true
+  end
   opts.on_tail("-h", "--help", "Display this message.") do
     puts opts
     exit
