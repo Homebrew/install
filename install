@@ -390,13 +390,17 @@ Dir.chdir HOMEBREW_REPOSITORY do
     curl_flags = "fsSL"
     curl_flags += "k" if macos_version < "10.6"
     core_tap = "#{HOMEBREW_PREFIX}/Homebrew/Library/Taps/homebrew/homebrew-core"
-    system "/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} #{BREW_REPO}/tarball/master | /usr/bin/tar xz -m --strip 1'"
+    system "/bin/bash -o pipefail -c '" \
+      "/usr/bin/curl -#{curl_flags} #{BREW_REPO}/tarball/master | " \
+      "/usr/bin/tar xz -m --strip 1'"
 
     system "ln", "-sf", "#{HOMEBREW_REPOSITORY}/bin/brew", "#{HOMEBREW_PREFIX}/bin/brew"
 
     system "/bin/mkdir", "-p", core_tap
     Dir.chdir core_tap do
-      system "/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} #{CORE_TAP_REPO}/tarball/master | /usr/bin/tar xz -m --strip 1'"
+      system "/bin/bash -o pipefail -c '" \
+        "/usr/bin/curl -#{curl_flags} #{CORE_TAP_REPO}/tarball/master | " \
+        "/usr/bin/tar xz -m --strip 1'"
     end
   end
 end
