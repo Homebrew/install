@@ -1,0 +1,17 @@
+jobs:
+- job: macOS
+  pool:
+    vmImage: xcode9-macos10.13
+  steps:
+    - bash: |
+        travis_wait sudo rm -rf /Applications/Xcode.app /Library/Developer/CommandLineTools
+        sudo pkgutil --forget com.apple.pkg.CLTools_Executables
+        bundle exec rubocop
+        ./uninstall -d >/dev/null
+        ./uninstall -f >/dev/null
+        ./install --force-curl
+        ./uninstall -f >/dev/null
+        ./install
+        brew install ack
+        ./uninstall -f >/dev/null
+      displayName: Tests
