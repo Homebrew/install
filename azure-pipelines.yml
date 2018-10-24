@@ -4,14 +4,23 @@ jobs:
     vmImage: xcode9-macos10.13
   steps:
     - bash: |
-        travis_wait sudo rm -rf /Applications/Xcode.app /Library/Developer/CommandLineTools
+        sudo rm -rf /Applications/Xcode.app /Library/Developer/CommandLineTools
         sudo pkgutil --forget com.apple.pkg.CLTools_Executables
+        sudo xcode-select --reset
         bundle exec rubocop
-        ./uninstall -d >/dev/null
-        ./uninstall -f >/dev/null
-        ./install --force-curl
-        ./uninstall -f >/dev/null
-        ./install
+        OLDPWD="$PWD"
+        sudo mkdir -p /opt/rubies
+        cd /opt/rubies
+        sudo chown "$USER" .
+        wget https://s3.amazonaws.com/boxen-downloads/rubies/Darwin/10.10/1.8.7-p358.tar.bz2
+        tar xf 1.8.7-p358.tar.bz2
+        export PATH="$PWD/1.8.7-p358/bin:$PATH"
+        cd "$OLDPWD"
+        ruby uninstall -d >/dev/null
+        ruby uninstall -f >/dev/null
+        ruby install --force-curl
+        ruby uninstall -f >/dev/null
+        ruby install
         brew install ack
-        ./uninstall -f >/dev/null
+        ruby uninstall -f >/dev/null
       displayName: Tests
