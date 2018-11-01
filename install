@@ -342,7 +342,7 @@ if should_install_command_line_tools?
     ohai "Installing #{clt_label}"
     sudo "/usr/sbin/softwareupdate", "-i", clt_label
     sudo "/bin/rm", "-f", clt_placeholder
-    sudo "/usr/bin/xcode-select", "--switch", "/Library/Developer/CommandLineTools"
+    sudo "/usr/bin/xcode-select", "--switch", "/Applications/Xcode.app/Contents/Developer"
   end
 end
 
@@ -352,7 +352,7 @@ if should_install_command_line_tools? && STDIN.tty?
   sudo "/usr/bin/xcode-select", "--install"
   puts "Press any key when the installation has completed."
   getc
-  sudo "/usr/bin/xcode-select", "--switch", "/Library/Developer/CommandLineTools"
+  sudo "/usr/bin/xcode-select", "--switch", "/Applications/Xcode.app/Contents/Developer"
 end
 
 abort <<-EOABORT if `/usr/bin/xcrun clang 2>&1` =~ /license/ && !$CHILD_STATUS.success?
