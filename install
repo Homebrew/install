@@ -4,10 +4,13 @@
 # anywhere you like.
 HOMEBREW_PREFIX = "/usr/local".freeze
 HOMEBREW_REPOSITORY = "/usr/local/Homebrew".freeze
+HOMEBREW_CORE_TAP = "/usr/local/Homebrew/Library/Taps/homebrew/homebrew-core".freeze
 HOMEBREW_CACHE = "#{ENV["HOME"]}/Library/Caches/Homebrew".freeze
 HOMEBREW_OLD_CACHE = "/Library/Caches/Homebrew".freeze
 BREW_REPO = "https://github.com/Homebrew/brew".freeze
+BREW_REPO_INSECURE = "git://github.com/Homebrew/brew.git".freeze
 CORE_TAP_REPO = "https://github.com/Homebrew/homebrew-core".freeze
+CORE_TAP_REPO_INSECURE = "git://github.com/Homebrew/homebrew-core.git".freeze
 
 # TODO: bump version when new macOS is released
 MACOS_LATEST_SUPPORTED = "10.14".freeze
@@ -137,14 +140,11 @@ def git
   end
 
   return unless @git
-
-  # Github only supports HTTPS fetches on 1.7.10 or later:
-  # https://help.github.com/articles/https-cloning-errors
-  `#{@git} --version` =~ /git version (\d\.\d+\.\d+)/
-  return if Regexp.last_match(1).nil?
-  return if Version.new(Regexp.last_match(1)) < "1.7.10"
-
   @git
+end
+
+def can_macos_use_tls12?
+  macos_version >= "10.9"
 end
 
 def user_only_chmod?(path)
@@ -170,7 +170,7 @@ def chgrp?(path)
 end
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
-Kernel.system "/usr/bin/sudo -n -v 2>/dev/null"
+Kernel.system "/usr/bin/sudo -n -v 2>/dev/null" unless macos_version < "10.7"
 at_exit { Kernel.system "/usr/bin/sudo", "-k" } unless $CHILD_STATUS.success?
 
 # The block form of Dir.chdir fails later if Dir.CWD doesn't exist which I
@@ -178,20 +178,33 @@ at_exit { Kernel.system "/usr/bin/sudo", "-k" } unless $CHILD_STATUS.success?
 Dir.chdir "/usr"
 
 ####################################################################### script
-abort "See Linuxbrew: http://linuxbrew.sh/" if RUBY_PLATFORM.to_s.downcase.include?("linux")
-abort "Mac OS X too old, see: https://github.com/mistydemeo/tigerbrew" if macos_version < "10.5"
+abort "See Linuxbrew: #{Tty.underline}http://linuxbrew.sh/#{Tty.reset}" if RUBY_PLATFORM.to_s.downcase.include?("linux")
+abort "Mac OS X too old, see: #{Tty.underline}https://github.com/mistydemeo/tigerbrew#{Tty.reset}" if macos_version < "10.5"
 abort "Don't run this as root!" if Process.uid.zero?
 abort <<-EOABORT unless `dsmemberutil checkmembership -U "#{ENV["USER"]}" -G admin`.include? "user is a member"
 This script requires the user #{ENV["USER"]} to be an Administrator.
 EOABORT
-# Tests will fail if the prefix exists, but we don't have execution
-# permissions. Abort in this case.
+
+# Tests will fail if the prefix exists, but we don't have execution permissions.
+# Abort in this case.
 abort <<-EOABORT if File.directory?(HOMEBREW_PREFIX) && (!File.executable? HOMEBREW_PREFIX)
 The Homebrew prefix, #{HOMEBREW_PREFIX}, exists but is not searchable. If this is
 not intentional, please restore the default permissions and try running the
 installer again:
     sudo chmod 775 #{HOMEBREW_PREFIX}
 EOABORT
+
+# Require preinstalled git binary if TLS 1.2 not built in.
+if !can_macos_use_tls12? && !git
+  puts "This version of Mac OS X requires Git to perform the installation."
+  if macos_version == "10.5"
+    abort "Install from: #{Tty.underline}http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/git-osx-installer/git-1.7.5.4-i386-leopard.dmg#{Tty.reset}"
+  elsif macos_version == "10.6"
+    abort "Install from: #{Tty.underline}http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/git-osx-installer/git-1.8.4.2-intel-universal-snow-leopard.dmg#{Tty.reset}"
+  else
+    abort "Install Xcode or the Command Line Tools: #{Tty.underline}https://developer.apple.com/download/more/#{Tty.reset}"
+  end
+end
 
 # TODO: bump version when new macOS is released
 if macos_version > MACOS_LATEST_SUPPORTED ||
@@ -212,7 +225,7 @@ if macos_version > MACOS_LATEST_SUPPORTED ||
   puts <<-EOS
 This installation may not succeed.
 After installation, you will encounter build failures and other breakages.
-Please create pull-requests instead of asking for help on Homebrew's
+Please create pull requests instead of asking for help on Homebrew's
 GitHub, Discourse, Twitter or IRC. As you are running this #{what},
 you are responsible for resolving any issues you experience.
 
@@ -361,7 +374,7 @@ Dir.chdir HOMEBREW_REPOSITORY do
   system git, "init", "-q"
 
   # "git remote add" will fail if the remote is defined in the global config
-  system git, "config", "remote.origin.url", BREW_REPO
+  system git, "config", "remote.origin.url", can_macos_use_tls12? ? BREW_REPO : BREW_REPO_INSECURE
   system git, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*"
 
   # ensure we don't munge line endings on checkout
@@ -372,6 +385,12 @@ Dir.chdir HOMEBREW_REPOSITORY do
   system(*args)
 
   system git, "reset", "--hard", "origin/master"
+
+  unless can_macos_use_tls12?
+    system git, "clone", "--depth", "1", CORE_TAP_REPO_INSECURE, HOMEBREW_CORE_TAP
+    system git, "config", "--file", "#{HOMEBREW_CORE_TAP}/.git/config", "core.autocrlf", "false"
+    ENV["HOMEBREW_BOTTLE_DOMAIN"] = "http://homebrew.bintray.com"
+  end
 
   system "ln", "-sf", "#{HOMEBREW_REPOSITORY}/bin/brew", "#{HOMEBREW_PREFIX}/bin/brew"
 
@@ -390,7 +409,7 @@ print "\a"
 ohai "Homebrew has enabled anonymous aggregate formulae and cask analytics."
 puts <<-EOS
 #{Tty.bold}Read the analytics documentation (and how to opt-out) here:
-  #{Tty.underline}https://docs.brew.sh/Analytics.html#{Tty.reset}
+  #{Tty.underline}https://docs.brew.sh/Analytics#{Tty.reset}
 
 EOS
 
@@ -410,12 +429,12 @@ if macos_version < "10.9" && macos_version > "10.6"
   `/usr/bin/cc --version 2> /dev/null` =~ /clang-(\d{2,})/
   version = Regexp.last_match(1).to_i
   if version < 425
-    puts "- Install the #{Tty.bold}Command Line Tools for Xcode:"
-    puts "    #{Tty.underline}https://developer.apple.com/downloads#{Tty.reset}"
+    puts "- Install the Command Line Tools for Xcode:"
+    puts "    #{Tty.underline}https://developer.apple.com/download/more/#{Tty.reset}"
   end
 elsif !File.exist? "/usr/bin/cc"
-  puts "- Install #{Tty.bold}Xcode:"
-  puts "    #{Tty.underline}https://developer.apple.com/xcode#{Tty.reset}"
+  puts "- Install Xcode:"
+  puts "    #{Tty.underline}https://developer.apple.com/download/more/#{Tty.reset}"
 end
 
 puts "- Run `brew help` to get started"
