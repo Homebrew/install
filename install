@@ -170,7 +170,7 @@ def chgrp?(path)
 end
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
-Kernel.system "/usr/bin/sudo -n -v 2>/dev/null" unless macos_version < "10.7"
+Kernel.system "/usr/bin/sudo -n -v 2>/dev/null"
 at_exit { Kernel.system "/usr/bin/sudo", "-k" } unless $CHILD_STATUS.success?
 
 # The block form of Dir.chdir fails later if Dir.CWD doesn't exist which I
@@ -179,7 +179,7 @@ Dir.chdir "/usr"
 
 ####################################################################### script
 abort "See Linuxbrew: #{Tty.underline}http://linuxbrew.sh/#{Tty.reset}" if RUBY_PLATFORM.to_s.downcase.include?("linux")
-abort "Mac OS X too old, see: #{Tty.underline}https://github.com/mistydemeo/tigerbrew#{Tty.reset}" if macos_version < "10.5"
+abort "Mac OS X too old, see: #{Tty.underline}https://github.com/mistydemeo/tigerbrew#{Tty.reset}" if macos_version < "10.7"
 abort "Don't run this as root!" if Process.uid.zero?
 abort <<-EOABORT unless `dsmemberutil checkmembership -U "#{ENV["USER"]}" -G admin`.include? "user is a member"
 This script requires the user #{ENV["USER"]} to be an Administrator.
@@ -196,14 +196,7 @@ EOABORT
 
 # Require preinstalled git binary if TLS 1.2 not built in.
 if !can_macos_use_tls12? && !git
-  puts "This version of Mac OS X requires Git to perform the installation."
-  if macos_version == "10.5"
-    abort "Install from: #{Tty.underline}http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/git-osx-installer/git-1.7.5.4-i386-leopard.dmg#{Tty.reset}"
-  elsif macos_version == "10.6"
-    abort "Install from: #{Tty.underline}http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/git-osx-installer/git-1.8.4.2-intel-universal-snow-leopard.dmg#{Tty.reset}"
-  else
-    abort "Install Xcode or the Command Line Tools: #{Tty.underline}https://developer.apple.com/download/more/#{Tty.reset}"
-  end
+  abort "Install Xcode or the Command Line Tools: #{Tty.underline}https://developer.apple.com/download/more/#{Tty.reset}"
 end
 
 # TODO: bump version when new macOS is released
