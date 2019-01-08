@@ -121,6 +121,9 @@ end
 def should_install_command_line_tools?
   return false if macos_version < "10.9"
 
+  exe = `xcrun -find git 2>/dev/null`.chomp
+  return false if $CHILD_STATUS && $CHILD_STATUS.success? && !exe.empty? && File.executable?(exe)
+
   if macos_version > "10.13"
     !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git")
   else
