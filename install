@@ -379,10 +379,12 @@ Dir.chdir HOMEBREW_REPOSITORY do
 
   system git, "reset", "--hard", "origin/master"
 
-  unless can_macos_use_tls12?
+  if can_macos_use_tls12?
     system git, "clone", "--depth", "1", CORE_TAP_REPO_INSECURE, HOMEBREW_CORE_TAP
     system git, "config", "--file", "#{HOMEBREW_CORE_TAP}/.git/config", "core.autocrlf", "false"
     ENV["HOMEBREW_BOTTLE_DOMAIN"] = "http://homebrew.bintray.com"
+  else
+    abort "Require Mac OSX version>=10.9"
   end
 
   system "ln", "-sf", "#{HOMEBREW_REPOSITORY}/bin/brew", "#{HOMEBREW_PREFIX}/bin/brew"
