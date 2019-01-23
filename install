@@ -6,11 +6,7 @@ HOMEBREW_PREFIX = "/usr/local".freeze
 HOMEBREW_REPOSITORY = "/usr/local/Homebrew".freeze
 HOMEBREW_CORE_TAP = "/usr/local/Homebrew/Library/Taps/homebrew/homebrew-core".freeze
 HOMEBREW_CACHE = "#{ENV["HOME"]}/Library/Caches/Homebrew".freeze
-HOMEBREW_OLD_CACHE = "/Library/Caches/Homebrew".freeze
 BREW_REPO = "https://github.com/Homebrew/brew".freeze
-BREW_REPO_INSECURE = "git://github.com/Homebrew/brew.git".freeze
-CORE_TAP_REPO = "https://github.com/Homebrew/homebrew-core".freeze
-CORE_TAP_REPO_INSECURE = "git://github.com/Homebrew/homebrew-core.git".freeze
 
 # TODO: bump version when new macOS is released
 MACOS_LATEST_SUPPORTED = "10.14".freeze
@@ -119,32 +115,12 @@ def macos_version
 end
 
 def should_install_command_line_tools?
-  return false if macos_version < "10.9"
-
   if macos_version > "10.13"
     !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git")
   else
     !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git") ||
       !File.exist?("/usr/include/iconv.h")
   end
-end
-
-def git
-  @git ||= if ENV["GIT"] && File.executable?(ENV["GIT"])
-    ENV["GIT"]
-  elsif Kernel.system "/usr/bin/which -s git"
-    "git"
-  else
-    exe = `xcrun -find git 2>/dev/null`.chomp
-    exe if $CHILD_STATUS && $CHILD_STATUS.success? && !exe.empty? && File.executable?(exe)
-  end
-
-  return unless @git
-  @git
-end
-
-def can_macos_use_tls12?
-  macos_version >= "10.9"
 end
 
 def user_only_chmod?(path)
@@ -179,7 +155,8 @@ Dir.chdir "/usr"
 
 ####################################################################### script
 abort "See Linuxbrew: #{Tty.underline}http://linuxbrew.sh/#{Tty.reset}" if RUBY_PLATFORM.to_s.downcase.include?("linux")
-abort "Mac OS X too old, see: #{Tty.underline}https://github.com/mistydemeo/tigerbrew#{Tty.reset}" if macos_version < "10.7"
+abort "Your Mac OS X version is too old. See: #{Tty.underline}https://github.com/mistydemeo/tigerbrew#{Tty.reset}" if macos_version < "10.7"
+abort "Your OS X version is too old" if macos_version < "10.9"
 abort "Don't run this as root!" if Process.uid.zero?
 abort <<-EOABORT unless `dsmemberutil checkmembership -U "#{ENV["USER"]}" -G admin`.include? "user is a member"
 This script requires the user #{ENV["USER"]} to be an Administrator.
@@ -193,11 +170,6 @@ not intentional, please restore the default permissions and try running the
 installer again:
     sudo chmod 775 #{HOMEBREW_PREFIX}
 EOABORT
-
-# Require preinstalled git binary if TLS 1.2 not built in.
-if !can_macos_use_tls12? && !git
-  abort "Install Xcode or the Command Line Tools: #{Tty.underline}https://developer.apple.com/download/more/#{Tty.reset}"
-end
 
 # TODO: bump version when new macOS is released
 if macos_version > MACOS_LATEST_SUPPORTED ||
@@ -305,7 +277,7 @@ unless mkdirs.empty?
   sudo "/usr/bin/chgrp", "admin", *mkdirs
 end
 
-[HOMEBREW_CACHE, HOMEBREW_OLD_CACHE].each do |cache|
+HOMEBREW_CACHE.each do |cache|
   sudo "/bin/mkdir", "-p", cache unless File.directory? cache
   sudo "/bin/chmod", "g+rwx", cache if chmod? cache
   sudo "/usr/sbin/chown", ENV["USER"], cache if chown? cache
@@ -364,26 +336,19 @@ EOABORT
 ohai "Downloading and installing Homebrew..."
 Dir.chdir HOMEBREW_REPOSITORY do
   # we do it in four steps to avoid merge errors when reinstalling
-  system git, "init", "-q"
+  system "git", "init", "-q"
 
   # "git remote add" will fail if the remote is defined in the global config
-  system git, "config", "remote.origin.url", can_macos_use_tls12? ? BREW_REPO : BREW_REPO_INSECURE
-  system git, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*"
+  system "git", "config", "remote.origin.url", BREW_REPO
+  system "git", "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*"
 
   # ensure we don't munge line endings on checkout
-  system git, "config", "core.autocrlf", "false"
+  system "git", "config", "core.autocrlf", "false"
 
-  args = git, "fetch", "origin", "master:refs/remotes/origin/master",
+  system "git", "fetch", "origin", "master:refs/remotes/origin/master",
          "--tags", "--force"
-  system(*args)
 
-  system git, "reset", "--hard", "origin/master"
-
-  unless can_macos_use_tls12?
-    system git, "clone", "--depth", "1", CORE_TAP_REPO_INSECURE, HOMEBREW_CORE_TAP
-    system git, "config", "--file", "#{HOMEBREW_CORE_TAP}/.git/config", "core.autocrlf", "false"
-    ENV["HOMEBREW_BOTTLE_DOMAIN"] = "http://homebrew.bintray.com"
-  end
+  system "git", "reset", "--hard", "origin/master"
 
   system "ln", "-sf", "#{HOMEBREW_REPOSITORY}/bin/brew", "#{HOMEBREW_PREFIX}/bin/brew"
 
@@ -412,24 +377,11 @@ puts <<-EOS
 EOS
 
 Dir.chdir HOMEBREW_REPOSITORY do
-  system git, "config", "--local", "--replace-all", "homebrew.analyticsmessage", "true"
-  system git, "config", "--local", "--replace-all", "homebrew.caskanalyticsmessage", "true"
+  system "git", "config", "--local", "--replace-all", "homebrew.analyticsmessage", "true"
+  system "git", "config", "--local", "--replace-all", "homebrew.caskanalyticsmessage", "true"
 end
 
 ohai "Next steps:"
-
-if macos_version < "10.9" && macos_version > "10.6"
-  `/usr/bin/cc --version 2> /dev/null` =~ /clang-(\d{2,})/
-  version = Regexp.last_match(1).to_i
-  if version < 425
-    puts "- Install the Command Line Tools for Xcode:"
-    puts "    #{Tty.underline}https://developer.apple.com/download/more/#{Tty.reset}"
-  end
-elsif !File.exist? "/usr/bin/cc"
-  puts "- Install Xcode:"
-  puts "    #{Tty.underline}https://developer.apple.com/download/more/#{Tty.reset}"
-end
-
 puts "- Run `brew help` to get started"
 puts "- Further documentation: "
 puts "    #{Tty.underline}https://docs.brew.sh#{Tty.reset}"
