@@ -277,12 +277,10 @@ unless mkdirs.empty?
   sudo "/usr/bin/chgrp", "admin", *mkdirs
 end
 
-HOMEBREW_CACHE.each do |cache|
-  sudo "/bin/mkdir", "-p", cache unless File.directory? cache
-  sudo "/bin/chmod", "g+rwx", cache if chmod? cache
-  sudo "/usr/sbin/chown", ENV["USER"], cache if chown? cache
-  sudo "/usr/bin/chgrp", "admin", cache if chgrp? cache
-end
+sudo "/bin/mkdir", "-p", HOMEBREW_CACHE unless File.directory? HOMEBREW_CACHE
+sudo "/bin/chmod", "g+rwx", HOMEBREW_CACHE if chmod? HOMEBREW_CACHE
+sudo "/usr/sbin/chown", ENV["USER"], HOMEBREW_CACHE if chown? HOMEBREW_CACHE
+sudo "/usr/bin/chgrp", "admin", HOMEBREW_CACHE if chgrp? HOMEBREW_CACHE
 
 if should_install_command_line_tools?
   ohai "Searching online for the Command Line Tools"
