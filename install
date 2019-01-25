@@ -154,27 +154,31 @@ at_exit { Kernel.system "/usr/bin/sudo", "-k" } unless $CHILD_STATUS.success?
 Dir.chdir "/usr"
 
 ####################################################################### script
-abort "See Linuxbrew: #{Tty.underline}http://linuxbrew.sh/#{Tty.reset}" if RUBY_PLATFORM.to_s.downcase.include?("linux")
-abort "Your Mac OS X version is too old. See: #{Tty.underline}https://github.com/mistydemeo/tigerbrew#{Tty.reset}" if macos_version < "10.7"
-abort "Your OS X version is too old" if macos_version < "10.9"
-abort "Don't run this as root!" if Process.uid.zero?
-abort <<-EOABORT unless `dsmemberutil checkmembership -U "#{ENV["USER"]}" -G admin`.include? "user is a member"
-This script requires the user #{ENV["USER"]} to be an Administrator.
-EOABORT
-
-# Tests will fail if the prefix exists, but we don't have execution permissions.
-# Abort in this case.
-abort <<-EOABORT if File.directory?(HOMEBREW_PREFIX) && (!File.executable? HOMEBREW_PREFIX)
+if RUBY_PLATFORM.to_s.downcase.include?("linux")
+  <<-EOABORT
+  You're on Linux! Use the Linuxbrew installer:
+    #{Tty.underline}http://linuxbrew.sh/#{Tty.reset}"
+  EOABORT
+elsif macos_version < "10.7"
+  abort <<-EOABORT
+Your Mac OS X version is too old. See:
+  #{Tty.underline}https://github.com/mistydemeo/tigerbrew#{Tty.reset}"
+  EOABORT
+elsif macos_version < "10.9"
+  abort "Your OS X version is too old"
+elsif Process.uid.zero?
+  abort "Don't run this as root!"
+elsif !`dsmemberutil checkmembership -U "#{ENV["USER"]}" -G admin`.include?("user is a member")
+  abort "This script requires the user #{ENV["USER"]} to be an Administrator."
+elsif File.directory?(HOMEBREW_PREFIX) && (!File.executable? HOMEBREW_PREFIX)
+  abort <<-EOABORT
 The Homebrew prefix, #{HOMEBREW_PREFIX}, exists but is not searchable. If this is
 not intentional, please restore the default permissions and try running the
 installer again:
     sudo chmod 775 #{HOMEBREW_PREFIX}
-EOABORT
-
+  EOABORT
 # TODO: bump version when new macOS is released
-if macos_version > MACOS_LATEST_SUPPORTED ||
-   macos_version < MACOS_OLDEST_SUPPORTED
-
+elsif macos_version > MACOS_LATEST_SUPPORTED || macos_version < MACOS_OLDEST_SUPPORTED
   who = "We"
   if macos_version > MACOS_LATEST_SUPPORTED
     what = "pre-release version"
