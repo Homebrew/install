@@ -4,10 +4,13 @@ jobs:
     vmImage: macOS-10.13
   steps:
     - bash: |
+        set -e
+        gem install bundler
+        bundle install --retry=3 --jobs=4
+        bundle exec rubocop
         sudo rm -rf /Applications/Xcode.app /Library/Developer/CommandLineTools
         sudo pkgutil --forget com.apple.pkg.CLTools_Executables
         sudo xcode-select --reset
-        bundle exec rubocop
         OLDPWD="$PWD"
         sudo mkdir -p /opt/rubies
         cd /opt/rubies
