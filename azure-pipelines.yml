@@ -1,29 +1,25 @@
-jobs:
-- job: macOS
-  pool:
-    vmImage: macOS-10.13
-  steps:
-    - bash: |
-        set -e
-        gem install bundler
-        bundle install --retry=3 --jobs=4
-        bundle exec rubocop
-        sudo rm -rf /Applications/Xcode.app /Library/Developer/CommandLineTools
-        sudo pkgutil --forget com.apple.pkg.CLTools_Executables
-        sudo xcode-select --reset
-        OLDPWD="$PWD"
-        sudo mkdir -p /opt/rubies
-        cd /opt/rubies
-        sudo chown "$USER" .
-        wget https://s3.amazonaws.com/boxen-downloads/rubies/Darwin/10.10/1.8.7-p358.tar.bz2
-        tar xf 1.8.7-p358.tar.bz2
-        export PATH="$PWD/1.8.7-p358/bin:$PATH"
-        cd "$OLDPWD"
-        ruby uninstall -d >/dev/null
-        ruby uninstall -f >/dev/null
-        ruby install --force-curl
-        ruby uninstall -f >/dev/null
-        ruby install
-        brew install ack
-        ruby uninstall -f >/dev/null
-      displayName: Tests
+pool:
+  vmImage: macOS-10.13
+steps:
+- bash: |
+    set -ex
+    brew uninstall --ignore-dependencies --force $(brew list)
+    brew install rbenv
+    RBENV_VERSION="2.0.0-p481"
+    rbenv install "$RBENV_VERSION"
+    export PATH="$HOME/.gem/ruby/2.3.0/bin:$PATH"
+    gem install --user bundler
+    bundle install --retry=3 --jobs=4
+    bundle exec rubocop
+    sudo rm -rf /Applications/Xcode.app /Library/Developer/CommandLineTools
+    sudo pkgutil --forget com.apple.pkg.CLTools_Executables
+    sudo xcode-select --reset
+    export PATH="$HOME/.rbenv/versions/$RBENV_VERSION/bin:$PATH"
+    ruby uninstall -d >/dev/null
+    ruby uninstall -f >/dev/null
+    ruby install --force-curl
+    ruby uninstall -f >/dev/null
+    ruby install
+    brew install ack
+    ruby uninstall -f >/dev/null
+  displayName: Tests
