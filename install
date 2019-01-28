@@ -155,9 +155,9 @@ Dir.chdir "/usr"
 
 ####################################################################### script
 if RUBY_PLATFORM.to_s.downcase.include?("linux")
-  <<-EOABORT
-  You're on Linux! Use the Linuxbrew installer:
-    #{Tty.underline}http://linuxbrew.sh/#{Tty.reset}"
+  abort <<-EOABORT
+  To install Linuxbrew, paste at a terminal prompt:
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
   EOABORT
 elsif macos_version < "10.7"
   abort <<-EOABORT
