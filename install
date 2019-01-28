@@ -1,4 +1,4 @@
-#!/System/Library/Frameworks/Ruby.framework/Versions/Current/usr/bin/ruby
+#!/usr/bin/ruby
 # This script installs to /usr/local only. To install elsewhere (which is
 # unsupported) you can untar https://github.com/Homebrew/brew/tarball/master
 # anywhere you like.
