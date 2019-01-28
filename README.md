@@ -10,6 +10,10 @@
 
 More installation information and options at http://docs.brew.sh/Installation.html.
 
+### Linux and Windows 10 Subsystem for Linux
+
+Install Homebrew on Linux and Windows 10 Subsystem for Linux: https://docs.brew.sh/Linuxbrew.
+
 ## Uninstall Homebrew
 
 ```bash
