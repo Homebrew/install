@@ -348,7 +348,7 @@ Dir.chdir HOMEBREW_REPOSITORY do
   system "git", "config", "core.autocrlf", "false"
 
   system "git", "fetch", "origin", "master:refs/remotes/origin/master",
-         "--tags", "--force"
+         "--tags", "--force", "--depth=1"
 
   system "git", "reset", "--hard", "origin/master"
 
