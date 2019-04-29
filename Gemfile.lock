@@ -4,7 +4,7 @@ GEM
     ast (2.4.0)
     jaro_winkler (1.5.2)
     parallel (1.17.0)
-    parser (2.6.2.1)
+    parser (2.6.3.0)
       ast (~> 2.4.0)
     psych (3.1.0)
     rainbow (3.0.0)
