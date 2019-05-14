@@ -6,7 +6,7 @@
 AllCops:
   # Actually supporting 2.0 for older macOS versions but RuboCop doesn't support
   # it any more so set it as old as possible.
-  TargetRubyVersion: 2.2
+  TargetRubyVersion: 2.3
   DisplayCopNames: false
 
 # Disabled for 2.0 support
@@ -95,14 +95,6 @@ Style/TrailingCommaInArrayLiteral:
   EnforcedStyleForMultiline: comma
 Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: comma
-
-# Does not hinder readability, so might as well enable it.
-Performance/CaseWhenSplat:
-  Enabled: true
-
-# Makes code less readable for minor performance increases.
-Performance/Caller:
-  Enabled: false
 
 ### rubocop_shared.yml
 # make our hashes consistent
