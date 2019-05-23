@@ -168,6 +168,8 @@ elsif macos_version < "10.9"
   abort "Your OS X version is too old"
 elsif Process.uid.zero?
   abort "Don't run this as root!"
+elsif !ENV["USER"]
+  abort "This script requires the USER environment variable to be set."
 elsif !`dsmemberutil checkmembership -U "#{ENV["USER"]}" -G admin`.include?("user is a member")
   abort "This script requires the user #{ENV["USER"]} to be an Administrator."
 elsif File.directory?(HOMEBREW_PREFIX) && (!File.executable? HOMEBREW_PREFIX)
