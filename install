@@ -116,7 +116,11 @@ end
 
 def should_install_command_line_tools?
   if macos_version > "10.13"
-    !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git")
+    if !`xcode-select --print-path`.empty? # having Xcode installed works as well, check that first
+      false
+    else # otherwise, fallback to the default location of the CommandLineTools, if installed
+      !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git")
+    end
   else
     !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git") ||
       !File.exist?("/usr/include/iconv.h")
