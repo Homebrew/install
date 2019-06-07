@@ -1,3 +1,3 @@
-# Homebrew uninstaller
+# Brew compatibility layer
 
-Removes homebrew in order to install Novus.
+Allows you to have brew and Novus a the same time
