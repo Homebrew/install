@@ -8,7 +8,7 @@
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
 
-More installation information and options at http://docs.brew.sh/Installation.html.
+More installation information and options at https://docs.brew.sh/Installation.html.
 
 ### Linux and Windows 10 Subsystem for Linux
 
