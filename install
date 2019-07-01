@@ -145,9 +145,10 @@ def chgrp?(path)
   !File.grpowned?(path)
 end
 
-def user
-  @user ||= ENV["USER"] || `id -un`.chomp
-end
+# The USER env var is not guaranteed to be available, so fall back to id if not
+# provided. We destructively set it in the environment to make it available to
+# any sub-processes called.
+ENV["USER"] = `id -un`.chomp unless ENV["USER"]
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
 Kernel.system "/usr/bin/sudo -n -v 2>/dev/null"
@@ -172,8 +173,8 @@ elsif macos_version < "10.9"
   abort "Your OS X version is too old"
 elsif Process.uid.zero?
   abort "Don't run this as root!"
-elsif !`dsmemberutil checkmembership -U "#{user}" -G admin`.include?("user is a member")
-  abort "This script requires the user #{user} to be an Administrator."
+elsif !`dsmemberutil checkmembership -U "#{ENV["USER"]}" -G admin`.include?("user is a member")
+  abort "This script requires the user #{ENV["USER"]} to be an Administrator."
 elsif File.directory?(HOMEBREW_PREFIX) && (!File.executable? HOMEBREW_PREFIX)
   abort <<-EOABORT
 The Homebrew prefix, #{HOMEBREW_PREFIX}, exists but is not searchable. If this is
@@ -249,7 +250,7 @@ unless user_chmods.empty?
   puts(*user_chmods)
 end
 unless chowns.empty?
-  ohai "The following existing directories will have their owner set to #{Tty.underline}#{user}#{Tty.reset}:"
+  ohai "The following existing directories will have their owner set to #{Tty.underline}#{ENV["USER"]}#{Tty.reset}:"
   puts(*chowns)
 end
 unless chgrps.empty?
@@ -270,7 +271,7 @@ if File.directory? HOMEBREW_PREFIX
   sudo "/bin/chmod", "u+rwx", *chmods unless chmods.empty?
   sudo "/bin/chmod", "g+rwx", *group_chmods unless group_chmods.empty?
   sudo "/bin/chmod", "755", *user_chmods unless user_chmods.empty?
-  sudo "/usr/sbin/chown", user, *chowns unless chowns.empty?
+  sudo "/usr/sbin/chown", ENV["USER"], *chowns unless chowns.empty?
   sudo "/usr/bin/chgrp", "admin", *chgrps unless chgrps.empty?
 else
   sudo "/bin/mkdir", "-p", HOMEBREW_PREFIX
@@ -281,13 +282,13 @@ unless mkdirs.empty?
   sudo "/bin/mkdir", "-p", *mkdirs
   sudo "/bin/chmod", "g+rwx", *mkdirs
   sudo "/bin/chmod", "755", *zsh_dirs
-  sudo "/usr/sbin/chown", user, *mkdirs
+  sudo "/usr/sbin/chown", ENV["USER"], *mkdirs
   sudo "/usr/bin/chgrp", "admin", *mkdirs
 end
 
 sudo "/bin/mkdir", "-p", HOMEBREW_CACHE unless File.directory? HOMEBREW_CACHE
 sudo "/bin/chmod", "g+rwx", HOMEBREW_CACHE if chmod? HOMEBREW_CACHE
-sudo "/usr/sbin/chown", user, HOMEBREW_CACHE if chown? HOMEBREW_CACHE
+sudo "/usr/sbin/chown", ENV["USER"], HOMEBREW_CACHE if chown? HOMEBREW_CACHE
 sudo "/usr/bin/chgrp", "admin", HOMEBREW_CACHE if chgrp? HOMEBREW_CACHE
 
 if should_install_command_line_tools?
