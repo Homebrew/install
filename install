@@ -148,7 +148,7 @@ end
 # The USER env var is not guaranteed to be available, so fall back to id if not
 # provided. We destructively set it in the environment to make it available to
 # any sub-processes called.
-ENV["USER"] = `id -un`.chomp unless ENV["USER"]
+ENV["USER"] ||= `id -un`.chomp
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
 Kernel.system "/usr/bin/sudo -n -v 2>/dev/null"
