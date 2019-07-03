@@ -145,7 +145,7 @@ def chgrp?(path)
   !File.grpowned?(path)
 end
 
-# USER is always set so provide a fall back for the installer and subprocesses.
+# USER isn't always set so provide a fall back for the installer and subprocesses.
 ENV["USER"] ||= `id -un`.chomp
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
