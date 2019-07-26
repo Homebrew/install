@@ -196,10 +196,10 @@ elsif macos_version > MACOS_LATEST_SUPPORTED || macos_version < MACOS_OLDEST_SUP
 
   puts <<-EOS
 This installation may not succeed.
-After installation, you will encounter build failures and other breakages.
-Please create pull requests instead of asking for help on Homebrew's
-GitHub, Discourse, Twitter or IRC. As you are running this #{what},
-you are responsible for resolving any issues you experience.
+After installation, you will encounter build failures with some formulae.
+Please create pull requests instead of asking for help on Homebrew's GitHub,
+Discourse, Twitter or IRC. You are responsible for resolving any issues you
+experience while you are running this #{what}.
 
   EOS
 end
@@ -288,6 +288,7 @@ sudo "/bin/mkdir", "-p", HOMEBREW_CACHE unless File.directory? HOMEBREW_CACHE
 sudo "/bin/chmod", "g+rwx", HOMEBREW_CACHE if chmod? HOMEBREW_CACHE
 sudo "/usr/sbin/chown", ENV["USER"], HOMEBREW_CACHE if chown? HOMEBREW_CACHE
 sudo "/usr/bin/chgrp", "admin", HOMEBREW_CACHE if chgrp? HOMEBREW_CACHE
+sudo "/usr/bin/touch", "#{HOMEBREW_CACHE}/.cleaned" if File.directory? HOMEBREW_CACHE
 
 if should_install_command_line_tools?
   ohai "Searching online for the Command Line Tools"
