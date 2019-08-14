@@ -1,0 +1,48 @@
+name: GitHub Actions CI
+on:
+  push:
+    branches: master
+  pull_request:
+    paths: '*'
+jobs:
+  tests:
+    runs-on: macOS-latest
+    steps:
+    - name: Set up Git repository
+      uses: actions/checkout@master
+
+    - name: Set up Ruby
+      run: |
+        brew uninstall --ignore-dependencies --force $(brew list)
+        brew install rbenv
+        RBENV_VERSION="2.0.0-p481"
+        rbenv install "$RBENV_VERSION"
+
+    - name: Install RubyGems
+      run: |
+        export PATH="$HOME/.gem/ruby/2.3.0/bin:$PATH"
+        gem install --user bundler
+        bundle install --retry=3 --jobs=4
+
+    - name: Run RuboCop
+      run: |
+        export PATH="$HOME/.gem/ruby/2.3.0/bin:$PATH"
+        bundle exec rubocop
+
+    - name: Cleanup macOS
+      run: |
+        sudo rm -rf /Applications/Xcode.app \
+                    /Library/Developer/CommandLineTools
+        sudo pkgutil --forget com.apple.pkg.CLTools_Executables
+        sudo xcode-select --reset
+
+    - name: CI Tests
+      run: |
+        export PATH="$HOME/.rbenv/versions/$RBENV_VERSION/bin:$PATH"
+        ruby uninstall -d >/dev/null
+        ruby uninstall -f >/dev/null
+        ruby install --force-curl
+        ruby uninstall -f >/dev/null
+        ruby install
+        brew install ack
+        ruby uninstall -f >/dev/null
