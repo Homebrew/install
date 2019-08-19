@@ -2,8 +2,7 @@ name: GitHub Actions CI
 on:
   push:
     branches: master
-  pull_request:
-    paths: '*'
+  pull_request: []
 jobs:
   tests:
     runs-on: macOS-latest
