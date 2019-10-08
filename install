@@ -8,9 +8,9 @@ HOMEBREW_CACHE = "#{ENV["HOME"]}/Library/Caches/Homebrew".freeze
 BREW_REPO = "https://github.com/Homebrew/brew".freeze
 
 # TODO: bump version when new macOS is released
-MACOS_LATEST_SUPPORTED = "10.14".freeze
+MACOS_LATEST_SUPPORTED = "10.15".freeze
 # TODO: bump version when new macOS is released
-MACOS_OLDEST_SUPPORTED = "10.12".freeze
+MACOS_OLDEST_SUPPORTED = "10.13".freeze
 
 # no analytics during installation
 ENV["HOMEBREW_NO_ANALYTICS_THIS_RUN"] = "1"
