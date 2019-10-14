@@ -289,28 +289,17 @@ sudo "/usr/sbin/chown", ENV["USER"], HOMEBREW_CACHE if chown? HOMEBREW_CACHE
 sudo "/usr/bin/chgrp", "admin", HOMEBREW_CACHE if chgrp? HOMEBREW_CACHE
 system "/usr/bin/touch", "#{HOMEBREW_CACHE}/.cleaned" if File.directory? HOMEBREW_CACHE
 
-if should_install_command_line_tools?
+if should_install_command_line_tools? && macos_version >= "10.13"
   ohai "Searching online for the Command Line Tools"
   # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
   clt_placeholder = "/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
   sudo "/usr/bin/touch", clt_placeholder
 
-  clt_macos_version = if macos_version == "10.9"
-    "Mavericks"
-  else
-    macos_version
-  end
-  clt_sort = if macos_version >= "10.13"
-    "sort -V"
-  else
-    "sort"
-  end
   clt_label_command = "/usr/sbin/softwareupdate -l | " \
-                      "grep -B 1 -E 'Command Line (Developer|Tools)' | " \
-                      "awk -F'*' '/^ +\\*/ {print $2}' | " \
-                      "grep '#{clt_macos_version}' | " \
-                      "#{clt_sort} | " \
-                      "sed 's/^ *//' | " \
+                      "grep -B 1 -E 'Command Line Tools' | " \
+                      "awk -F'*' '/^ *\\*/ {print $2}' | " \
+                      "sed -e 's/^* Label: //' -e 's/^ *//' | " \
+                      "sort -V | " \
                       "tail -n1"
   clt_label = `#{clt_label_command}`.chomp
 
