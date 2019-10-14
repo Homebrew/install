@@ -298,7 +298,7 @@ if should_install_command_line_tools? && macos_version >= "10.13"
   clt_label_command = "/usr/sbin/softwareupdate -l | " \
                       "grep -B 1 -E 'Command Line Tools' | " \
                       "awk -F'*' '/^ *\\*/ {print $2}' | " \
-                      "sed -e 's/^* Label: //' -e 's/^ *//' | " \
+                      "sed -e 's/^ *Label: //' -e 's/^ *//' | " \
                       "sort -V | " \
                       "tail -n1"
   clt_label = `#{clt_label_command}`.chomp
