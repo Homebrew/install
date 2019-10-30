@@ -28,6 +28,7 @@ jobs:
 
     - name: CI Tests
       run: |
+        export PATH=/usr/bin:/bin:/usr/local/bin
         ruby uninstall -d >/dev/null
         ruby uninstall -f >/dev/null
         ruby install --force-curl
