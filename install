@@ -371,8 +371,8 @@ puts <<-EOS
 EOS
 
 Dir.chdir HOMEBREW_REPOSITORY do
-  system "git", "config", "--local", "--replace-all", "homebrew.analyticsmessage", "true"
-  system "git", "config", "--local", "--replace-all", "homebrew.caskanalyticsmessage", "true"
+  system "git", "config", "--replace-all", "homebrew.analyticsmessage", "true"
+  system "git", "config", "--replace-all", "homebrew.caskanalyticsmessage", "true"
 end
 
 ohai "Next steps:"
