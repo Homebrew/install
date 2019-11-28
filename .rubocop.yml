@@ -10,7 +10,7 @@ AllCops:
   DisplayCopNames: false
 
 # Disabled for 2.0 support
-Layout/IndentHeredoc:
+Layout/HeredocIndentation:
   Enabled: false
 
 # Not useful in casks and formulae.
@@ -24,7 +24,7 @@ Metrics/ParameterLists:
 
 # Implicitly allow EOS as we use it everywhere.
 Naming/HeredocDelimiterNaming:
-  Blacklist:
+  ForbiddenDelimiters:
     - END, EOD, EOF
 
 # Allow dashes in filenames.
@@ -98,12 +98,12 @@ Style/TrailingCommaInHashLiteral:
 
 ### rubocop_shared.yml
 # make our hashes consistent
-Layout/AlignHash:
+Layout/HashAlignment:
   EnforcedHashRocketStyle: table
   EnforcedColonStyle: table
 
 # `system` is a special case and aligns on second argument
-Layout/AlignParameters:
+Layout/ParameterAlignment:
   Enabled: false
 
 # favour parens-less DSL-style arguments
