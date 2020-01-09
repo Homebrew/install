@@ -5,7 +5,7 @@
 HOMEBREW_PREFIX = "/usr/local".freeze
 HOMEBREW_REPOSITORY = "/usr/local/Homebrew".freeze
 HOMEBREW_CACHE = "#{ENV["HOME"]}/Library/Caches/Homebrew".freeze
-BREW_REPO = "https://github.com/Homebrew/brew".freeze
+BREW_REPO = ENV.fetch("BREW_REPO", "https://github.com/Homebrew/brew").freeze
 
 # TODO: bump version when new macOS is released
 MACOS_LATEST_SUPPORTED = "10.15".freeze
@@ -367,7 +367,7 @@ EOS
 
 ohai "Homebrew is run entirely by unpaid volunteers. Please consider donating:"
 puts <<-EOS
-  #{Tty.underline}https://github.com/Homebrew/brew#donations#{Tty.reset}
+  #{Tty.underline}#{BREW_REPO}#donations#{Tty.reset}
 EOS
 
 Dir.chdir HOMEBREW_REPOSITORY do
