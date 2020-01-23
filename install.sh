@@ -151,11 +151,11 @@ fi
 /usr/bin/sudo -n -v 2>/dev/null
 trap '/usr/bin/sudo -k' EXIT
 
-exit
 # The block form of Dir.chdir fails later if Dir.CWD doesn't exist which I
 # guess is fair enough. Also sudo prints a warning message for no good reason
-Dir.chdir "/usr"
+cd "/usr"
 
+exit
 ####################################################################### script
 if RUBY_PLATFORM.to_s.downcase.include?("linux")
   abort <<-EOABORT
