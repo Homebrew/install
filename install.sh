@@ -391,14 +391,17 @@ if should_install_command_line_tools && test -t 0; then
   execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
 fi
 
-exit
-abort <<-EOABORT if `/usr/bin/xcrun clang 2>&1` =~ /license/ && !$CHILD_STATUS.success?
+if [[ "$(/usr/bin/xcrun clang 2>&1)" == *"license"* && "$?" -ne 0 ]]; then
+  abort "$(cat <<EOABORT
 You have not agreed to the Xcode license.
 Before running the installer again please agree to the license by opening
 Xcode.app or running:
     sudo xcodebuild -license
 EOABORT
+)"
+fi
 
+exit
 ohai "Downloading and installing Homebrew..."
 Dir.chdir HOMEBREW_REPOSITORY do
   # we do it in four steps to avoid merge errors when reinstalling
