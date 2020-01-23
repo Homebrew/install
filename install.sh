@@ -210,7 +210,8 @@ Please create pull requests instead of asking for help on Homebrew\'s GitHub,
 Discourse, Twitter or IRC. You are responsible for resolving any issues you
 experience while you are running this ${what}.
 EOS
-)\n"
+)
+"
 fi
 
 ohai "This script will install:"
@@ -438,7 +439,8 @@ echo "$(cat <<EOS
 ${tty_bold}Read the analytics documentation (and how to opt-out) here:
   ${tty_underline}https://docs.brew.sh/Analytics${tty_reset}
 EOS
-)\n"
+)
+"
 
 ohai "Homebrew is run entirely by unpaid volunteers. Please consider donating:"
 echo "$(cat <<EOS
