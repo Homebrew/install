@@ -63,13 +63,16 @@ execute() {
   fi
 }
 
-exit
-def sudo(*args)
-  args.unshift("-A") unless ENV["SUDO_ASKPASS"].nil?
-  ohai "/usr/bin/sudo", *args
-  system "/usr/bin/sudo", *args
-end
+execute_sudo() {
+  local -a args=("$@")
+  if [[ -n "${SUDO_ASKPASS-}" ]]; then
+    args=("-A" "${args[@]}")
+  fi
+  ohai "/usr/bin/sudo" "${args[@]}"
+  execute "/usr/bin/sudo" "${args[@]}"
+}
 
+exit
 def getc
   system "/bin/stty raw -echo"
   if STDIN.respond_to?(:getbyte)
