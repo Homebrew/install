@@ -360,38 +360,38 @@ if [[ -d "${HOMEBREW_CACHE}" ]]; then
   execute "/usr/bin/touch" "${HOMEBREW_CACHE}/.cleaned"
 fi
 
-exit
-if should_install_command_line_tools? && macos_version >= "10.13"
+if should_install_command_line_tools; then # TODO: && macos_version >= "10.13"
   ohai "Searching online for the Command Line Tools"
   # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
-  clt_placeholder = "/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
-  sudo "/usr/bin/touch", clt_placeholder
+  clt_placeholder="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
+  execute_sudo "/usr/bin/touch" "$clt_placeholder"
 
-  clt_label_command = "/usr/sbin/softwareupdate -l | " \
-                      "grep -B 1 -E 'Command Line Tools' | " \
-                      "awk -F'*' '/^ *\\*/ {print $2}' | " \
-                      "sed -e 's/^ *Label: //' -e 's/^ *//' | " \
-                      "sort -V | " \
-                      "tail -n1"
-  clt_label = `#{clt_label_command}`.chomp
+  clt_label_command="/usr/sbin/softwareupdate -l |
+                      grep -B 1 -E 'Command Line Tools' |
+                      awk -F'*' '/^ *\\*/ {print \$2}' |
+                      sed -e 's/^ *Label: //' -e 's/^ *//' |
+                      sort -V |
+                      tail -n1"
+  clt_label="$(chomp "$(/bin/bash -c "$clt_label_command")")"
 
-  unless clt_label.empty?
-    ohai "Installing #{clt_label}"
-    sudo "/usr/sbin/softwareupdate", "-i", clt_label
-    sudo "/bin/rm", "-f", clt_placeholder
-    sudo "/usr/bin/xcode-select", "--switch", "/Library/Developer/CommandLineTools"
-  end
-end
+  if [[ -n "$clt_label" ]]; then
+    ohai "Installing $clt_label"
+    execute_sudo "/usr/sbin/softwareupdate" "-i" "$clt_label"
+    execute_sudo "/bin/rm" "-f" "$clt_placeholder"
+    execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
+  fi
+fi
 
 # Headless install may have failed, so fallback to original 'xcode-select' method
-if should_install_command_line_tools? && STDIN.tty?
+if should_install_command_line_tools && test -t 0; then
   ohai "Installing the Command Line Tools (expect a GUI popup):"
-  sudo "/usr/bin/xcode-select", "--install"
-  puts "Press any key when the installation has completed."
+  execute_sudo "/usr/bin/xcode-select" "--install"
+  echo "Press any key when the installation has completed."
   getc
-  sudo "/usr/bin/xcode-select", "--switch", "/Library/Developer/CommandLineTools"
-end
+  execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
+fi
 
+exit
 abort <<-EOABORT if `/usr/bin/xcrun clang 2>&1` =~ /license/ && !$CHILD_STATUS.success?
 You have not agreed to the Xcode license.
 Before running the installer again please agree to the license by opening
