@@ -257,11 +257,13 @@ for dir in "${directories[@]}"; do
 done
 
 declare -a user_chmods=()
-for dir in "${zsh_dirs[@]-}"; do
-  if user_only_chmod "${dir}"; then
-    user_chmods+=("${dir}")
-  fi
-done
+if [[ "${#zsh_dirs[@]}" -ne 0 ]]; then
+  for dir in "${zsh_dirs[@]-}"; do
+    if user_only_chmod "${dir}"; then
+      user_chmods+=("${dir}")
+    fi
+  done
+fi
 
 declare -a chmods=()
 if [[ "${#group_chmods[@]}" -ne 0 ]]; then
@@ -273,14 +275,16 @@ fi
 
 declare -a chowns=()
 declare -a chgrps=()
-for dir in "${chmods[@]-}"; do
-  if file_not_owned "${dir}"; then
-    chowns+=("${dir}")
-  fi
-  if file_not_grpowned "${dir}"; then
-    chgrps+=("${dir}")
-  fi
-done
+if [[ "${#chmods[@]}" -ne 0 ]]; then
+  for dir in "${chmods[@]-}"; do
+    if file_not_owned "${dir}"; then
+      chowns+=("${dir}")
+    fi
+    if file_not_grpowned "${dir}"; then
+      chgrps+=("${dir}")
+    fi
+  done
+fi
 
 if [[ "${#group_chmods[@]}" -ne 0 ]]; then
   ohai "The following existing directories will be made group writable:"
