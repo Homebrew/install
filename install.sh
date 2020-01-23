@@ -282,27 +282,28 @@ for dir in "${chmods[@]-}"; do
   fi
 done
 
-exit
-unless group_chmods.empty?
+if [[ "${#group_chmods[@]}" -ne 0 ]]; then
   ohai "The following existing directories will be made group writable:"
-  puts(*group_chmods)
-end
-unless user_chmods.empty?
+  echo "${group_chmods[@]-}"
+fi
+if [[ "${#user_chmods[@]}" -ne 0 ]]; then
   ohai "The following existing directories will be made writable by user only:"
-  puts(*user_chmods)
-end
-unless chowns.empty?
-  ohai "The following existing directories will have their owner set to #{Tty.underline}#{ENV["USER"]}#{Tty.reset}:"
-  puts(*chowns)
-end
-unless chgrps.empty?
-  ohai "The following existing directories will have their group set to #{Tty.underline}admin#{Tty.reset}:"
-  puts(*chgrps)
-end
-unless mkdirs.empty?
+  echo "${user_chmods[@]-}"
+fi
+if [[ "${#chowns[@]}" -ne 0 ]]; then
+  ohai "The following existing directories will have their owner set to ${tty_underline}${USER}${tty_reset}:"
+  echo "${chowns[@]-}"
+fi
+if [[ "${#chgrps[@]}" -ne 0 ]]; then
+  ohai "The following existing directories will have their group set to ${tty_underline}admin${tty_reset}:"
+  echo "${chgrps[@]-}"
+fi
+if [[ "${#mkdirs[@]}" -ne 0 ]]; then
   ohai "The following new directories will be created:"
-  puts(*mkdirs)
-end
+  echo "${mkdirs[@]-}"
+fi
+
+exit
 if should_install_command_line_tools?
   ohai "The Xcode Command Line Tools will be installed."
 end
