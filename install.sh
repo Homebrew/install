@@ -17,35 +17,20 @@ MACOS_OLDEST_SUPPORTED="10.13"
 export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
 export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 
+# string formatters
+if [[ -t 1 ]]; then
+  tty_escape() { printf "\033[%sm" "$1"; }
+else
+  tty_escape() { :; }
+fi
+tty_mkbold() { tty_escape "1;$1"; }
+tty_underline="$(tty_escape "4;39")"
+tty_blue="$(tty_mkbold 34)"
+tty_red="$(tty_mkbold 31)"
+tty_bold="$(tty_mkbold 39)"
+tty_reset="$(tty_escape 0)"
+
 exit
-module Tty
-  module_function
-
-  def blue
-    bold 34
-  end
-
-  def red
-    bold 31
-  end
-
-  def reset
-    escape 0
-  end
-
-  def bold(code = 39)
-    escape "1;#{code}"
-  end
-
-  def underline
-    escape "4;39"
-  end
-
-  def escape(code)
-    "\033[#{code}m" if STDOUT.tty?
-  end
-end
-
 class Array
   def shell_s
     cp = dup
