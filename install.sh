@@ -132,13 +132,21 @@ exists_but_not_writable() {
   [[ -e "$1" ]] && ! [[ -r "$1" && -w "$1" && -x "$1" ]]
 }
 
-# def chown?(path)
-#   !File.owned?(path)
-# end
+get_owner() {
+  stat -f "%u" "$1"
+}
 
-# def chgrp?(path)
-#   !File.grpowned?(path)
-# end
+file_not_owned() {
+  [[ "$(get_owner "$1")" != "$(id -u)" ]]
+}
+
+get_group() {
+  stat -f "%g" "$1"
+}
+
+file_not_grpowned() {
+  [[ " $(id -G "$USER") " != *" $(get_group "$1") "*  ]]
+}
 
 # USER isn't always set so provide a fall back for the installer and subprocesses.
 if [[ -z "$USER" ]]; then
@@ -255,11 +263,26 @@ for dir in "${zsh_dirs[@]-}"; do
   fi
 done
 
-exit
-chmods = group_chmods + user_chmods
-chowns = chmods.select { |d| chown?(d) }
-chgrps = chmods.select { |d| chgrp?(d) }
+declare -a chmods=()
+if [[ "${#group_chmods[@]}" -ne 0 ]]; then
+  chmods+=("${group_chmods[@]-}")
+fi
+if [[ "${#user_chmods[@]}" -ne 0 ]]; then
+  chmods+=("${user_chmods[@]-}")
+fi
 
+declare -a chowns=()
+declare -a chgrps=()
+for dir in "${chmods[@]-}"; do
+  if file_not_owned "${dir}"; then
+    chowns+=("${dir}")
+  fi
+  if file_not_grpowned "${dir}"; then
+    chgrps+=("${dir}")
+  fi
+done
+
+exit
 unless group_chmods.empty?
   ohai "The following existing directories will be made group writable:"
   puts(*group_chmods)
