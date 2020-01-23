@@ -142,10 +142,12 @@ wait_for_user() {
 #   !File.grpowned?(path)
 # end
 
-exit
 # USER isn't always set so provide a fall back for the installer and subprocesses.
-ENV["USER"] ||= `id -un`.chomp
+if [[ -z "$USER" ]]; then
+  export USER="$(chomp "$(id -un)")"
+fi
 
+exit
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
 Kernel.system "/usr/bin/sudo -n -v 2>/dev/null"
 at_exit { Kernel.system "/usr/bin/sudo", "-k" } unless $CHILD_STATUS.success?
