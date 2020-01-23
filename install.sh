@@ -40,8 +40,7 @@ shell_join() {
     printf "%s" "${arg// /\ }"
   done
 }
-chomp()
-{
+chomp() {
   printf "%s" "${1/"$'\n'"/}"
 }
 
