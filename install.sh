@@ -120,15 +120,13 @@ wait_for_user() {
 #   end
 # end
 
-# def user_only_chmod?(path)
-#   return false unless File.directory?(path)
-#
-#   mode = File.stat(path).mode & 0777
-#   # u = (mode >> 6) & 07
-#   # g = (mode >> 3) & 07
-#   # o = (mode >> 0) & 07
-#   mode != 0755
-# end
+get_permission() {
+  stat -f "%A" "$1"
+}
+
+user_only_chmod() {
+  [[ -d "$1" ]] && [[ "$(get_permission "$1")" != 755 ]]
+}
 
 exists_but_not_writable() {
   [[ -e "$1" ]] && ! [[ -r "$1" && -w "$1" && -x "$1" ]]
@@ -250,8 +248,14 @@ for dir in "${directories[@]}"; do
   fi
 done
 
+declare -a user_chmods=()
+for dir in "${zsh_dirs[@]-}"; do
+  if user_only_chmod "${dir}"; then
+    user_chmods+=("${dir}")
+  fi
+done
+
 exit
-user_chmods = zsh_dirs.select { |d| user_only_chmod?(d) }
 chmods = group_chmods + user_chmods
 chowns = chmods.select { |d| chown?(d) }
 chgrps = chmods.select { |d| chgrp?(d) }
