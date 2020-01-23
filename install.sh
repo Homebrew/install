@@ -155,54 +155,59 @@ trap '/usr/bin/sudo -k' EXIT
 # guess is fair enough. Also sudo prints a warning message for no good reason
 cd "/usr"
 
-exit
 ####################################################################### script
-if RUBY_PLATFORM.to_s.downcase.include?("linux")
-  abort <<-EOABORT
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+  abort "$(cat <<'EOABORT'
   To install Linuxbrew, paste at a terminal prompt:
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
-  EOABORT
-elsif macos_version < "10.7"
-  abort <<-EOABORT
+EOABORT
+)"
+elif false; then # TODO: macos_version < "10.7"
+  abort "$(cat <<EOABORT
 Your Mac OS X version is too old. See:
-  #{Tty.underline}https://github.com/mistydemeo/tigerbrew#{Tty.reset}"
-  EOABORT
-elsif macos_version < "10.9"
+  ${tty_underline}https://github.com/mistydemeo/tigerbrew${tty_reset}
+EOABORT
+)"
+elif false; then # TODO: macos_version < "10.9"
   abort "Your OS X version is too old"
-elsif Process.uid.zero?
+elif [[ "$UID" == 0 ]]; then
   abort "Don't run this as root!"
-elsif !`dsmemberutil checkmembership -U "#{ENV["USER"]}" -G admin`.include?("user is a member")
-  abort "This script requires the user #{ENV["USER"]} to be an Administrator."
-elsif File.directory?(HOMEBREW_PREFIX) && (!File.executable? HOMEBREW_PREFIX)
-  abort <<-EOABORT
-The Homebrew prefix, #{HOMEBREW_PREFIX}, exists but is not searchable. If this is
+elif ! [[ "$(dsmemberutil checkmembership -U "$USER" -G admin)" = *"user is a member"* ]]; then
+  abort "This script requires the user $USER to be an Administrator."
+elif [[ -d "$HOMEBREW_PREFIX" && ! -x "$HOMEBREW_PREFIX" ]]; then
+  abort "$(cat <<EOABORT
+The Homebrew prefix, ${HOMEBREW_PREFIX}, exists but is not searchable. If this is
 not intentional, please restore the default permissions and try running the
 installer again:
-    sudo chmod 775 #{HOMEBREW_PREFIX}
-  EOABORT
+    sudo chmod 775 ${HOMEBREW_PREFIX}
+EOABORT
+)"
 # TODO: bump version when new macOS is released
-elsif macos_version > MACOS_LATEST_SUPPORTED || macos_version < MACOS_OLDEST_SUPPORTED
-  who = "We"
-  if macos_version > MACOS_LATEST_SUPPORTED
-    what = "pre-release version"
-  elsif macos_version < MACOS_OLDEST_SUPPORTED
-    who << " (and Apple)"
-    what = "old version"
+elif false; then # TODO: macos_version > MACOS_LATEST_SUPPORTED || macos_version < MACOS_OLDEST_SUPPORTED
+  who="We"
+  what=""
+  if false; then # TODO: macos_version > MACOS_LATEST_SUPPORTED
+    what="pre-release version"
+  elif false; then # TODO: macos_version < MACOS_OLDEST_SUPPORTED
+    who="$who (and Apple)"
+    what="old version"
   else
-    return
-  end
-  ohai "You are using macOS #{macos_version.parts.join(".")}."
-  ohai "#{who} do not provide support for this #{what}."
+    exit
+  fi
+  ohai "You are using macOS #{macos_version.parts.join(\".\")}." # TODO
+  ohai "${who} do not provide support for this ${what}."
 
-  puts <<-EOS
+  echo "$(cat <<EOS
 This installation may not succeed.
 After installation, you will encounter build failures with some formulae.
-Please create pull requests instead of asking for help on Homebrew's GitHub,
+Please create pull requests instead of asking for help on Homebrew\'s GitHub,
 Discourse, Twitter or IRC. You are responsible for resolving any issues you
-experience while you are running this #{what}.
+experience while you are running this ${what}.
+EOS
+)\n"
+fi
 
-  EOS
-end
+exit
 
 ohai "This script will install:"
 puts "#{HOMEBREW_PREFIX}/bin/brew"
