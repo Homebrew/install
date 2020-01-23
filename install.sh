@@ -52,11 +52,18 @@ warn() {
   printf "${tty_red}Warning${tty_reset}: %s\n" "$(chomp "$1")"
 }
 
-exit
-def system(*args)
-  abort "Failed during: #{args.shell_s}" unless Kernel.system(*args)
-end
+abort() {
+  printf "%s\n" "$1"
+  exit 1
+}
 
+execute() {
+  if ! "$@"; then
+    abort "$(printf "Failed during: %s" "$(shell_join "$@")")"
+  fi
+}
+
+exit
 def sudo(*args)
   args.unshift("-A") unless ENV["SUDO_ASKPASS"].nil?
   ohai "/usr/bin/sudo", *args
