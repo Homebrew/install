@@ -130,9 +130,9 @@ wait_for_user() {
 #   mode != 0755
 # end
 
-# def chmod?(path)
-#   File.exist?(path) && !(File.readable?(path) && File.writable?(path) && File.executable?(path))
-# end
+exists_but_not_writable() {
+  [[ -e "$1" ]] && ! [[ -r "$1" && -w "$1" && -x "$1" ]]
+}
 
 # def chown?(path)
 #   !File.owned?(path)
@@ -215,29 +215,42 @@ echo "${HOMEBREW_PREFIX}/share/zsh/site-functions/_brew"
 echo "${HOMEBREW_PREFIX}/etc/bash_completion.d/brew"
 echo "${HOMEBREW_REPOSITORY}"
 
-exit
 # Keep relatively in sync with
 # https://github.com/Homebrew/brew/blob/master/Library/Homebrew/keg.rb
-group_chmods = %w[bin etc include lib sbin share opt var
-                  Frameworks
-                  etc/bash_completion.d lib/pkgconfig
-                  share/aclocal share/doc share/info share/locale share/man
-                  share/man/man1 share/man/man2 share/man/man3 share/man/man4
-                  share/man/man5 share/man/man6 share/man/man7 share/man/man8
-                  var/log var/homebrew var/homebrew/linked
-                  bin/brew]
-               .map { |d| File.join(HOMEBREW_PREFIX, d) }
-               .select { |d| chmod?(d) }
-# zsh refuses to read from these directories if group writable
-zsh_dirs = %w[share/zsh share/zsh/site-functions]
-           .map { |d| File.join(HOMEBREW_PREFIX, d) }
-mkdirs = %w[bin etc include lib sbin share var opt
-            share/zsh share/zsh/site-functions
-            var/homebrew var/homebrew/linked
-            Cellar Caskroom Homebrew Frameworks]
-         .map { |d| File.join(HOMEBREW_PREFIX, d) }
-         .reject { |d| File.directory?(d) }
+declare -a directories=(bin etc include lib sbin share opt var
+                        Frameworks
+                        etc/bash_completion.d lib/pkgconfig
+                        share/aclocal share/doc share/info share/locale share/man
+                        share/man/man1 share/man/man2 share/man/man3 share/man/man4
+                        share/man/man5 share/man/man6 share/man/man7 share/man/man8
+                        var/log var/homebrew var/homebrew/linked
+                        bin/brew)
+declare -a group_chmods=()
+for dir in "${directories[@]}"; do
+  if exists_but_not_writable "${HOMEBREW_PREFIX}/${dir}"; then
+    group_chmods+=("${HOMEBREW_PREFIX}/${dir}")
+  fi
+done
 
+# zsh refuses to read from these directories if group writable
+directories=(share/zsh share/zsh/site-functions)
+declare -a zsh_dirs=()
+for dir in "${directories[@]}"; do
+  zsh_dirs+=("${HOMEBREW_PREFIX}/${dir}")
+done
+
+directories=(bin etc include lib sbin share var opt
+             share/zsh share/zsh/site-functions
+             var/homebrew var/homebrew/linked
+             Cellar Caskroom Homebrew Frameworks)
+declare -a mkdirs=()
+for dir in "${directories[@]}"; do
+  if ! [[ -d "${HOMEBREW_PREFIX}/${dir}" ]]; then
+    mkdirs+=("${HOMEBREW_PREFIX}/${dir}")
+  fi
+done
+
+exit
 user_chmods = zsh_dirs.select { |d| user_only_chmod?(d) }
 chmods = group_chmods + user_chmods
 chowns = chmods.select { |d| chown?(d) }
