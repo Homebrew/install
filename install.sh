@@ -111,14 +111,14 @@ wait_for_user() {
 #   @macos_version ||= Version.new(`/usr/bin/sw_vers -productVersion`.chomp[/10\.\d+/])
 # end
 
-# def should_install_command_line_tools?
-#   if macos_version > "10.13"
-#     !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git")
-#   else
-#     !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git") ||
-#       !File.exist?("/usr/include/iconv.h")
-#   end
-# end
+should_install_command_line_tools() {
+  if true; then # TODO: macos_version > "10.13"
+    ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]]
+  else
+    ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]] ||
+      ! [[ -e "/usr/include/iconv.h" ]]
+  fi
+}
 
 get_permission() {
   stat -f "%A" "$1"
@@ -303,13 +303,15 @@ if [[ "${#mkdirs[@]}" -ne 0 ]]; then
   echo "${mkdirs[@]-}"
 fi
 
-exit
-if should_install_command_line_tools?
+if should_install_command_line_tools; then
   ohai "The Xcode Command Line Tools will be installed."
-end
+fi
 
-wait_for_user if STDIN.tty? && !ENV["CI"]
+if [[ -t 0 && -z "${CI-}" ]]; then
+  wait_for_user
+fi
 
+exit
 if File.directory? HOMEBREW_PREFIX
   sudo "/bin/chmod", "u+rwx", *chmods unless chmods.empty?
   sudo "/bin/chmod", "g+rwx", *group_chmods unless group_chmods.empty?
