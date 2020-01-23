@@ -31,8 +31,8 @@ jobs:
         export PATH=/usr/bin:/bin:/usr/local/bin
         ruby uninstall -d >/dev/null
         ruby uninstall -f >/dev/null
-        ruby install --force-curl
+        bash install.sh
         ruby uninstall -f >/dev/null
-        ruby install
+        bash install.sh
         brew install ack
         ruby uninstall -f >/dev/null
