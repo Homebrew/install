@@ -207,16 +207,15 @@ EOS
 )\n"
 fi
 
-exit
-
 ohai "This script will install:"
-puts "#{HOMEBREW_PREFIX}/bin/brew"
-puts "#{HOMEBREW_PREFIX}/share/doc/homebrew"
-puts "#{HOMEBREW_PREFIX}/share/man/man1/brew.1"
-puts "#{HOMEBREW_PREFIX}/share/zsh/site-functions/_brew"
-puts "#{HOMEBREW_PREFIX}/etc/bash_completion.d/brew"
-puts HOMEBREW_REPOSITORY.to_s
+echo "${HOMEBREW_PREFIX}/bin/brew"
+echo "${HOMEBREW_PREFIX}/share/doc/homebrew"
+echo "${HOMEBREW_PREFIX}/share/man/man1/brew.1"
+echo "${HOMEBREW_PREFIX}/share/zsh/site-functions/_brew"
+echo "${HOMEBREW_PREFIX}/etc/bash_completion.d/brew"
+echo "${HOMEBREW_REPOSITORY}"
 
+exit
 # Keep relatively in sync with
 # https://github.com/Homebrew/brew/blob/master/Library/Homebrew/keg.rb
 group_chmods = %w[bin etc include lib sbin share opt var
