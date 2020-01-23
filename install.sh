@@ -89,29 +89,23 @@ wait_for_user() {
   fi
 }
 
-# class Version
-#   include Comparable
-#   attr_reader :parts
-#
-#   def initialize(str)
-#     @parts = str.split(".").map(&:to_i)
-#   end
-#
-#   def <=>(other)
-#     parts <=> self.class.new(other).parts
-#   end
-#
-#   def to_s
-#     parts.join(".")
-#   end
-# end
+major_minor() {
+  echo "${1%%.*}.$(x="${1#*.}"; echo "${x%%.*}")"
+}
+macos_version="$(major_minor "$(/usr/bin/sw_vers -productVersion)")"
 
-# def macos_version
-#   @macos_version ||= Version.new(`/usr/bin/sw_vers -productVersion`.chomp[/10\.\d+/])
-# end
+version_gt() {
+  [[ "${1%.*}" -gt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -gt "${2#*.}" ]]
+}
+version_ge() {
+  [[ "${1%.*}" -gt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -ge "${2#*.}" ]]
+}
+version_lt() {
+  [[ "${1%.*}" -lt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -lt "${2#*.}" ]]
+}
 
 should_install_command_line_tools() {
-  if true; then # TODO: macos_version > "10.13"
+  if version_gt "$macos_version" "10.13"; then
     ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]]
   else
     ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]] ||
@@ -167,13 +161,13 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
 EOABORT
 )"
-elif false; then # TODO: macos_version < "10.7"
+elif version_lt "$macos_version" "10.7"; then
   abort "$(cat <<EOABORT
 Your Mac OS X version is too old. See:
   ${tty_underline}https://github.com/mistydemeo/tigerbrew${tty_reset}
 EOABORT
 )"
-elif false; then # TODO: macos_version < "10.9"
+elif version_lt "$macos_version" "10.9"; then
   abort "Your OS X version is too old"
 elif [[ "$UID" == 0 ]]; then
   abort "Don't run this as root!"
@@ -187,19 +181,17 @@ installer again:
     sudo chmod 775 ${HOMEBREW_PREFIX}
 EOABORT
 )"
-# TODO: bump version when new macOS is released
-elif false; then # TODO: macos_version > MACOS_LATEST_SUPPORTED || macos_version < MACOS_OLDEST_SUPPORTED
+elif version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED" || \
+  version_lt "$macos_version" "$MACOS_OLDEST_SUPPORTED"; then
   who="We"
   what=""
-  if false; then # TODO: macos_version > MACOS_LATEST_SUPPORTED
+  if version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED"; then
     what="pre-release version"
-  elif false; then # TODO: macos_version < MACOS_OLDEST_SUPPORTED
+  else
     who="$who (and Apple)"
     what="old version"
-  else
-    exit
   fi
-  ohai "You are using macOS #{macos_version.parts.join(\".\")}." # TODO
+  ohai "You are using macOS ${macos_version}."
   ohai "${who} do not provide support for this ${what}."
 
   echo "$(cat <<EOS
@@ -360,7 +352,7 @@ if [[ -d "${HOMEBREW_CACHE}" ]]; then
   execute "/usr/bin/touch" "${HOMEBREW_CACHE}/.cleaned"
 fi
 
-if should_install_command_line_tools; then # TODO: && macos_version >= "10.13"
+if should_install_command_line_tools && version_ge "$macos_version" "10.13"; then
   ohai "Searching online for the Command Line Tools"
   # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
   clt_placeholder="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
