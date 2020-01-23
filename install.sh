@@ -147,11 +147,11 @@ if [[ -z "$USER" ]]; then
   export USER="$(chomp "$(id -un)")"
 fi
 
-exit
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
-Kernel.system "/usr/bin/sudo -n -v 2>/dev/null"
-at_exit { Kernel.system "/usr/bin/sudo", "-k" } unless $CHILD_STATUS.success?
+/usr/bin/sudo -n -v 2>/dev/null
+trap '/usr/bin/sudo -k' EXIT
 
+exit
 # The block form of Dir.chdir fails later if Dir.CWD doesn't exist which I
 # guess is fair enough. Also sudo prints a warning message for no good reason
 Dir.chdir "/usr"
