@@ -401,56 +401,57 @@ EOABORT
 )"
 fi
 
-exit
 ohai "Downloading and installing Homebrew..."
-Dir.chdir HOMEBREW_REPOSITORY do
+pushd "${HOMEBREW_REPOSITORY}" >/dev/null
   # we do it in four steps to avoid merge errors when reinstalling
-  system "git", "init", "-q"
+  git init -q
 
   # "git remote add" will fail if the remote is defined in the global config
-  system "git", "config", "remote.origin.url", BREW_REPO
-  system "git", "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*"
+  git config remote.origin.url "${BREW_REPO}"
+  git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
 
   # ensure we don't munge line endings on checkout
-  system "git", "config", "core.autocrlf", "false"
+  git config core.autocrlf false
 
-  system "git", "fetch", "origin", "master:refs/remotes/origin/master",
-         "--tags", "--force"
+  git fetch origin master:refs/remotes/origin/master --tags --force
 
-  system "git", "reset", "--hard", "origin/master"
+  git reset --hard origin/master
 
-  system "ln", "-sf", "#{HOMEBREW_REPOSITORY}/bin/brew", "#{HOMEBREW_PREFIX}/bin/brew"
+  ln -sf "${HOMEBREW_REPOSITORY}/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
 
-  system "#{HOMEBREW_PREFIX}/bin/brew", "update", "--force"
-end
+  "${HOMEBREW_PREFIX}/bin/brew" update --force
+popd >/dev/null
 
-warn "#{HOMEBREW_PREFIX}/bin is not in your PATH." unless ENV["PATH"].split(":").include? "#{HOMEBREW_PREFIX}/bin"
+if [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]; then
+  warn "${HOMEBREW_PREFIX}/bin is not in your PATH."
+fi
 
 ohai "Installation successful!"
-puts
+echo
 
 # Use the shell's audible bell.
-print "\a"
+printf "\a"
 
 # Use an extra newline and bold to avoid this being missed.
 ohai "Homebrew has enabled anonymous aggregate formulae and cask analytics."
-puts <<-EOS
-#{Tty.bold}Read the analytics documentation (and how to opt-out) here:
-  #{Tty.underline}https://docs.brew.sh/Analytics#{Tty.reset}
-
+echo "$(cat <<EOS
+${tty_bold}Read the analytics documentation (and how to opt-out) here:
+  ${tty_underline}https://docs.brew.sh/Analytics${tty_reset}
 EOS
+)\n"
 
 ohai "Homebrew is run entirely by unpaid volunteers. Please consider donating:"
-puts <<-EOS
-  #{Tty.underline}https://github.com/Homebrew/brew#donations#{Tty.reset}
+echo "$(cat <<EOS
+  ${tty_underline}https://github.com/Homebrew/brew#donations${tty_reset}
 EOS
+)"
 
-Dir.chdir HOMEBREW_REPOSITORY do
-  system "git", "config", "--replace-all", "homebrew.analyticsmessage", "true"
-  system "git", "config", "--replace-all", "homebrew.caskanalyticsmessage", "true"
-end
+pushd "${HOMEBREW_REPOSITORY}" >/dev/null
+  git config --replace-all homebrew.analyticsmessage true
+  git config --replace-all homebrew.caskanalyticsmessage true
+popd >/dev/null
 
 ohai "Next steps:"
-puts "- Run `brew help` to get started"
-puts "- Further documentation: "
-puts "    #{Tty.underline}https://docs.brew.sh#{Tty.reset}"
+echo '- Run `brew help` to get started'
+echo "- Further documentation: "
+echo "    ${tty_underline}https://docs.brew.sh${tty_reset}"
