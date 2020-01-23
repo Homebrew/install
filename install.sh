@@ -315,32 +315,52 @@ if [[ -t 0 && -z "${CI-}" ]]; then
   wait_for_user
 fi
 
-exit
-if File.directory? HOMEBREW_PREFIX
-  sudo "/bin/chmod", "u+rwx", *chmods unless chmods.empty?
-  sudo "/bin/chmod", "g+rwx", *group_chmods unless group_chmods.empty?
-  sudo "/bin/chmod", "755", *user_chmods unless user_chmods.empty?
-  sudo "/usr/sbin/chown", ENV["USER"], *chowns unless chowns.empty?
-  sudo "/usr/bin/chgrp", "admin", *chgrps unless chgrps.empty?
+if [[ -d "${HOMEBREW_PREFIX}" ]]; then
+  if [[ "${#chmods[@]}" -ne 0 ]]; then
+    execute_sudo "/bin/chmod" "u+rwx" "${chmods[@]-}"
+  fi
+  if [[ "${#group_chmods[@]}" -ne 0 ]]; then
+    execute_sudo "/bin/chmod" "g+rwx" "${group_chmods[@]-}"
+  fi
+  if [[ "${#user_chmods[@]}" -ne 0 ]]; then
+    execute_sudo "/bin/chmod" "755" "${user_chmods[@]-}"
+  fi
+  if [[ "${#chowns[@]}" -ne 0 ]]; then
+    execute_sudo "/usr/sbin/chown" "$USER" "${chowns[@]-}"
+  fi
+  if [[ "${#chgrps[@]}" -ne 0 ]]; then
+    execute_sudo "/usr/bin/chgrp" "admin" "${chgrps[@]-}"
+  fi
 else
-  sudo "/bin/mkdir", "-p", HOMEBREW_PREFIX
-  sudo "/usr/sbin/chown", "root:wheel", HOMEBREW_PREFIX
-end
+  execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_PREFIX}"
+  execute_sudo "/usr/sbin/chown" "root:wheel" "${HOMEBREW_PREFIX}"
+fi
 
-unless mkdirs.empty?
-  sudo "/bin/mkdir", "-p", *mkdirs
-  sudo "/bin/chmod", "g+rwx", *mkdirs
-  sudo "/bin/chmod", "755", *zsh_dirs
-  sudo "/usr/sbin/chown", ENV["USER"], *mkdirs
-  sudo "/usr/bin/chgrp", "admin", *mkdirs
-end
+if [[ "${#mkdirs[@]}" -ne 0 ]]; then
+  execute_sudo "/bin/mkdir" "-p" "${mkdirs[@]-}"
+  execute_sudo "/bin/chmod" "g+rwx" "${mkdirs[@]-}"
+  execute_sudo "/bin/chmod" "755" "${zsh_dirs[@]-}"
+  execute_sudo "/usr/sbin/chown" "$USER" "${mkdirs[@]-}"
+  execute_sudo "/usr/bin/chgrp" "admin" "${mkdirs[@]-}"
+fi
 
-sudo "/bin/mkdir", "-p", HOMEBREW_CACHE unless File.directory? HOMEBREW_CACHE
-sudo "/bin/chmod", "g+rwx", HOMEBREW_CACHE if chmod? HOMEBREW_CACHE
-sudo "/usr/sbin/chown", ENV["USER"], HOMEBREW_CACHE if chown? HOMEBREW_CACHE
-sudo "/usr/bin/chgrp", "admin", HOMEBREW_CACHE if chgrp? HOMEBREW_CACHE
-system "/usr/bin/touch", "#{HOMEBREW_CACHE}/.cleaned" if File.directory? HOMEBREW_CACHE
+if ! [[ -d "${HOMEBREW_CACHE}" ]]; then
+  execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_CACHE}"
+fi
+if exists_but_not_writable "${HOMEBREW_CACHE}"; then
+  execute_sudo "/bin/chmod" "g+rwx" "${HOMEBREW_CACHE}"
+fi
+if file_not_owned "${HOMEBREW_CACHE}"; then
+  execute_sudo "/usr/sbin/chown" "$USER" "${HOMEBREW_CACHE}"
+fi
+if file_not_grpowned "${HOMEBREW_CACHE}"; then
+  execute_sudo "/usr/bin/chgrp" "admin" "${HOMEBREW_CACHE}"
+fi
+if [[ -d "${HOMEBREW_CACHE}" ]]; then
+  execute "/usr/bin/touch" "${HOMEBREW_CACHE}/.cleaned"
+fi
 
+exit
 if should_install_command_line_tools? && macos_version >= "10.13"
   ohai "Searching online for the Command Line Tools"
   # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
