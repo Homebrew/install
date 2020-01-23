@@ -1,4 +1,5 @@
 #!/bin/bash
+set -u
 
 # This script installs to /usr/local only. To install elsewhere (which is
 # unsupported) you can untar https://github.com/Homebrew/brew/tarball/master
