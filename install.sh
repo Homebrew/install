@@ -1,25 +1,23 @@
 #!/bin/bash
-exit
+
 # This script installs to /usr/local only. To install elsewhere (which is
 # unsupported) you can untar https://github.com/Homebrew/brew/tarball/master
 # anywhere you like.
-HOMEBREW_PREFIX = "/usr/local".freeze
-HOMEBREW_REPOSITORY = "/usr/local/Homebrew".freeze
-HOMEBREW_CACHE = "#{ENV["HOME"]}/Library/Caches/Homebrew".freeze
-BREW_REPO = "https://github.com/Homebrew/brew".freeze
+HOMEBREW_PREFIX="/usr/local"
+HOMEBREW_REPOSITORY="/usr/local/Homebrew"
+HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
+BREW_REPO="https://github.com/Homebrew/brew"
 
 # TODO: bump version when new macOS is released
-MACOS_LATEST_SUPPORTED = "10.15".freeze
+MACOS_LATEST_SUPPORTED="10.15"
 # TODO: bump version when new macOS is released
-MACOS_OLDEST_SUPPORTED = "10.13".freeze
+MACOS_OLDEST_SUPPORTED="10.13"
 
 # no analytics during installation
-ENV["HOMEBREW_NO_ANALYTICS_THIS_RUN"] = "1"
-ENV["HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT"] = "1"
+export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
+export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 
-# get nicer global variables
-require "English"
-
+exit
 module Tty
   module_function
 
