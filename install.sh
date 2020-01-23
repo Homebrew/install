@@ -72,26 +72,24 @@ execute_sudo() {
   execute "/usr/bin/sudo" "${args[@]}"
 }
 
-exit
-def getc
-  system "/bin/stty raw -echo"
-  if STDIN.respond_to?(:getbyte)
-    STDIN.getbyte
-  else
-    STDIN.getc
-  end
-ensure
-  system "/bin/stty -raw echo"
-end
+getc() {
+  /bin/stty raw -echo
+  IFS= read -r -n 1 -d '' "$@"
+  /bin/stty -raw -echo
+}
 
-def wait_for_user
-  puts
-  puts "Press RETURN to continue or any other key to abort"
-  c = getc
+wait_for_user() {
+  local c
+  echo
+  echo "Press RETURN to continue or any other key to abort"
+  getc c
   # we test for \r and \n because some stuff does \r instead
-  abort unless (c == 13) || (c == 10)
-end
+  if ! [[ "$c" == $'\r' || "$c" == $'\n' ]]; then
+    exit 1
+  fi
+}
 
+exit
 class Version
   include Comparable
   attr_reader :parts
