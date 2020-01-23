@@ -143,7 +143,8 @@ file_not_grpowned() {
 
 # USER isn't always set so provide a fall back for the installer and subprocesses.
 if [[ -z "$USER" ]]; then
-  export USER="$(chomp "$(id -un)")"
+  USER="$(chomp "$(id -un)")"
+  export USER
 fi
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
@@ -152,7 +153,7 @@ trap '/usr/bin/sudo -k' EXIT
 
 # The block form of Dir.chdir fails later if Dir.CWD doesn't exist which I
 # guess is fair enough. Also sudo prints a warning message for no good reason
-cd "/usr"
+cd "/usr" || return
 
 ####################################################################### script
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
@@ -383,7 +384,7 @@ if should_install_command_line_tools && test -t 0; then
   execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
 fi
 
-if [[ "$(/usr/bin/xcrun clang 2>&1)" == *"license"* && "$?" -ne 0 ]]; then
+if ! output="$(/usr/bin/xcrun clang 2>&1)" && [[ "$output" == *"license"* ]]; then
   abort "$(cat <<EOABORT
 You have not agreed to the Xcode license.
 Before running the installer again please agree to the license by opening
@@ -394,7 +395,9 @@ EOABORT
 fi
 
 ohai "Downloading and installing Homebrew..."
-pushd "${HOMEBREW_REPOSITORY}" >/dev/null
+(
+  cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
+
   # we do it in four steps to avoid merge errors when reinstalling
   git init -q
 
@@ -412,7 +415,7 @@ pushd "${HOMEBREW_REPOSITORY}" >/dev/null
   ln -sf "${HOMEBREW_REPOSITORY}/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
 
   "${HOMEBREW_PREFIX}/bin/brew" update --force
-popd >/dev/null
+)
 
 if [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]; then
   warn "${HOMEBREW_PREFIX}/bin is not in your PATH."
@@ -434,17 +437,17 @@ EOS
 "
 
 ohai "Homebrew is run entirely by unpaid volunteers. Please consider donating:"
-echo "$(cat <<EOS
+cat <<EOS
   ${tty_underline}https://github.com/Homebrew/brew#donations${tty_reset}
 EOS
-)"
 
-pushd "${HOMEBREW_REPOSITORY}" >/dev/null
+(
+  cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
   git config --replace-all homebrew.analyticsmessage true
   git config --replace-all homebrew.caskanalyticsmessage true
-popd >/dev/null
+)
 
 ohai "Next steps:"
-echo '- Run `brew help` to get started'
+echo "- Run \`brew help\` to get started"
 echo "- Further documentation: "
 echo "    ${tty_underline}https://docs.brew.sh${tty_reset}"
