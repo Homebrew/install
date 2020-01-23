@@ -90,59 +90,59 @@ wait_for_user() {
   fi
 }
 
+# class Version
+#   include Comparable
+#   attr_reader :parts
+#
+#   def initialize(str)
+#     @parts = str.split(".").map(&:to_i)
+#   end
+#
+#   def <=>(other)
+#     parts <=> self.class.new(other).parts
+#   end
+#
+#   def to_s
+#     parts.join(".")
+#   end
+# end
+
+# def macos_version
+#   @macos_version ||= Version.new(`/usr/bin/sw_vers -productVersion`.chomp[/10\.\d+/])
+# end
+
+# def should_install_command_line_tools?
+#   if macos_version > "10.13"
+#     !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git")
+#   else
+#     !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git") ||
+#       !File.exist?("/usr/include/iconv.h")
+#   end
+# end
+
+# def user_only_chmod?(path)
+#   return false unless File.directory?(path)
+#
+#   mode = File.stat(path).mode & 0777
+#   # u = (mode >> 6) & 07
+#   # g = (mode >> 3) & 07
+#   # o = (mode >> 0) & 07
+#   mode != 0755
+# end
+
+# def chmod?(path)
+#   File.exist?(path) && !(File.readable?(path) && File.writable?(path) && File.executable?(path))
+# end
+
+# def chown?(path)
+#   !File.owned?(path)
+# end
+
+# def chgrp?(path)
+#   !File.grpowned?(path)
+# end
+
 exit
-class Version
-  include Comparable
-  attr_reader :parts
-
-  def initialize(str)
-    @parts = str.split(".").map(&:to_i)
-  end
-
-  def <=>(other)
-    parts <=> self.class.new(other).parts
-  end
-
-  def to_s
-    parts.join(".")
-  end
-end
-
-def macos_version
-  @macos_version ||= Version.new(`/usr/bin/sw_vers -productVersion`.chomp[/10\.\d+/])
-end
-
-def should_install_command_line_tools?
-  if macos_version > "10.13"
-    !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git")
-  else
-    !File.exist?("/Library/Developer/CommandLineTools/usr/bin/git") ||
-      !File.exist?("/usr/include/iconv.h")
-  end
-end
-
-def user_only_chmod?(path)
-  return false unless File.directory?(path)
-
-  mode = File.stat(path).mode & 0777
-  # u = (mode >> 6) & 07
-  # g = (mode >> 3) & 07
-  # o = (mode >> 0) & 07
-  mode != 0755
-end
-
-def chmod?(path)
-  File.exist?(path) && !(File.readable?(path) && File.writable?(path) && File.executable?(path))
-end
-
-def chown?(path)
-  !File.owned?(path)
-end
-
-def chgrp?(path)
-  !File.grpowned?(path)
-end
-
 # USER isn't always set so provide a fall back for the installer and subprocesses.
 ENV["USER"] ||= `id -un`.chomp
 
