@@ -5,4 +5,4 @@
 #   We will keep this Ruby script for compatibility but please use the following command.
 #     bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 
-system "bash", "-c", "bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)\""
+system "bash", "-c", 'bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"'
