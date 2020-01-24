@@ -148,8 +148,9 @@ if [[ -z "$USER" ]]; then
 fi
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
-/usr/bin/sudo -n -v 2>/dev/null
-trap '/usr/bin/sudo -k' EXIT
+if ! /usr/bin/sudo -n -v 2>/dev/null; then
+  trap '/usr/bin/sudo -k' EXIT
+fi
 
 # The block form of Dir.chdir fails later if Dir.CWD doesn't exist which I
 # guess is fair enough. Also sudo prints a warning message for no good reason
