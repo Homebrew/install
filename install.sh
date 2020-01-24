@@ -436,9 +436,11 @@ EOS
 "
 
 ohai "Homebrew is run entirely by unpaid volunteers. Please consider donating:"
-cat <<EOS
+echo "$(cat <<EOS
   ${tty_underline}https://github.com/Homebrew/brew#donations${tty_reset}
 EOS
+)
+"
 
 (
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
