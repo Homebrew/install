@@ -190,7 +190,7 @@ elif version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED" || \
   if version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED"; then
     what="pre-release version"
   else
-    who="$who (and Apple)"
+    who+=" (and Apple)"
     what="old version"
   fi
   ohai "You are using macOS ${macos_version}."
