@@ -217,15 +217,15 @@ echo "${HOMEBREW_REPOSITORY}"
 
 # Keep relatively in sync with
 # https://github.com/Homebrew/brew/blob/master/Library/Homebrew/keg.rb
-declare -a directories=(bin etc include lib sbin share opt var
-                        Frameworks
-                        etc/bash_completion.d lib/pkgconfig
-                        share/aclocal share/doc share/info share/locale share/man
-                        share/man/man1 share/man/man2 share/man/man3 share/man/man4
-                        share/man/man5 share/man/man6 share/man/man7 share/man/man8
-                        var/log var/homebrew var/homebrew/linked
-                        bin/brew)
-declare -a group_chmods=()
+directories=(bin etc include lib sbin share opt var
+             Frameworks
+             etc/bash_completion.d lib/pkgconfig
+             share/aclocal share/doc share/info share/locale share/man
+             share/man/man1 share/man/man2 share/man/man3 share/man/man4
+             share/man/man5 share/man/man6 share/man/man7 share/man/man8
+             var/log var/homebrew var/homebrew/linked
+             bin/brew)
+group_chmods=()
 for dir in "${directories[@]}"; do
   if exists_but_not_writable "${HOMEBREW_PREFIX}/${dir}"; then
     group_chmods+=("${HOMEBREW_PREFIX}/${dir}")
@@ -234,7 +234,7 @@ done
 
 # zsh refuses to read from these directories if group writable
 directories=(share/zsh share/zsh/site-functions)
-declare -a zsh_dirs=()
+zsh_dirs=()
 for dir in "${directories[@]}"; do
   zsh_dirs+=("${HOMEBREW_PREFIX}/${dir}")
 done
@@ -243,14 +243,14 @@ directories=(bin etc include lib sbin share var opt
              share/zsh share/zsh/site-functions
              var/homebrew var/homebrew/linked
              Cellar Caskroom Homebrew Frameworks)
-declare -a mkdirs=()
+mkdirs=()
 for dir in "${directories[@]}"; do
   if ! [[ -d "${HOMEBREW_PREFIX}/${dir}" ]]; then
     mkdirs+=("${HOMEBREW_PREFIX}/${dir}")
   fi
 done
 
-declare -a user_chmods=()
+user_chmods=()
 if [[ "${#zsh_dirs[@]}" -gt 0 ]]; then
   for dir in "${zsh_dirs[@]}"; do
     if user_only_chmod "${dir}"; then
@@ -259,7 +259,7 @@ if [[ "${#zsh_dirs[@]}" -gt 0 ]]; then
   done
 fi
 
-declare -a chmods=()
+chmods=()
 if [[ "${#group_chmods[@]}" -gt 0 ]]; then
   chmods+=("${group_chmods[@]}")
 fi
@@ -267,8 +267,8 @@ if [[ "${#user_chmods[@]}" -gt 0 ]]; then
   chmods+=("${user_chmods[@]}")
 fi
 
-declare -a chowns=()
-declare -a chgrps=()
+chowns=()
+chgrps=()
 if [[ "${#chmods[@]}" -gt 0 ]]; then
   for dir in "${chmods[@]}"; do
     if file_not_owned "${dir}"; then
