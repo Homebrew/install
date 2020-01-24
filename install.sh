@@ -332,7 +332,6 @@ fi
 if [[ "${#mkdirs[@]}" -ne 0 ]]; then
   execute_sudo "/bin/mkdir" "-p" "${mkdirs[@]-}"
   execute_sudo "/bin/chmod" "g+rwx" "${mkdirs[@]-}"
-  execute_sudo "/bin/chmod" "755" "${zsh_dirs[@]-}"
   execute_sudo "/usr/sbin/chown" "$USER" "${mkdirs[@]-}"
   execute_sudo "/usr/bin/chgrp" "admin" "${mkdirs[@]-}"
 fi
