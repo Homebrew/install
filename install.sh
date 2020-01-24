@@ -425,7 +425,9 @@ ohai "Installation successful!"
 echo
 
 # Use the shell's audible bell.
-printf "\a"
+if [[ -t 1 ]]; then
+  printf "\a"
+fi
 
 # Use an extra newline and bold to avoid this being missed.
 ohai "Homebrew has enabled anonymous aggregate formulae and cask analytics."
