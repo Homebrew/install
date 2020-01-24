@@ -251,7 +251,7 @@ done
 
 declare -a user_chmods=()
 if [[ "${#zsh_dirs[@]}" -ne 0 ]]; then
-  for dir in "${zsh_dirs[@]-}"; do
+  for dir in "${zsh_dirs[@]}"; do
     if user_only_chmod "${dir}"; then
       user_chmods+=("${dir}")
     fi
@@ -260,16 +260,16 @@ fi
 
 declare -a chmods=()
 if [[ "${#group_chmods[@]}" -ne 0 ]]; then
-  chmods+=("${group_chmods[@]-}")
+  chmods+=("${group_chmods[@]}")
 fi
 if [[ "${#user_chmods[@]}" -ne 0 ]]; then
-  chmods+=("${user_chmods[@]-}")
+  chmods+=("${user_chmods[@]}")
 fi
 
 declare -a chowns=()
 declare -a chgrps=()
 if [[ "${#chmods[@]}" -ne 0 ]]; then
-  for dir in "${chmods[@]-}"; do
+  for dir in "${chmods[@]}"; do
     if file_not_owned "${dir}"; then
       chowns+=("${dir}")
     fi
@@ -281,23 +281,23 @@ fi
 
 if [[ "${#group_chmods[@]}" -ne 0 ]]; then
   ohai "The following existing directories will be made group writable:"
-  echo "${group_chmods[@]-}"
+  echo "${group_chmods[@]}"
 fi
 if [[ "${#user_chmods[@]}" -ne 0 ]]; then
   ohai "The following existing directories will be made writable by user only:"
-  echo "${user_chmods[@]-}"
+  echo "${user_chmods[@]}"
 fi
 if [[ "${#chowns[@]}" -ne 0 ]]; then
   ohai "The following existing directories will have their owner set to ${tty_underline}${USER}${tty_reset}:"
-  echo "${chowns[@]-}"
+  echo "${chowns[@]}"
 fi
 if [[ "${#chgrps[@]}" -ne 0 ]]; then
   ohai "The following existing directories will have their group set to ${tty_underline}admin${tty_reset}:"
-  echo "${chgrps[@]-}"
+  echo "${chgrps[@]}"
 fi
 if [[ "${#mkdirs[@]}" -ne 0 ]]; then
   ohai "The following new directories will be created:"
-  echo "${mkdirs[@]-}"
+  echo "${mkdirs[@]}"
 fi
 
 if should_install_command_line_tools; then
@@ -310,19 +310,19 @@ fi
 
 if [[ -d "${HOMEBREW_PREFIX}" ]]; then
   if [[ "${#chmods[@]}" -ne 0 ]]; then
-    execute_sudo "/bin/chmod" "u+rwx" "${chmods[@]-}"
+    execute_sudo "/bin/chmod" "u+rwx" "${chmods[@]}"
   fi
   if [[ "${#group_chmods[@]}" -ne 0 ]]; then
-    execute_sudo "/bin/chmod" "g+rwx" "${group_chmods[@]-}"
+    execute_sudo "/bin/chmod" "g+rwx" "${group_chmods[@]}"
   fi
   if [[ "${#user_chmods[@]}" -ne 0 ]]; then
-    execute_sudo "/bin/chmod" "755" "${user_chmods[@]-}"
+    execute_sudo "/bin/chmod" "755" "${user_chmods[@]}"
   fi
   if [[ "${#chowns[@]}" -ne 0 ]]; then
-    execute_sudo "/usr/sbin/chown" "$USER" "${chowns[@]-}"
+    execute_sudo "/usr/sbin/chown" "$USER" "${chowns[@]}"
   fi
   if [[ "${#chgrps[@]}" -ne 0 ]]; then
-    execute_sudo "/usr/bin/chgrp" "admin" "${chgrps[@]-}"
+    execute_sudo "/usr/bin/chgrp" "admin" "${chgrps[@]}"
   fi
 else
   execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_PREFIX}"
@@ -330,10 +330,10 @@ else
 fi
 
 if [[ "${#mkdirs[@]}" -ne 0 ]]; then
-  execute_sudo "/bin/mkdir" "-p" "${mkdirs[@]-}"
-  execute_sudo "/bin/chmod" "g+rwx" "${mkdirs[@]-}"
-  execute_sudo "/usr/sbin/chown" "$USER" "${mkdirs[@]-}"
-  execute_sudo "/usr/bin/chgrp" "admin" "${mkdirs[@]-}"
+  execute_sudo "/bin/mkdir" "-p" "${mkdirs[@]}"
+  execute_sudo "/bin/chmod" "g+rwx" "${mkdirs[@]}"
+  execute_sudo "/usr/sbin/chown" "$USER" "${mkdirs[@]}"
+  execute_sudo "/usr/bin/chgrp" "admin" "${mkdirs[@]}"
 fi
 
 if ! [[ -d "${HOMEBREW_CACHE}" ]]; then
