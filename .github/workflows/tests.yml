@@ -32,7 +32,5 @@ jobs:
         ruby uninstall -d >/dev/null
         ruby uninstall -f >/dev/null
         bash install.sh
-        ruby uninstall -f >/dev/null
-        bash install.sh
         brew install ack
         ruby uninstall -f >/dev/null
