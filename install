@@ -1,3 +1,8 @@
 #!/usr/bin/ruby
 
+# Deprecation Notice
+#   The installation script was written in Ruby but we have switched to bash script installer.
+#   We will keep this Ruby script for compatibility but please use the following command.
+#     bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+
 system "bash", "-c", "bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)\""
