@@ -118,7 +118,7 @@ get_permission() {
 }
 
 user_only_chmod() {
-  [[ -d "$1" ]] && [[ "$(get_permission "$1")" != 755 ]]
+  [[ -d "$1" ]] && [[ "$(get_permission "$1")" != "755" ]]
 }
 
 exists_but_not_writable() {
@@ -171,7 +171,7 @@ EOABORT
 )"
 elif version_lt "$macos_version" "10.9"; then
   abort "Your OS X version is too old"
-elif [[ "$UID" == 0 ]]; then
+elif [[ "$UID" == "0" ]]; then
   abort "Don't run this as root!"
 elif ! [[ "$(dsmemberutil checkmembership -U "$USER" -G admin)" = *"user is a member"* ]]; then
   abort "This script requires the user $USER to be an Administrator."
