@@ -33,4 +33,6 @@ jobs:
         ruby uninstall -f >/dev/null
         bash install.sh
         brew install ack
+        brew install shellcheck
+        shellcheck *.sh
         ruby uninstall -f >/dev/null
