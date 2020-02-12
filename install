@@ -5,7 +5,16 @@
 HOMEBREW_PREFIX = "/usr/local".freeze
 HOMEBREW_REPOSITORY = "/usr/local/Homebrew".freeze
 HOMEBREW_CACHE = "#{ENV["HOME"]}/Library/Caches/Homebrew".freeze
-BREW_REPO = "https://github.com/Homebrew/brew".freeze
+
+BREW_UPSTREAM_BRANCH = ENV["HOMEBREW_BREW_UPSTREAM_BRANCH"]
+if BREW_UPSTREAM_BRANCH.nil?
+  BREW_UPSTREAM_BRANCH = "master"
+end
+
+BREW_REPO = ENV["HOMEBREW_BREW_GIT_REPOSITORY"]
+if BREW_REPO.nil?
+  BREW_REPO = "https://github.com/Homebrew/brew".freeze
+end
 
 # TODO: bump version when new macOS is released
 MACOS_LATEST_SUPPORTED = "10.15".freeze
@@ -339,10 +348,10 @@ Dir.chdir HOMEBREW_REPOSITORY do
   # ensure we don't munge line endings on checkout
   system "git", "config", "core.autocrlf", "false"
 
-  system "git", "fetch", "origin", "master:refs/remotes/origin/master",
+  system "git", "fetch", "origin", "#{BREW_UPSTREAM_BRANCH}:refs/remotes/origin/#{BREW_UPSTREAM_BRANCH}",
          "--tags", "--force"
 
-  system "git", "reset", "--hard", "origin/master"
+  system "git", "reset", "--hard", "origin/#{BREW_UPSTREAM_BRANCH}"
 
   system "ln", "-sf", "#{HOMEBREW_REPOSITORY}/bin/brew", "#{HOMEBREW_PREFIX}/bin/brew"
 
