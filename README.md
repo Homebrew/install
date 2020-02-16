@@ -18,4 +18,10 @@ Install Homebrew on Linux and Windows 10 Subsystem for Linux: https://docs.brew.
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall)"
 ```
 
-Download the uninstall script and run `./uninstall --help` to view more uninstall options.
+# On MacOS, Download the uninstall script by saving it as a raw file.
+# Rename downloaded 'uninstall.txt' file and give ownership to it
+`mv ~/Downloads/uninstall.txt ~/Downloads/uninstall && sudo chmod +x ~/Downloads/uninstall`
+# CD to the directory of the file
+`cd ~/Downloads/`
+# run `./uninstall --help` to view more uninstall options.
+`./uninstall --help`
