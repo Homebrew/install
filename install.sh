@@ -434,6 +434,7 @@ ohai "Homebrew has enabled anonymous aggregate formulae and cask analytics."
 echo "$(cat <<EOS
 ${tty_bold}Read the analytics documentation (and how to opt-out) here:
   ${tty_underline}https://docs.brew.sh/Analytics${tty_reset}
+No analytics data has been sent yet (or will be during this \`install\` run).
 EOS
 )
 "
