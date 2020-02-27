@@ -40,6 +40,7 @@ shell_join() {
     printf "%s" "${arg// /\ }"
   done
 }
+
 chomp() {
   printf "%s" "${1/"$'\n'"/}"
 }
@@ -152,14 +153,14 @@ if ! /usr/bin/sudo -n -v 2>/dev/null; then
   trap '/usr/bin/sudo -k' EXIT
 fi
 
-# The block form of Dir.chdir fails later if Dir.CWD doesn't exist which I
-# guess is fair enough. Also sudo prints a warning message for no good reason
+# Things can fail later if `pwd` doesn't exist.
+# Also sudo prints a warning message for no good reason
 cd "/usr" || return
 
 ####################################################################### script
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
   abort "$(cat <<'EOABORT'
-  To install Linuxbrew, paste at a terminal prompt:
+  To install Homebrew on Linux, paste at a terminal prompt:
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
 EOABORT
 )"
