@@ -400,22 +400,22 @@ ohai "Downloading and installing Homebrew..."
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
 
   # we do it in four steps to avoid merge errors when reinstalling
-  git init -q
+  execute "git" "init" "-q"
 
   # "git remote add" will fail if the remote is defined in the global config
-  git config remote.origin.url "${BREW_REPO}"
-  git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+  execute "git" "config" "remote.origin.url" "${BREW_REPO}"
+  execute "git" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
 
   # ensure we don't munge line endings on checkout
-  git config core.autocrlf false
+  execute "git" "config" "core.autocrlf" "false"
 
-  git fetch origin master:refs/remotes/origin/master --tags --force
+  execute "git" "fetch" "origin" "--tags" "--force"
 
-  git reset --hard origin/master
+  execute "git" "reset" "--hard" "origin/master"
 
-  ln -sf "${HOMEBREW_REPOSITORY}/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
+  execute "ln" "-sf" "${HOMEBREW_REPOSITORY}/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
 
-  "${HOMEBREW_PREFIX}/bin/brew" update --force
+  execute "${HOMEBREW_PREFIX}/bin/brew" "update" "--force"
 )
 
 if [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]; then
@@ -449,8 +449,8 @@ EOS
 
 (
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
-  git config --replace-all homebrew.analyticsmessage true
-  git config --replace-all homebrew.caskanalyticsmessage true
+  execute "git" "config" "--replace-all" "homebrew.analyticsmessage" "true"
+  execute "git" "config" "--replace-all" "homebrew.caskanalyticsmessage" "true"
 )
 
 ohai "Next steps:"
