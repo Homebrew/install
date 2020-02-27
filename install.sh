@@ -155,7 +155,7 @@ fi
 
 # Things can fail later if `pwd` doesn't exist.
 # Also sudo prints a warning message for no good reason
-cd "/usr" || return
+cd "/usr" || exit 1
 
 ####################################################################### script
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
