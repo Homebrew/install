@@ -4,13 +4,8 @@ on:
     branches: master
   pull_request: []
 jobs:
-  tests:
-    strategy:
-      matrix:
-        os:
-          - macOS-latest
-          - ubuntu-latest
-    runs-on: ${{matrix.os}}
+  tests-macos:
+    runs-on: macOS-latest
     steps:
     - name: Set up Git repository
       uses: actions/checkout@master
@@ -25,7 +20,6 @@ jobs:
         bundle exec rubocop
 
     - name: Cleanup macOS
-      if: runner.os == 'macOS'
       run: |
         sudo rm -rf /Applications/Xcode.app \
                     /Library/Developer/CommandLineTools
@@ -44,3 +38,29 @@ jobs:
         brew install shellcheck
         shellcheck *.sh
         ruby uninstall -f >/dev/null
+  tests-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Git repository
+      uses: actions/checkout@master
+
+    - name: Set up Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.6
+
+    - name: Install RubyGems
+      run: |
+        gem install bundler
+        bundle install --retry=3 --jobs=4
+
+    - name: Run RuboCop
+      run: |
+        bundle exec rubocop
+
+    - name: CI Tests
+      run: |
+        export PATH=/usr/bin:/bin:/home/linuxbrew/.linuxbrew/bin
+        bash install.sh
+        brew install shellcheck
+        shellcheck *.sh
