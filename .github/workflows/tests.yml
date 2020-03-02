@@ -15,9 +15,15 @@ jobs:
     - name: Set up Git repository
       uses: actions/checkout@master
 
+    - name: Set up Ruby
+      if: runner.os == 'Linux'
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.6
+
     - name: Install RubyGems
       run: |
-        gem install bundler
+        gem install --user bundler
         bundle install --retry=3 --jobs=4
 
     - name: Run RuboCop
