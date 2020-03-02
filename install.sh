@@ -3,25 +3,14 @@ set -u
 
 # First check if the OS is Linux.
 if [[ "$(uname)" = "Linux" ]]; then
-    HOMEBREW_ON_LINUX=true
-else
-    HOMEBREW_ON_LINUX=false
+  HOMEBREW_ON_LINUX=1
 fi
 
 # This script installs to /usr/local (macOS) or /home/linuxbrew/.linuxbrew (Linux) only.
 # To install elsewhere (which is unsupported)
 # you can untar https://github.com/Homebrew/brew/tarball/master
 # anywhere you like.
-if "$HOMEBREW_ON_LINUX"; then
-  HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
-  HOMEBREW_REPOSITORY="/home/linuxbrew/.linuxbrew/Homebrew"
-  HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
-
-  STAT="stat --printf"
-  CHOWN="/bin/chown"
-  CHGRP="/bin/chgrp"
-  GROUP="$(id -gn)"
-else
+if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   HOMEBREW_PREFIX="/usr/local"
   HOMEBREW_REPOSITORY="/usr/local/Homebrew"
   HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
@@ -30,6 +19,15 @@ else
   CHOWN="/usr/sbin/chown"
   CHGRP="/usr/bin/chgrp"
   GROUP="admin"
+else
+  HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
+  HOMEBREW_REPOSITORY="/home/linuxbrew/.linuxbrew/Homebrew"
+  HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
+
+  STAT="stat --printf"
+  CHOWN="/bin/chown"
+  CHGRP="/bin/chgrp"
+  GROUP="$(id -gn)"
 fi
 BREW_REPO="https://github.com/Homebrew/brew"
 
@@ -118,7 +116,7 @@ major_minor() {
   echo "${1%%.*}.$(x="${1#*.}"; echo "${x%%.*}")"
 }
 
-if ! "$HOMEBREW_ON_LINUX"; then
+if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   macos_version="$(major_minor "$(/usr/bin/sw_vers -productVersion)")"
 fi
 
@@ -133,6 +131,10 @@ version_lt() {
 }
 
 should_install_command_line_tools() {
+  if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
+    return false
+  fi
+
   if version_gt "$macos_version" "10.13"; then
     ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]]
   else
@@ -169,9 +171,11 @@ file_not_grpowned() {
   [[ " $(id -G "$USER") " != *" $(get_group "$1") "*  ]]
 }
 
-# USER isn't always set so always get it from `id` for the installer and subprocesses.
-USER="$(chomp "$(id -un)")"
-export USER
+# USER isn't always set so provide a fall back for the installer and subprocesses.
+if [[ -z "${USER-}" ]]; then
+  USER="$(chomp "$(id -un)")"
+  export USER
+fi
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
 if ! /usr/bin/sudo -n -v 2>/dev/null; then
@@ -195,7 +199,7 @@ EOABORT
 )"
 fi
 
-if ! "$HOMEBREW_ON_LINUX"; then
+if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   if version_lt "$macos_version" "10.7"; then
     abort "$(cat <<EOABORT
 Your Mac OS X version is too old. See:
@@ -325,7 +329,7 @@ if [[ "${#mkdirs[@]}" -gt 0 ]]; then
   printf "%s\n" "${mkdirs[@]}"
 fi
 
-if ! "$HOMEBREW_ON_LINUX" && should_install_command_line_tools; then
+if should_install_command_line_tools; then
   ohai "The Xcode Command Line Tools will be installed."
 fi
 
@@ -351,10 +355,10 @@ if [[ -d "${HOMEBREW_PREFIX}" ]]; then
   fi
 else
   execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_PREFIX}"
-  if "$HOMEBREW_ON_LINUX"; then
-    execute_sudo "$CHOWN" "$USER:$GROUP" "${HOMEBREW_PREFIX}"
-  else
+  if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
     execute_sudo "$CHOWN" "root:wheel" "${HOMEBREW_PREFIX}"
+  else
+    execute_sudo "$CHOWN" "$USER:$GROUP" "${HOMEBREW_PREFIX}"
   fi
 fi
 
@@ -381,7 +385,7 @@ if [[ -d "${HOMEBREW_CACHE}" ]]; then
   execute "/usr/bin/touch" "${HOMEBREW_CACHE}/.cleaned"
 fi
 
-if ! "$HOMEBREW_ON_LINUX" && should_install_command_line_tools && version_ge "$macos_version" "10.13"; then
+if should_install_command_line_tools && version_ge "$macos_version" "10.13"; then
   ohai "Searching online for the Command Line Tools"
   # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
   clt_placeholder="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
@@ -404,7 +408,7 @@ if ! "$HOMEBREW_ON_LINUX" && should_install_command_line_tools && version_ge "$m
 fi
 
 # Headless install may have failed, so fallback to original 'xcode-select' method
-if ! "$HOMEBREW_ON_LINUX" && should_install_command_line_tools && test -t 0; then
+if should_install_command_line_tools && test -t 0; then
   ohai "Installing the Command Line Tools (expect a GUI popup):"
   execute_sudo "/usr/bin/xcode-select" "--install"
   echo "Press any key when the installation has completed."
@@ -412,7 +416,7 @@ if ! "$HOMEBREW_ON_LINUX" && should_install_command_line_tools && test -t 0; the
   execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
 fi
 
-if ! "$HOMEBREW_ON_LINUX" && ! output="$(/usr/bin/xcrun clang 2>&1)" && [[ "$output" == *"license"* ]]; then
+if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && ! output="$(/usr/bin/xcrun clang 2>&1)" && [[ "$output" == *"license"* ]]; then
   abort "$(cat <<EOABORT
 You have not agreed to the Xcode license.
 Before running the installer again please agree to the license by opening
