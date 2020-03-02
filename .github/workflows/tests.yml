@@ -5,10 +5,21 @@ on:
   pull_request: []
 jobs:
   tests:
-    runs-on: macOS-latest
+    strategy:
+      matrix:
+        os:
+        - macOS-latest
+        - ubuntu-latest
+    runs-on: ${{matrix.os}}
     steps:
     - name: Set up Git repository
       uses: actions/checkout@master
+
+    - name: Set up Ruby
+      if: runner.os == 'Linux'
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.6
 
     - name: Install RubyGems
       run: |
@@ -20,6 +31,7 @@ jobs:
         bundle exec rubocop
 
     - name: Cleanup macOS
+      if: runner.os == 'macOS'
       run: |
         sudo rm -rf /Applications/Xcode.app \
                     /Library/Developer/CommandLineTools
@@ -28,13 +40,21 @@ jobs:
 
     - name: CI Tests
       run: |
-        export PATH=/usr/bin:/bin:/usr/local/bin
-        ruby uninstall -d >/dev/null
-        ruby uninstall -f >/dev/null
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          export PATH=/usr/bin:/bin:/usr/local/bin
+          ruby uninstall -d >/dev/null
+          ruby uninstall -f >/dev/null
+        else
+          export PATH=/usr/bin:/bin:/home/linuxbrew/.linuxbrew/bin
+        fi
         bash install.sh
-        ruby uninstall -f >/dev/null
-        bash install.sh
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          ruby uninstall -f >/dev/null
+          bash install.sh
+        fi
         brew install ack
         brew install shellcheck
         shellcheck *.sh
-        ruby uninstall -f >/dev/null
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          ruby uninstall -f >/dev/null
+        fi

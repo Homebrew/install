@@ -1,12 +1,34 @@
 #!/bin/bash
 set -u
 
-# This script installs to /usr/local only. To install elsewhere (which is
-# unsupported) you can untar https://github.com/Homebrew/brew/tarball/master
+# First check if the OS is Linux.
+if [[ "$(uname)" = "Linux" ]]; then
+  HOMEBREW_ON_LINUX=1
+fi
+
+# This script installs to /usr/local (macOS) or /home/linuxbrew/.linuxbrew (Linux) only.
+# To install elsewhere (which is unsupported)
+# you can untar https://github.com/Homebrew/brew/tarball/master
 # anywhere you like.
-HOMEBREW_PREFIX="/usr/local"
-HOMEBREW_REPOSITORY="/usr/local/Homebrew"
-HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
+if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
+  HOMEBREW_PREFIX="/usr/local"
+  HOMEBREW_REPOSITORY="/usr/local/Homebrew"
+  HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
+
+  STAT="stat -f"
+  CHOWN="/usr/sbin/chown"
+  CHGRP="/usr/bin/chgrp"
+  GROUP="admin"
+else
+  HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
+  HOMEBREW_REPOSITORY="/home/linuxbrew/.linuxbrew/Homebrew"
+  HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
+
+  STAT="stat --printf"
+  CHOWN="/bin/chown"
+  CHGRP="/bin/chgrp"
+  GROUP="$(id -gn)"
+fi
 BREW_REPO="https://github.com/Homebrew/brew"
 
 # TODO: bump version when new macOS is released
@@ -93,7 +115,10 @@ wait_for_user() {
 major_minor() {
   echo "${1%%.*}.$(x="${1#*.}"; echo "${x%%.*}")"
 }
-macos_version="$(major_minor "$(/usr/bin/sw_vers -productVersion)")"
+
+if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
+  macos_version="$(major_minor "$(/usr/bin/sw_vers -productVersion)")"
+fi
 
 version_gt() {
   [[ "${1%.*}" -gt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -gt "${2#*.}" ]]
@@ -106,6 +131,10 @@ version_lt() {
 }
 
 should_install_command_line_tools() {
+  if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
+    return 1
+  fi
+
   if version_gt "$macos_version" "10.13"; then
     ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]]
   else
@@ -115,7 +144,7 @@ should_install_command_line_tools() {
 }
 
 get_permission() {
-  stat -f "%A" "$1"
+  $STAT "%A" "$1"
 }
 
 user_only_chmod() {
@@ -127,7 +156,7 @@ exists_but_not_writable() {
 }
 
 get_owner() {
-  stat -f "%u" "$1"
+  $STAT "%u" "$1"
 }
 
 file_not_owned() {
@@ -135,7 +164,7 @@ file_not_owned() {
 }
 
 get_group() {
-  stat -f "%g" "$1"
+  $STAT "%g" "$1"
 }
 
 file_not_grpowned() {
@@ -143,7 +172,7 @@ file_not_grpowned() {
 }
 
 # USER isn't always set so provide a fall back for the installer and subprocesses.
-if [[ -z "$USER" ]]; then
+if [[ -z "${USER-}" ]]; then
   USER="$(chomp "$(id -un)")"
   export USER
 fi
@@ -158,24 +187,8 @@ fi
 cd "/usr" || exit 1
 
 ####################################################################### script
-if [[ "$OSTYPE" == "linux-gnu" ]]; then
-  abort "$(cat <<'EOABORT'
-  To install Homebrew on Linux, paste at a terminal prompt:
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
-EOABORT
-)"
-elif version_lt "$macos_version" "10.7"; then
-  abort "$(cat <<EOABORT
-Your Mac OS X version is too old. See:
-  ${tty_underline}https://github.com/mistydemeo/tigerbrew${tty_reset}
-EOABORT
-)"
-elif version_lt "$macos_version" "10.9"; then
-  abort "Your OS X version is too old"
-elif [[ "$UID" == "0" ]]; then
+if [[ "$UID" == "0" ]]; then
   abort "Don't run this as root!"
-elif ! [[ "$(dsmemberutil checkmembership -U "$USER" -G admin)" = *"user is a member"* ]]; then
-  abort "This script requires the user $USER to be an Administrator."
 elif [[ -d "$HOMEBREW_PREFIX" && ! -x "$HOMEBREW_PREFIX" ]]; then
   abort "$(cat <<EOABORT
 The Homebrew prefix, ${HOMEBREW_PREFIX}, exists but is not searchable. If this is
@@ -184,20 +197,33 @@ installer again:
     sudo chmod 775 ${HOMEBREW_PREFIX}
 EOABORT
 )"
-elif version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED" || \
-  version_lt "$macos_version" "$MACOS_OLDEST_SUPPORTED"; then
-  who="We"
-  what=""
-  if version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED"; then
-    what="pre-release version"
-  else
-    who+=" (and Apple)"
-    what="old version"
-  fi
-  ohai "You are using macOS ${macos_version}."
-  ohai "${who} do not provide support for this ${what}."
+fi
 
-  echo "$(cat <<EOS
+if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
+  if version_lt "$macos_version" "10.7"; then
+    abort "$(cat <<EOABORT
+Your Mac OS X version is too old. See:
+  ${tty_underline}https://github.com/mistydemeo/tigerbrew${tty_reset}
+EOABORT
+)"
+  elif version_lt "$macos_version" "10.9"; then
+    abort "Your OS X version is too old"
+  elif ! [[ "$(dsmemberutil checkmembership -U "$USER" -G "$GROUP")" = *"user is a member"* ]]; then
+    abort "This script requires the user $USER to be an Administrator."
+  elif version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED" || \
+    version_lt "$macos_version" "$MACOS_OLDEST_SUPPORTED"; then
+    who="We"
+    what=""
+    if version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED"; then
+      what="pre-release version"
+    else
+      who+=" (and Apple)"
+      what="old version"
+    fi
+    ohai "You are using macOS ${macos_version}."
+    ohai "${who} do not provide support for this ${what}."
+
+    echo "$(cat <<EOS
 This installation may not succeed.
 After installation, you will encounter build failures with some formulae.
 Please create pull requests instead of asking for help on Homebrew\'s GitHub,
@@ -206,6 +232,7 @@ experience while you are running this ${what}.
 EOS
 )
 "
+  fi
 fi
 
 ohai "This script will install:"
@@ -294,7 +321,7 @@ if [[ "${#chowns[@]}" -gt 0 ]]; then
   printf "%s\n" "${chowns[@]}"
 fi
 if [[ "${#chgrps[@]}" -gt 0 ]]; then
-  ohai "The following existing directories will have their group set to ${tty_underline}admin${tty_reset}:"
+  ohai "The following existing directories will have their group set to ${tty_underline}${GROUP}${tty_reset}:"
   printf "%s\n" "${chgrps[@]}"
 fi
 if [[ "${#mkdirs[@]}" -gt 0 ]]; then
@@ -321,21 +348,25 @@ if [[ -d "${HOMEBREW_PREFIX}" ]]; then
     execute_sudo "/bin/chmod" "755" "${user_chmods[@]}"
   fi
   if [[ "${#chowns[@]}" -gt 0 ]]; then
-    execute_sudo "/usr/sbin/chown" "$USER" "${chowns[@]}"
+    execute_sudo "$CHOWN" "$USER" "${chowns[@]}"
   fi
   if [[ "${#chgrps[@]}" -gt 0 ]]; then
-    execute_sudo "/usr/bin/chgrp" "admin" "${chgrps[@]}"
+    execute_sudo "$CHGRP" "$GROUP" "${chgrps[@]}"
   fi
 else
   execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_PREFIX}"
-  execute_sudo "/usr/sbin/chown" "root:wheel" "${HOMEBREW_PREFIX}"
+  if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
+    execute_sudo "$CHOWN" "root:wheel" "${HOMEBREW_PREFIX}"
+  else
+    execute_sudo "$CHOWN" "$USER:$GROUP" "${HOMEBREW_PREFIX}"
+  fi
 fi
 
 if [[ "${#mkdirs[@]}" -gt 0 ]]; then
   execute_sudo "/bin/mkdir" "-p" "${mkdirs[@]}"
   execute_sudo "/bin/chmod" "g+rwx" "${mkdirs[@]}"
-  execute_sudo "/usr/sbin/chown" "$USER" "${mkdirs[@]}"
-  execute_sudo "/usr/bin/chgrp" "admin" "${mkdirs[@]}"
+  execute_sudo "$CHOWN" "$USER" "${mkdirs[@]}"
+  execute_sudo "$CHGRP" "$GROUP" "${mkdirs[@]}"
 fi
 
 if ! [[ -d "${HOMEBREW_CACHE}" ]]; then
@@ -345,10 +376,10 @@ if exists_but_not_writable "${HOMEBREW_CACHE}"; then
   execute_sudo "/bin/chmod" "g+rwx" "${HOMEBREW_CACHE}"
 fi
 if file_not_owned "${HOMEBREW_CACHE}"; then
-  execute_sudo "/usr/sbin/chown" "$USER" "${HOMEBREW_CACHE}"
+  execute_sudo "$CHOWN" "$USER" "${HOMEBREW_CACHE}"
 fi
 if file_not_grpowned "${HOMEBREW_CACHE}"; then
-  execute_sudo "/usr/bin/chgrp" "admin" "${HOMEBREW_CACHE}"
+  execute_sudo "$CHGRP" "$GROUP" "${HOMEBREW_CACHE}"
 fi
 if [[ -d "${HOMEBREW_CACHE}" ]]; then
   execute "/usr/bin/touch" "${HOMEBREW_CACHE}/.cleaned"
@@ -385,7 +416,7 @@ if should_install_command_line_tools && test -t 0; then
   execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
 fi
 
-if ! output="$(/usr/bin/xcrun clang 2>&1)" && [[ "$output" == *"license"* ]]; then
+if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && ! output="$(/usr/bin/xcrun clang 2>&1)" && [[ "$output" == *"license"* ]]; then
   abort "$(cat <<EOABORT
 You have not agreed to the Xcode license.
 Before running the installer again please agree to the license by opening
