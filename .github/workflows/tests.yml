@@ -4,50 +4,16 @@ on:
     branches: master
   pull_request: []
 jobs:
-  tests-macos:
-    runs-on: macOS-latest
+  tests:
+    strategy:
+      matrix:
+        os:
+        - macOS-latest
+        - ubuntu-latest
+    runs-on: ${{matrix.os}}
     steps:
     - name: Set up Git repository
       uses: actions/checkout@master
-
-    - name: Install RubyGems
-      run: |
-        gem install --user bundler
-        bundle install --retry=3 --jobs=4
-
-    - name: Run RuboCop
-      run: |
-        bundle exec rubocop
-
-    - name: Cleanup macOS
-      run: |
-        sudo rm -rf /Applications/Xcode.app \
-                    /Library/Developer/CommandLineTools
-        sudo pkgutil --forget com.apple.pkg.CLTools_Executables
-        sudo xcode-select --reset
-
-    - name: CI Tests
-      run: |
-        export PATH=/usr/bin:/bin:/usr/local/bin
-        ruby uninstall -d >/dev/null
-        ruby uninstall -f >/dev/null
-        bash install.sh
-        ruby uninstall -f >/dev/null
-        bash install.sh
-        brew install ack
-        brew install shellcheck
-        shellcheck *.sh
-        ruby uninstall -f >/dev/null
-  tests-linux:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Set up Git repository
-      uses: actions/checkout@master
-
-    - name: Set up Ruby
-      uses: actions/setup-ruby@v1
-      with:
-        ruby-version: 2.6
 
     - name: Install RubyGems
       run: |
@@ -58,9 +24,31 @@ jobs:
       run: |
         bundle exec rubocop
 
+    - name: Cleanup macOS
+      if: runner.os == 'macOS'
+      run: |
+        sudo rm -rf /Applications/Xcode.app \
+                    /Library/Developer/CommandLineTools
+        sudo pkgutil --forget com.apple.pkg.CLTools_Executables
+        sudo xcode-select --reset
+
     - name: CI Tests
       run: |
-        export PATH=/usr/bin:/bin:/home/linuxbrew/.linuxbrew/bin
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          export PATH=/usr/bin:/bin:/usr/local/bin
+          ruby uninstall -d >/dev/null
+          ruby uninstall -f >/dev/null
+        else
+          export PATH=/usr/bin:/bin:/home/linuxbrew/.linuxbrew/bin
+        fi
         bash install.sh
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          ruby uninstall -f >/dev/null
+          bash install.sh
+        fi
+        brew install ack
         brew install shellcheck
         shellcheck *.sh
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          ruby uninstall -f >/dev/null
+        fi
