@@ -132,7 +132,7 @@ version_lt() {
 
 should_install_command_line_tools() {
   if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
-    return false
+    return 1
   fi
 
   if version_gt "$macos_version" "10.13"; then
