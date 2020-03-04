@@ -526,6 +526,11 @@ EOS
   execute "git" "config" "--replace-all" "homebrew.caskanalyticsmessage" "true"
 )
 
+ohai "Next steps:"
+echo "- Run \`brew help\` to get started"
+echo "- Further documentation: "
+echo "    ${tty_underline}https://docs.brew.sh${tty_reset}"
+
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
   case "$SHELL" in
     */bash*)
@@ -559,8 +564,3 @@ if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
 
 EOS
 fi
-
-ohai "Next steps:"
-echo "- Run \`brew help\` to get started"
-echo "- Further documentation: "
-echo "    ${tty_underline}https://docs.brew.sh${tty_reset}"
