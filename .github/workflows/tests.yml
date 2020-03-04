@@ -38,28 +38,37 @@ jobs:
         sudo pkgutil --forget com.apple.pkg.CLTools_Executables
         sudo xcode-select --reset
 
-    - name: Set PATH
+    - name: Set up Homebrew PATH
       run: |
         if [ "$RUNNER_OS" = "macOS" ]; then
-          echo "::add-path::/usr/bin:/bin:/usr/local/bin"
+          echo "::add-path::/usr/local/bin:/usr/bin:/bin"
         else
-          echo "::add-path::/usr/bin:/bin:/home/linuxbrew/.linuxbrew/bin"
+          echo "::add-path::/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin"
         fi
 
-    - name: CI Tests
+    - name: Test uninstaling GitHub Actions macOS Homebrew
+      if: runner.os == 'macOS'
       run: |
-        if [ "$RUNNER_OS" = "macOS" ]; then
-          ruby uninstall -d >/dev/null
-          ruby uninstall -f >/dev/null
-        fi
+        ruby uninstall -d >/dev/null
+        ruby uninstall -f >/dev/null
+
+    - name: Test install.sh
+      run: |
         bash install.sh
         brew install ack
         if [ "$RUNNER_OS" = "macOS" ]; then
           ruby uninstall -f >/dev/null
           bash install.sh
         fi
-        brew install shellcheck
 
-    - name: Shellcheck
+    - name: Install Shellcheck
+      run: brew install shellcheck
+
+    - name: Run Shellcheck
+      run: shellcheck *.sh
+
+    - name: Test uninstalling newly installed Homebrew
+      if: runner.os == 'macOS'
       run: |
-        shellcheck *.sh
+        ruby uninstall -d >/dev/null
+        ruby uninstall -f >/dev/null
