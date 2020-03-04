@@ -56,7 +56,7 @@ tty_reset="$(tty_escape 0)"
 
 have_sudo_access() {
   if [[ -z "${HAVE_SUDO_ACCESS-}" ]]; then
-    /usr/bin/sudo -l echo &>/dev/null
+    /usr/bin/sudo -l mkdir &>/dev/null
     HAVE_SUDO_ACCESS="$?"
   fi
 
@@ -211,7 +211,7 @@ if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
     HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
   else
     trap exit SIGINT
-    sudo_output="$(/usr/bin/sudo -n -v 2>&1)"
+    sudo_output="$(/usr/bin/sudo -n -l mkdir 2>&1)"
     sudo_exit_code="$?"
     if [[ "$sudo_exit_code" -ne 0 ]] && [[ "$sudo_output" = "sudo: a password is required" ]]; then
       ohai "Select the Homebrew installation directory"
