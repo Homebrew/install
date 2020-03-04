@@ -23,7 +23,7 @@ jobs:
 
     - name: Install RubyGems
       run: |
-        gem install --user bundler
+        gem install bundler -v "~>1"
         bundle install --retry=3 --jobs=4
 
     - name: Run RuboCop
