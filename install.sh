@@ -6,7 +6,9 @@ if [[ "$(uname)" = "Linux" ]]; then
   HOMEBREW_ON_LINUX=1
 fi
 
-# This script installs to /usr/local (macOS) or /home/linuxbrew/.linuxbrew (Linux) only.
+# On macOS, this script installs to /usr/local only.
+# On Linux, it installs to /home/linuxbrew/.linuxbrew if you have sudo access
+# and ~/.linuxbrew otherwise.
 # To install elsewhere (which is unsupported)
 # you can untar https://github.com/Homebrew/brew/tarball/master
 # anywhere you like.
@@ -20,8 +22,7 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   CHGRP="/usr/bin/chgrp"
   GROUP="admin"
 else
-  HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
-  HOMEBREW_REPOSITORY="/home/linuxbrew/.linuxbrew/Homebrew"
+  HOMEBREW_PREFIX_DEFAULT="/home/linuxbrew/.linuxbrew"
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
 
   STAT="stat --printf"
@@ -52,6 +53,19 @@ tty_blue="$(tty_mkbold 34)"
 tty_red="$(tty_mkbold 31)"
 tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
+
+have_sudo_access() {
+  if [[ -z "${HAVE_SUDO_ACCESS-}" ]]; then
+    /usr/bin/sudo -l echo &>/dev/null
+    HAVE_SUDO_ACCESS="$?"
+  fi
+
+  if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && [[ "$HAVE_SUDO_ACCESS" -ne 0 ]]; then
+    abort "Need sudo access on macOS!"
+  fi
+
+  return "$HAVE_SUDO_ACCESS"
+}
 
 shell_join() {
   local arg
@@ -91,8 +105,13 @@ execute_sudo() {
   if [[ -n "${SUDO_ASKPASS-}" ]]; then
     args=("-A" "${args[@]}")
   fi
-  ohai "/usr/bin/sudo" "${args[@]}"
-  execute "/usr/bin/sudo" "${args[@]}"
+  if have_sudo_access; then
+    ohai "/usr/bin/sudo" "${args[@]}"
+    execute "/usr/bin/sudo" "${args[@]}"
+  else
+    ohai "${args[@]}"
+    execute "${args[@]}"
+  fi
 }
 
 getc() {
@@ -187,6 +206,29 @@ fi
 cd "/usr" || exit 1
 
 ####################################################################### script
+if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
+  if [[ -n "${CI-}" ]] || [[ -w "$HOMEBREW_PREFIX_DEFAULT" ]] || [[ -w "/home/linuxbrew" ]] || [[ -w "/home" ]]; then
+    HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
+  else
+    trap exit SIGINT
+    sudo_output="$(/usr/bin/sudo -n -v 2>&1)"
+    sudo_exit_code="$?"
+    if [[ "$sudo_exit_code" -ne 0 ]] && [[ "$sudo_output" = "sudo: a password is required" ]]; then
+      ohai "Select the Homebrew installation directory"
+      echo "- ${tty_bold}Enter your password${tty_reset} to install to ${tty_underline}${HOMEBREW_PREFIX_DEFAULT}${tty_reset} (${tty_bold}recommended${tty_reset})"
+      echo "- ${tty_bold}Press Control-D${tty_reset} to install to ${tty_underline}$HOME/.linuxbrew${tty_reset}"
+      echo "- ${tty_bold}Press Control-C${tty_reset} to cancel installation"
+    fi
+    if have_sudo_access; then
+      HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
+    else
+      HOMEBREW_PREFIX="$HOME/.linuxbrew"
+    fi
+    trap - SIGINT
+  fi
+  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
+fi
+
 if [[ "$UID" == "0" ]]; then
   abort "Don't run this as root!"
 elif [[ -d "$HOMEBREW_PREFIX" && ! -x "$HOMEBREW_PREFIX" ]]; then
