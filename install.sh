@@ -484,6 +484,40 @@ EOS
   execute "git" "config" "--replace-all" "homebrew.caskanalyticsmessage" "true"
 )
 
+if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
+  case "$SHELL" in
+    */bash*)
+      if [[ -r "$HOME/.bash_profile" ]]; then
+        shell_profile="$HOME/.bash_profile"
+      else
+        shell_profile="$HOME/.profile"
+      fi
+      ;;
+    */zsh*)
+      shell_profile="$HOME/.zprofile"
+      ;;
+    *)
+      shell_profile="$HOME/.profile"
+      ;;
+  esac
+
+  cat <<EOS
+- Install the Homebrew dependencies if you have sudo access:
+  ${tty_bold}Debian, Ubuntu, etc.${tty_reset}
+    sudo apt-get install build-essential
+  ${tty_bold}Fedora, Red Hat, CentOS, etc.${tty_reset}
+    sudo yum groupinstall 'Development Tools'
+  See ${tty_underline}https://docs.brew.sh/linux${tty_reset} for more information.
+- Configure Homebrew in your ${tty_underline}${shell_profile}${tty_reset} by running
+    echo 'eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)' >> ${shell_profile}
+- Add Homebrew to your ${tty_bold}PATH${tty_reset}
+    eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)
+- We recommend that you install GCC by running:
+    brew install gcc
+
+EOS
+fi
+
 ohai "Next steps:"
 echo "- Run \`brew help\` to get started"
 echo "- Further documentation: "
