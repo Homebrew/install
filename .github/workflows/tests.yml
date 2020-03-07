@@ -46,8 +46,7 @@ jobs:
           echo "::add-path::/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin"
         fi
 
-    - name: Test uninstaling GitHub Actions macOS Homebrew
-      if: runner.os == 'macOS'
+    - name: Test uninstaling GitHub Actions Homebrew
       run: |
         ruby uninstall -d >/dev/null
         ruby uninstall -f >/dev/null
@@ -56,10 +55,8 @@ jobs:
       run: |
         bash install.sh
         brew install ack
-        if [ "$RUNNER_OS" = "macOS" ]; then
-          ruby uninstall -f >/dev/null
-          bash install.sh
-        fi
+        ruby uninstall -f >/dev/null
+        bash install.sh
 
     - name: Install Shellcheck
       run: brew install shellcheck
@@ -68,7 +65,6 @@ jobs:
       run: shellcheck *.sh
 
     - name: Test uninstalling newly installed Homebrew
-      if: runner.os == 'macOS'
       run: |
         ruby uninstall -d >/dev/null
         ruby uninstall -f >/dev/null
