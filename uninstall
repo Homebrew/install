@@ -16,7 +16,7 @@ options = {
 # global status to indicate whether there is anything wrong.
 @failed = false
 
-@is_mac = RUBY_PLATFORM.to_s.downcase.include? "darwin"
+@is_mac = !RUBY_PLATFORM[/darwin/].nil?
 @homebrew_default_path = @is_mac ? "/usr/local" : "/home/linuxbrew/.linuxbrew"
 
 module Tty
@@ -227,12 +227,12 @@ paths = %w[Frameworks bin etc include lib opt sbin share var]
         .select(&:exist?)
         .map(&:to_s)
 if paths.any?
-  if @is_mac
+  args = if @is_mac
     # BSD find
-    args = %w[-E] + paths + %w[-regex .*/info/([^.][^/]*\.info|dir)]
+    %w[-E] + paths + %w[-regex .*/info/([^.][^/]*\.info|dir)]
   else
     # GNU find
-    args = paths + %w[-regextype posix-extended -regex .*/info/([^.][^/]*\.info|dir)]
+    paths + %w[-regextype posix-extended -regex .*/info/([^.][^/]*\.info|dir)]
   end
   if options[:dry_run]
     args << "-print"
