@@ -281,15 +281,17 @@ paths = %w[bin etc include lib opt sbin share var
         .map { |p| HOMEBREW_PREFIX/p }
         .select(&:exist?)
         .map(&:to_s)
-if @is_mac && paths.any?
-  args = paths + %w[-name .DS_Store]
-  if options[:dry_run]
-    args << "-print"
-  else
-    args << "-delete"
+if paths.any?
+  if @is_mac
+    args = paths + %w[-name .DS_Store]
+    if options[:dry_run]
+      args << "-print"
+    else
+      args << "-delete"
+    end
+    puts "Would delete:" if options[:dry_run]
+    sudo "/usr/bin/find", *args
   end
-  puts "Would delete:" if options[:dry_run]
-  sudo "/usr/bin/find", *args
   args = paths + %w[-depth -type d -empty]
   if options[:dry_run]
     args << "-print"
