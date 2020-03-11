@@ -1,5 +1,6 @@
 #!/bin/bash
 set -u
+set -e
 
 # First check if the OS is Linux.
 if [[ "$(uname)" = "Linux" ]]; then
