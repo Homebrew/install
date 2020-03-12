@@ -22,7 +22,8 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   CHGRP="/usr/bin/chgrp"
   GROUP="admin"
 else
-  HOMEBREW_PREFIX_DEFAULT="/home/linuxbrew/.linuxbrew"
+  HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/home}"
+  HOMEBREW_PREFIX_DEFAULT="${HOMEBREW_PREFIX}/linuxbrew/.linuxbrew"
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
 
   STAT="stat --printf"
