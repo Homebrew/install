@@ -149,6 +149,12 @@ version_lt() {
   [[ "${1%.*}" -lt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -lt "${2#*.}" ]]
 }
 
+should_install_git() {
+  if [[ $(command -v git) ]]; then
+    return 1
+  fi
+}
+
 should_install_command_line_tools() {
   if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
     return 1
@@ -206,6 +212,14 @@ fi
 cd "/usr" || exit 1
 
 ####################################################################### script
+if should_install_git; then
+    abort "$(cat <<EOABORT
+You must install Git before installing Homebrew. See:
+  ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
+EOABORT
+)"
+fi
+
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
   if [[ -n "${CI-}" ]] || [[ -w "$HOMEBREW_PREFIX_DEFAULT" ]] || [[ -w "/home/linuxbrew" ]] || [[ -w "/home" ]]; then
     HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
