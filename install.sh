@@ -213,7 +213,11 @@ cd "/usr" || exit 1
 
 ####################################################################### script
 if should_install_git; then
-    abort "You must install Git before installing Homebrew."
+    abort "$(cat <<EOABORT
+You must install Git before installing Homebrew. See:
+  ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
+EOABORT
+)"
 fi
 
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
