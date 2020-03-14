@@ -429,7 +429,7 @@ if ! [[ -d "${HOMEBREW_CACHE}" ]]; then
   if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
     execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_CACHE}"
   else
-    "/bin/mkdir" "-p" "${HOMEBREW_CACHE}"
+    execute "/bin/mkdir" "-p" "${HOMEBREW_CACHE}"
   fi
 fi
 if exists_but_not_writable "${HOMEBREW_CACHE}"; then
