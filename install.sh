@@ -426,7 +426,11 @@ if [[ "${#mkdirs[@]}" -gt 0 ]]; then
 fi
 
 if ! [[ -d "${HOMEBREW_CACHE}" ]]; then
-  execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_CACHE}"
+  if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
+    execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_CACHE}"
+  else
+    execute "/bin/mkdir" "-p" "${HOMEBREW_CACHE}"
+  fi
 fi
 if exists_but_not_writable "${HOMEBREW_CACHE}"; then
   execute_sudo "/bin/chmod" "g+rwx" "${HOMEBREW_CACHE}"
