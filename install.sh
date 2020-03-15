@@ -30,14 +30,8 @@ else
   CHGRP="/bin/chgrp"
   GROUP="$(id -gn)"
 fi
-DEFAULT_BREW_REPO="https://github.com/Homebrew/brew"
 
-BREW_REPO="$DEFAULT_BREW_REPO"
-if [[ -z "$BREW_REPO_MIRROR" ]]
-then
-  BREW_REPO="$BREW_REPO_MIRROR"
-fi
-
+BREW_REPO=${BREW_REPO:-"https://github.com/Homebrew/brew"}
 
 # TODO: bump version when new macOS is released
 MACOS_LATEST_SUPPORTED="10.15"
