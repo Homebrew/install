@@ -35,7 +35,6 @@ jobs:
       run: |
         sudo rm -rf /Applications/Xcode.app \
                     /Library/Developer/CommandLineTools
-        sudo pkgutil --forget com.apple.pkg.CLTools_Executables
         sudo xcode-select --reset
 
     - name: Set up Homebrew PATH
