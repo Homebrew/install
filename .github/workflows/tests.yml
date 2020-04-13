@@ -48,14 +48,14 @@ jobs:
     - name: Test uninstalling GitHub Actions macOS Homebrew
       if: runner.os == 'macOS'
       run: |
-        ruby uninstall -d >/dev/null
-        ruby uninstall -f >/dev/null
+        bash uninstall.sh -d >/dev/null
+        bash uninstall.sh -f >/dev/null
 
     - name: Test install.sh
       run: |
         bash install.sh
         brew install ack
-        ruby uninstall -f >/dev/null
+        bash uninstall.sh -f >/dev/null
         bash install.sh
 
     - name: Install Shellcheck
@@ -66,5 +66,5 @@ jobs:
 
     - name: Test uninstalling newly installed Homebrew
       run: |
-        ruby uninstall -d >/dev/null
-        ruby uninstall -f >/dev/null
+        bash uninstall.sh -d >/dev/null
+        bash uninstall.sh -f >/dev/null
