@@ -3,7 +3,7 @@ set -u
 shopt -s extglob
 
 abort() {
-  printf "%s\n" "$1"
+  printf "%s\n" "$@"
   exit 1
 }
 
@@ -277,7 +277,7 @@ fi
 
 if [[ -t 0 && -z $opt_force && -z $opt_dry_run ]]; then
   read -rp "Are you sure you want to uninstall Homebrew? This will remove your installed packages! [y/N] "
-  [[ $REPLY == [yY]* ]] || exit 1
+  [[ $REPLY == [yY]* ]] || abort
 fi
 
 [[ -n $opt_quiet ]] || ohai "Removing Homebrew installation..."
