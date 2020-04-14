@@ -3,7 +3,7 @@ set -u
 shopt -s extglob
 
 abort() {
-  printf "%s\n" "$1"
+  printf "%s\n" "$@"
   exit 1
 }
 
