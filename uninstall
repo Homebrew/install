@@ -7,4 +7,4 @@ Bash. Please migrate to the following command:
 
 EOS
 
-Kernel.exec "/bin/bash", "-c", '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)"'
+Kernel.exec "/bin/bash", "-c", '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)"' + ' uninstall ' +  ARGV.join(" ")
