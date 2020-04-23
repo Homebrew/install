@@ -21,6 +21,7 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   CHOWN="/usr/sbin/chown"
   CHGRP="/usr/bin/chgrp"
   GROUP="admin"
+  TOUCH="/usr/bin/touch"
 else
   HOMEBREW_PREFIX_DEFAULT="/home/linuxbrew/.linuxbrew"
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
@@ -29,6 +30,7 @@ else
   CHOWN="/bin/chown"
   CHGRP="/bin/chgrp"
   GROUP="$(id -gn)"
+  TOUCH="/bin/touch"
 fi
 BREW_REPO="https://github.com/Homebrew/brew"
 
@@ -444,14 +446,14 @@ if file_not_grpowned "${HOMEBREW_CACHE}"; then
   execute_sudo "$CHGRP" "$GROUP" "${HOMEBREW_CACHE}"
 fi
 if [[ -d "${HOMEBREW_CACHE}" ]]; then
-  execute "/usr/bin/touch" "${HOMEBREW_CACHE}/.cleaned"
+  execute "$TOUCH" "${HOMEBREW_CACHE}/.cleaned"
 fi
 
 if should_install_command_line_tools && version_ge "$macos_version" "10.13"; then
   ohai "Searching online for the Command Line Tools"
   # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
   clt_placeholder="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
-  execute_sudo "/usr/bin/touch" "$clt_placeholder"
+  execute_sudo "$TOUCH" "$clt_placeholder"
 
   clt_label_command="/usr/sbin/softwareupdate -l |
                       grep -B 1 -E 'Command Line Tools' |
