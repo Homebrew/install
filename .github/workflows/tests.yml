@@ -30,11 +30,12 @@ jobs:
           echo "::add-path::/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin"
         fi
 
-    - name: Test uninstalling GitHub Actions macOS Homebrew
-      if: runner.os == 'macOS'
+    - name: Test uninstalling GitHub Actions Homebrew
       run: |
-        bash uninstall.sh -d >/dev/null
-        bash uninstall.sh -f >/dev/null
+        if which brew &>/dev/null; then
+          bash uninstall.sh -d >/dev/null
+          bash uninstall.sh -f >/dev/null
+        fi
 
     - name: Test install.sh
       run: |
