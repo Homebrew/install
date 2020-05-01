@@ -58,7 +58,7 @@ tty_reset="$(tty_escape 0)"
 
 have_sudo_access() {
   local -a args
-  if [[ -z=n "${SUDO_ASKPASS-}" ]]; then
+  if [[ -n "${SUDO_ASKPASS-}" ]]; then
     args=("-A")
   fi
 
