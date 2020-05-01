@@ -200,6 +200,34 @@ file_not_grpowned() {
   [[ " $(id -G "$USER") " != *" $(get_group "$1") "*  ]]
 }
 
+old_ruby() {
+  if builtin command -v ruby &>/dev/null; then
+    local ruby_version
+    ruby_version=$(ruby -e 'puts RUBY_VERSION' | grep -o '^[0-9]\+\.[0-9]\+')
+    version_lt "$ruby_version" 2.6
+  else
+    return 0
+  fi
+}
+
+old_glibc() {
+  local glibc_version
+  glibc_version=$(ldd --version | head -n1 | grep -o '[0-9.]*$' | grep -o '^[0-9]\+\.[0-9]\+')
+  version_lt "$glibc_version" 2.13
+}
+
+if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && old_ruby && old_glibc; then
+    abort "$(cat <<EOFABORT
+Homebrew requires Ruby 2.6 which was not found on your system. 
+Homebrew can use vendored Ruby but it requires Glibc version 2.13 or newer.
+Your Glibc version is too old.
+See ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#linuxwsl-requirements${tty_reset}
+Consider installing Ruby 2.6 and poiting Homebrew to its executable with:
+    export HOMEBREW_RUBY_PATH=/path/to/ruby
+EOFABORT
+)"
+fi
+
 # USER isn't always set so provide a fall back for the installer and subprocesses.
 if [[ -z "${USER-}" ]]; then
   USER="$(chomp "$(id -un)")"
