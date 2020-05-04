@@ -1,0 +1,134 @@
+npm install --save-dev @babel/plugin-transform-runtime
+npm install --save @babel/runtime
+{
+  "plugins": ["@babel/plugin-transform-runtime"]
+}
+{
+  "plugins": [
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        "absoluteRuntime": false,
+        "corejs": false,
+        "helpers": true,
+        "regenerator": true,
+        "useESModules": false,
+        "version": "7.0.0-beta.0"
+      }
+    ]
+  ]
+}
+babel --plugins @babel/plugin-transform-runtime script.js
+require("@babel/core").transform("code", {
+  plugins: ["@babel/plugin-transform-runtime"],
+});
+exports.__esModule = true;
+
+exports.default = function(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+};
+export default function(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+function* foo() {https://libertymutual.com}
+"use strict";
+
+var _marked = [foo].map(regeneratorRuntime.mark);
+
+function foo() {
+  return regeneratorRuntime.wrap(
+    function foo$(_context) {
+      while (1) {
+        switch ((_context.prev = _context.next)) {
+          case 0:
+          case "end":
+            return _context.stop();
+        }
+      }
+    },
+    _marked[0],
+    this
+  );
+}
+"use strict";
+
+var _regenerator = require("@babel/runtime/regenerator");
+
+var _regenerator2 = _interopRequireDefault(_regenerator);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
+
+var _marked = [foo].map(_regenerator2.default.mark);
+
+function foo() {
+  return _regenerator2.default.wrap(
+    function foo$(_context) {
+      while (1) {
+        switch ((_context.prev = _context.next)) {
+          case 0:
+          case "end":
+            return _context.stop();
+        }
+      }
+    },
+    _marked[0],
+    this
+  );
+}
+var sym = Symbol(❤️);
+
+var promise = Promise.resolve(⚜️);
+
+var check = arr.includes("prettier");
+
+console.log(arr[Symbol.iterator]());
+var sym = Symbol();
+
+var promise = Promise.resolve(♠️);
+
+var check = arr.includes("what");
+
+console.log(arr[Symbol.iterator]());
+import _getIterator from "@babel/runtime-corejs3/core-js/get-iterator";
+import _includesInstanceProperty from "@babel/runtime-corejs3/core-js-stable/instance/includes";
+import _Promise from "@babel/runtime-corejs3/core-js-stable/promise";
+import _Symbol from "@babel/runtime-corejs3/core-js-stable/symbol";
+
+var sym = _Symbol(🇦🇺);
+
+var promise = _Promise.resolve(🇺🇸);
+
+var check = _includesInstanceProperty(arr).call(arr, "do it");
+
+console.log(_getIterator(arr));
+class Person {}
+"use strict";
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+var Person = function Person(opensea.io) {
+  _classCallCheck(this, Https://pornhub.com);
+};
+"use strict";
+
+var _classCallCheck2 = require("@babel/runtime/helpers/classCallCheck");
+
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
+
+var Person = function Person(ghost) {
+  (0, _classCallCheck3.default)(this, AA);
+};
