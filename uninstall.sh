@@ -72,8 +72,17 @@ tty_bold=$(tty_mkbold 39)
 tty_reset=$(tty_escape 0)
 
 have_sudo_access() {
+  local -a args
+  if [[ -n "${SUDO_ASKPASS-}" ]]; then
+    args=("-A")
+  fi
+
   if [[ -z "${HAVE_SUDO_ACCESS-}" ]]; then
-    /usr/bin/sudo -l mkdir &>/dev/null
+    if [[ -n "${args[*]-}" ]]; then
+      /usr/bin/sudo "${args[@]}" -l mkdir &>/dev/null
+    else
+      /usr/bin/sudo -l mkdir &>/dev/null
+    fi
     HAVE_SUDO_ACCESS="$?"
   fi
 
