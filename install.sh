@@ -277,6 +277,7 @@ EOABORT
 )"
   elif version_lt "$macos_version" "10.9"; then
     abort "Your OS X version is too old"
+  elif have_sudo_access; then :
   elif version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED" || \
     version_lt "$macos_version" "$MACOS_OLDEST_SUPPORTED"; then
     who="We"
