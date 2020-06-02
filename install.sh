@@ -72,7 +72,7 @@ have_sudo_access() {
   fi
 
   if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && [[ "$HAVE_SUDO_ACCESS" -ne 0 ]]; then
-    abort "Need sudo access on macOS!"
+    abort "Run the script with a user which has sufficient permissions!"
   fi
 
   return "$HAVE_SUDO_ACCESS"
@@ -277,8 +277,7 @@ EOABORT
 )"
   elif version_lt "$macos_version" "10.9"; then
     abort "Your OS X version is too old"
-  elif ! [[ "$(dsmemberutil checkmembership -U "$USER" -G "$GROUP")" = *"user is a member"* ]]; then
-    abort "This script requires the user $USER to be an Administrator."
+  elif have_sudo_access; then :
   elif version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED" || \
     version_lt "$macos_version" "$MACOS_OLDEST_SUPPORTED"; then
     who="We"
