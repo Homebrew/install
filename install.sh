@@ -234,9 +234,8 @@ EOABORT
 fi
 
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
- if have_sudo_access; then :
- fi
-elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
+ have_sudo_access
+else
   if [[ -n "${CI-}" ]] || [[ -w "$HOMEBREW_PREFIX_DEFAULT" ]] || [[ -w "/home/linuxbrew" ]] || [[ -w "/home" ]]; then
     HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
   else
