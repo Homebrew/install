@@ -233,14 +233,16 @@ EOABORT
 )"
 fi
 
-if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
+if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
+ if have_sudo_access; then :
+ fi
+elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
   if [[ -n "${CI-}" ]] || [[ -w "$HOMEBREW_PREFIX_DEFAULT" ]] || [[ -w "/home/linuxbrew" ]] || [[ -w "/home" ]]; then
     HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
   else
     trap exit SIGINT
-    sudo_output="$(/usr/bin/sudo -n -l mkdir 2>&1)"
-    sudo_exit_code="$?"
-    if [[ "$sudo_exit_code" -ne 0 ]] && [[ "$sudo_output" = "sudo: a password is required" ]]; then
+    if [[ `/usr/bin/sudo -n -l mkdir 2>&1` == *"mkdir"* ]]; then :
+    else
       ohai "Select the Homebrew installation directory"
       echo "- ${tty_bold}Enter your password${tty_reset} to install to ${tty_underline}${HOMEBREW_PREFIX_DEFAULT}${tty_reset} (${tty_bold}recommended${tty_reset})"
       echo "- ${tty_bold}Press Control-D${tty_reset} to install to ${tty_underline}$HOME/.linuxbrew${tty_reset}"
@@ -255,6 +257,7 @@ if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
   fi
   HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
 fi
+
 
 if [[ "$UID" == "0" ]]; then
   abort "Don't run this as root!"
@@ -277,7 +280,6 @@ EOABORT
 )"
   elif version_lt "$macos_version" "10.9"; then
     abort "Your OS X version is too old"
-  elif have_sudo_access; then :
   elif version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED" || \
     version_lt "$macos_version" "$MACOS_OLDEST_SUPPORTED"; then
     who="We"
