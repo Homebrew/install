@@ -87,7 +87,7 @@ have_sudo_access() {
   fi
 
   if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && [[ "$HAVE_SUDO_ACCESS" -ne 0 ]]; then
-    abort "Need sudo access on macOS!"
+    abort "Need sudo access on macOS (e.g. the user $USER to be an Administrator)!"
   fi
 
   return "$HAVE_SUDO_ACCESS"
