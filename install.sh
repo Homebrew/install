@@ -240,8 +240,7 @@ else
     HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
   else
     trap exit SIGINT
-    if [[ $(/usr/bin/sudo -n -l mkdir 2>&1) == *"mkdir"* ]]; then :
-    else
+    if [[ $(/usr/bin/sudo -n -l mkdir 2>&1) != *"mkdir"* ]]; then
       ohai "Select the Homebrew installation directory"
       echo "- ${tty_bold}Enter your password${tty_reset} to install to ${tty_underline}${HOMEBREW_PREFIX_DEFAULT}${tty_reset} (${tty_bold}recommended${tty_reset})"
       echo "- ${tty_bold}Press Control-D${tty_reset} to install to ${tty_underline}$HOME/.linuxbrew${tty_reset}"
