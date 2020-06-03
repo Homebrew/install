@@ -221,7 +221,7 @@ usable_ruby() {
 usable_glibc() {
   local glibc_version
   glibc_version=$(ldd --version | head -n1 | grep -o '[0-9.]*$' | grep -o '^[0-9]\+\.[0-9]\+')
-  version_ge "$glibc_version" $required_glibc_version
+  version_ge "$glibc_version" "$required_glibc_version"
 }
 
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && ! usable_ruby && ! usable_glibc
