@@ -241,7 +241,7 @@ elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
     HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
   else
     trap exit SIGINT
-    if [[ `/usr/bin/sudo -n -l mkdir 2>&1` == *"mkdir"* ]]; then :
+    if [[ $(/usr/bin/sudo -n -l mkdir 2>&1) == *"mkdir"* ]]; then :
     else
       ohai "Select the Homebrew installation directory"
       echo "- ${tty_bold}Enter your password${tty_reset} to install to ${tty_underline}${HOMEBREW_PREFIX_DEFAULT}${tty_reset} (${tty_bold}recommended${tty_reset})"
