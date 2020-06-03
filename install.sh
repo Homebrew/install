@@ -39,6 +39,10 @@ MACOS_LATEST_SUPPORTED="10.15"
 # TODO: bump version when new macOS is released
 MACOS_OLDEST_SUPPORTED="10.13"
 
+# For Homebrew on Linux
+required_ruby_version=2.6
+required_glibc_version=2.13
+
 # no analytics during installation
 export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
 export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
@@ -200,32 +204,36 @@ file_not_grpowned() {
   [[ " $(id -G "$USER") " != *" $(get_group "$1") "*  ]]
 }
 
-old_ruby() {
-  if builtin command -v ruby &>/dev/null; then
-    local ruby_version
-    ruby_version=$(ruby -e 'puts RUBY_VERSION' | grep -o '^[0-9]\+\.[0-9]\+')
-    version_lt "$ruby_version" 2.6
-  else
-    return 0
-  fi
+# Please sync with 'test-ruby()' in 'Library/Homebrew/utils/ruby.sh' from Homebrew/brew repository.
+test-ruby () {
+  [[ ! -x $1 ]] && { echo "false"; return 1; }
+  "$1" --enable-frozen-string-literal --disable=gems,did_you_mean,rubyopt -rrubygems -e \
+    "puts Gem::Version.new(RUBY_VERSION.to_s.dup).to_s.split('.').first(2) == \
+          Gem::Version.new('$required_ruby_version').to_s.split('.').first(2)" 2>/dev/null
 }
 
-old_glibc() {
+usable_ruby() {
+  local ruby_exec
+  ruby_exec=$(which ruby)
+  test "$(test-ruby "$ruby_exec")" == true
+}
+
+usable_glibc() {
   local glibc_version
   glibc_version=$(ldd --version | head -n1 | grep -o '[0-9.]*$' | grep -o '^[0-9]\+\.[0-9]\+')
-  version_lt "$glibc_version" 2.13
+  version_ge "$glibc_version" $required_glibc_version
 }
 
-if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && old_ruby && old_glibc; then
-    abort "$(cat <<EOFABORT
-Homebrew requires Ruby 2.6 which was not found on your system. 
-Homebrew's portable Ruby requires Glibc version 2.13 or newer
-Your Glibc version is too old.
-See ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#linuxwsl-requirements${tty_reset}
-Consider installing Ruby 2.6 and poiting Homebrew to its executable with:
-    export HOMEBREW_RUBY_PATH=/path/to/ruby
-EOFABORT
-)"
+if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && ! usable_ruby && ! usable_glibc
+then
+    abort "$(cat <<-EOFABORT
+	Homebrew requires Ruby $required_ruby_version which was not found on your system.
+	Homebrew's portable Ruby requires Glibc version $required_glibc_version or newer
+	and your Glibc version is too old.
+	See ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#linuxwsl-requirements${tty_reset}
+	Consider installing Ruby $required_ruby_version and adding its location to PATH.
+	EOFABORT
+    )"
 fi
 
 # USER isn't always set so provide a fall back for the installer and subprocesses.
