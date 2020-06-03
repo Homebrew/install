@@ -228,7 +228,7 @@ if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && ! usable_ruby && ! usable_glibc
 then
     abort "$(cat <<-EOFABORT
 	Homebrew requires Ruby $required_ruby_version which was not found on your system.
-	Homebrew's portable Ruby requires Glibc version $required_glibc_version or newer
+	Homebrew's portable Ruby requires Glibc version $required_glibc_version or newer,
 	and your Glibc version is too old.
 	See ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#linuxwsl-requirements${tty_reset}
 	Consider installing Ruby $required_ruby_version and adding its location to PATH.
