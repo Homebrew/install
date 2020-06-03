@@ -219,7 +219,7 @@ old_glibc() {
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && old_ruby && old_glibc; then
     abort "$(cat <<EOFABORT
 Homebrew requires Ruby 2.6 which was not found on your system. 
-Homebrew can use vendored Ruby but it requires Glibc version 2.13 or newer.
+Homebrew's portable Ruby requires Glibc version 2.13 or newer
 Your Glibc version is too old.
 See ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#linuxwsl-requirements${tty_reset}
 Consider installing Ruby 2.6 and poiting Homebrew to its executable with:
