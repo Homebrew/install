@@ -204,18 +204,31 @@ file_not_grpowned() {
   [[ " $(id -G "$USER") " != *" $(get_group "$1") "*  ]]
 }
 
-# Please sync with 'test-ruby()' in 'Library/Homebrew/utils/ruby.sh' from Homebrew/brew repository.
-test-ruby () {
-  [[ ! -x $1 ]] && { echo "false"; return 1; }
-  "$1" --enable-frozen-string-literal --disable=gems,did_you_mean,rubyopt -rrubygems -e \
+# Please sync with 'test_ruby()' in 'Library/Homebrew/utils/ruby.sh' from Homebrew/brew repository.
+test_ruby () {
+  if [[ ! -x $1 ]]
+  then
+    return 1
+  fi
+
+  local ruby_status
+  ruby_status=$("$1" --enable-frozen-string-literal --disable=gems,did_you_mean,rubyopt -rrubygems -e \
     "puts Gem::Version.new(RUBY_VERSION.to_s.dup).to_s.split('.').first(2) == \
-          Gem::Version.new('$required_ruby_version').to_s.split('.').first(2)" 2>/dev/null
+          Gem::Version.new('$required_ruby_version').to_s.split('.').first(2)" 2>/dev/null)
+
+  test "$ruby_status" = true
 }
 
-usable_ruby() {
+has_usable_ruby() {
   local ruby_exec
-  ruby_exec=$(which ruby)
-  test "$(test-ruby "$ruby_exec")" == true
+  IFS=$'\n' # Do word splitting on new lines only
+  for ruby_exec in $(which -a ruby); do
+    if [[ $(test_ruby "$ruby_exec") == true ]]; then
+      return 0
+    fi
+  done
+  IFS=$' \t\n' # Restore IFS to its default value
+  return 1
 }
 
 usable_glibc() {
@@ -224,7 +237,7 @@ usable_glibc() {
   version_ge "$glibc_version" "$required_glibc_version"
 }
 
-if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && ! usable_ruby && ! usable_glibc
+if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && ! has_usable_ruby && ! usable_glibc
 then
     abort "$(cat <<-EOFABORT
 	Homebrew requires Ruby $required_ruby_version which was not found on your system.
