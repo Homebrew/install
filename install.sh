@@ -241,7 +241,7 @@ then
 	Homebrew's portable Ruby requires Glibc version $REQUIRED_GLIBC_VERSION or newer,
 	and your Glibc version is too old.
 	See ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#requirements${tty_reset}
-	Consider installing Ruby $REQUIRED_RUBY_VERSION and adding its location to PATH.
+	Install Ruby $REQUIRED_RUBY_VERSION and add its location to your PATH.
 	EOFABORT
     )"
 fi
