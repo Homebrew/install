@@ -39,6 +39,10 @@ MACOS_LATEST_SUPPORTED="10.15"
 # TODO: bump version when new macOS is released
 MACOS_OLDEST_SUPPORTED="10.13"
 
+# For Homebrew on Linux
+REQUIRED_RUBY_VERSION=2.6  # https://github.com/Homebrew/brew/pull/6556
+REQUIRED_GLIBC_VERSION=2.13  # https://docs.brew.sh/Homebrew-on-Linux#requirements
+
 # no analytics during installation
 export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
 export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
@@ -208,6 +212,48 @@ get_group() {
 file_not_grpowned() {
   [[ " $(id -G "$USER") " != *" $(get_group "$1") "*  ]]
 }
+
+# Please sync with 'test_ruby()' in 'Library/Homebrew/utils/ruby.sh' from Homebrew/brew repository.
+test_ruby () {
+  if [[ ! -x $1 ]]
+  then
+    return 1
+  fi
+
+  "$1" --enable-frozen-string-literal --disable=gems,did_you_mean,rubyopt -rrubygems -e \
+    "abort if Gem::Version.new(RUBY_VERSION.to_s.dup).to_s.split('.').first(2) != \
+              Gem::Version.new('$REQUIRED_RUBY_VERSION').to_s.split('.').first(2)" 2>/dev/null
+}
+
+no_usable_ruby() {
+  local ruby_exec
+  IFS=$'\n' # Do word splitting on new lines only
+  for ruby_exec in $(which -a ruby); do
+    if test_ruby "$ruby_exec"; then
+      return 1
+    fi
+  done
+  IFS=$' \t\n' # Restore IFS to its default value
+  return 0
+}
+
+outdated_glibc() {
+  local glibc_version
+  glibc_version=$(ldd --version | head -n1 | grep -o '[0-9.]*$' | grep -o '^[0-9]\+\.[0-9]\+')
+  version_lt "$glibc_version" "$REQUIRED_GLIBC_VERSION"
+}
+
+if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && no_usable_ruby && outdated_glibc
+then
+    abort "$(cat <<-EOFABORT
+	Homebrew requires Ruby $REQUIRED_RUBY_VERSION which was not found on your system.
+	Homebrew portable Ruby requires Glibc version $REQUIRED_GLIBC_VERSION or newer,
+	and your Glibc version is too old.
+	See ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#requirements${tty_reset}
+	Install Ruby $REQUIRED_RUBY_VERSION and add its location to your PATH.
+	EOFABORT
+    )"
+fi
 
 # USER isn't always set so provide a fall back for the installer and subprocesses.
 if [[ -z "${USER-}" ]]; then
