@@ -565,7 +565,7 @@ ohai "Downloading and installing Homebrew..."
   execute "ln" "-sf" "${HOMEBREW_REPOSITORY}/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
 
   execute "${HOMEBREW_PREFIX}/bin/brew" "update" "--force"
-)
+) || exit 1
 
 if [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]; then
   warn "${HOMEBREW_PREFIX}/bin is not in your PATH."
@@ -600,7 +600,7 @@ EOS
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
   execute "git" "config" "--replace-all" "homebrew.analyticsmessage" "true"
   execute "git" "config" "--replace-all" "homebrew.caskanalyticsmessage" "true"
-)
+) || exit 1
 
 ohai "Next steps:"
 echo "- Run \`brew help\` to get started"
