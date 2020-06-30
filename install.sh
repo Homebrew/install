@@ -8,7 +8,7 @@ fi
 
 # Check if macOS is ARM
 if [[ "$(uname -m)" = "arm64" ]] && [[ "$(uname)" = "Darwin" ]]; then
-  HOMEBREW_MAC_ARM64=1
+  HOMEBREW_APPLE_SILICON=1
 fi
 
 
@@ -183,7 +183,7 @@ should_install_command_line_tools() {
     return 1
   fi
 
-  if [[ -n "${HOMEBREW_MAC_ARM64-}" ]]; then
+  if [[ -n "${HOMEBREW_APPLE_SILICON-}" ]]; then
     return 1;
   fi
 
