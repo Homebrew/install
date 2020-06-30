@@ -10,6 +10,7 @@ fi
 if [[ "$(uname -m)" = "arm64" ]] && [[ "$(uname)" = "Darwin" ]]; then
   HOMEBREW_APPLE_SILICON=1
 fi
+
 # On macOS, this script installs to /usr/local only.
 # On Linux, it installs to /home/linuxbrew/.linuxbrew if you have sudo access
 # and ~/.linuxbrew otherwise.
