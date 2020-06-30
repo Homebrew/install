@@ -6,6 +6,11 @@ if [[ "$(uname)" = "Linux" ]]; then
   HOMEBREW_ON_LINUX=1
 fi
 
+# Check if macOS is ARM
+if [[ "$(uname -m)" = "arm64" ]] && [[ "$(uname)" = "Darwin" ]]; then
+  HOMEBREW_APPLE_SILICON=1
+fi
+
 # On macOS, this script installs to /usr/local only.
 # On Linux, it installs to /home/linuxbrew/.linuxbrew if you have sudo access
 # and ~/.linuxbrew otherwise.
@@ -175,6 +180,10 @@ should_install_git() {
 should_install_command_line_tools() {
   if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
     return 1
+  fi
+
+  if [[ -n "${HOMEBREW_APPLE_SILICON-}" ]]; then
+    return 1;
   fi
 
   if version_gt "$macos_version" "10.13"; then
