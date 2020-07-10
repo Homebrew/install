@@ -7,7 +7,7 @@ if [[ "$(uname)" = "Linux" ]]; then
 fi
 
 # Check if macOS is ARM
-if [[ "$(uname -m)" = "arm64" ]] && [[ "$(uname)" = "Darwin" ]]; then
+if [[ "$(uname)" = "Darwin" ]] && [[ "$(sysctl -n hw.optional.arm64 2>/dev/null || echo '0')" = "1" ]]; then
   HOMEBREW_APPLE_SILICON=1
 fi
 
