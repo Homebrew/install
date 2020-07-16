@@ -177,6 +177,12 @@ should_install_git() {
   fi
 }
 
+should_install_curl() {
+  if [[ $(command -v curl) ]]; then
+    return 1
+  fi
+}
+
 should_install_command_line_tools() {
   if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
     return 1
@@ -283,6 +289,14 @@ cd "/usr" || exit 1
 if should_install_git; then
     abort "$(cat <<EOABORT
 You must install Git before installing Homebrew. See:
+  ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
+EOABORT
+)"
+fi
+
+if should_install_curl; then
+    abort "$(cat <<EOABORT
+You must install cURL before installing Homebrew. See:
   ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
 EOABORT
 )"
