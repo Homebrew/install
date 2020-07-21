@@ -177,6 +177,12 @@ should_install_git() {
   fi
 }
 
+should_install_curl() {
+  if [[ $(command -v curl) ]]; then
+    return 1
+  fi
+}
+
 should_install_command_line_tools() {
   if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
     return 1
@@ -283,6 +289,14 @@ cd "/usr" || exit 1
 if should_install_git; then
     abort "$(cat <<EOABORT
 You must install Git before installing Homebrew. See:
+  ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
+EOABORT
+)"
+fi
+
+if should_install_curl; then
+    abort "$(cat <<EOABORT
+You must install cURL before installing Homebrew. See:
   ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
 EOABORT
 )"
@@ -633,18 +647,24 @@ if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
       ;;
   esac
 
+  echo "- Install the Homebrew dependencies if you have sudo access:"
+
+  if [[ $(command -v apt-get) ]]; then
+    echo "    sudo apt-get install build-essential"
+  elif [[ $(command -v yum) ]]; then
+    echo "    sudo yum groupinstall 'Development Tools'"
+  elif [[ $(command -v pacman) ]]; then
+    echo "    sudo pacman -S base-devel"
+  elif [[ $(command -v apk) ]]; then
+    echo "    sudo apk add build-base"
+  fi
+
   cat <<EOS
-- Install the Homebrew dependencies if you have sudo access:
-  ${tty_bold}Debian, Ubuntu, etc.${tty_reset}
-    sudo apt-get install build-essential
-  ${tty_bold}Fedora, Red Hat, CentOS, etc.${tty_reset}
-    sudo yum groupinstall 'Development Tools'
-  See ${tty_underline}https://docs.brew.sh/linux${tty_reset} for more information.
-- Configure Homebrew in your ${tty_underline}${shell_profile}${tty_reset} by running
+    See ${tty_underline}https://docs.brew.sh/linux${tty_reset} for more information
+- Add Homebrew to your ${tty_bold}PATH${tty_reset} in ${tty_underline}${shell_profile}${tty_reset}:
     echo 'eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)' >> ${shell_profile}
-- Add Homebrew to your ${tty_bold}PATH${tty_reset}
     eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)
-- We recommend that you install GCC by running:
+- We recommend that you install GCC:
     brew install gcc
 
 EOS
