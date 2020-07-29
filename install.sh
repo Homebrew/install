@@ -188,8 +188,10 @@ should_install_command_line_tools() {
     return 1
   fi
 
-  if [[ -n "${HOMEBREW_APPLE_SILICON-}" ]]; then
-    return 1;
+  # Don't try to install CLT on 11.0/10.16 for now until Apple sorts out their CLT delivery.
+  # TODO: remove this when possible.
+  if [[ -n "${HOMEBREW_APPLE_SILICON-}" ]] || version_ge "$macos_version" "10.16"; then
+    return 1
   fi
 
   if version_gt "$macos_version" "10.13"; then
