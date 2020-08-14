@@ -2,7 +2,7 @@ name: GitHub Actions CI
 on:
   push:
     branches: master
-  pull_request: []
+  pull_request:
 jobs:
   tests:
     strategy:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{matrix.os}}
     steps:
     - name: Set up Git repository
-      uses: actions/checkout@master
+      uses: actions/checkout@main
 
     - name: Cleanup macOS
       if: runner.os == 'macOS'
@@ -47,8 +47,7 @@ jobs:
     - name: Install Shellcheck
       run: brew install shellcheck
 
-    - name: Run Shellcheck
-      run: shellcheck *.sh
+    - run: shellcheck *.sh
 
     - name: Test uninstalling newly installed Homebrew
       run: |
