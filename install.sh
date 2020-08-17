@@ -6,11 +6,6 @@ if [[ "$(uname)" = "Linux" ]]; then
   HOMEBREW_ON_LINUX=1
 fi
 
-# Check if macOS is ARM
-if [[ "$(uname)" = "Darwin" ]] && [[ "$(sysctl -n hw.optional.arm64 2>/dev/null || echo '0')" = "1" ]]; then
-  HOMEBREW_APPLE_SILICON=1
-fi
-
 # On macOS, this script installs to /usr/local only.
 # On Linux, it installs to /home/linuxbrew/.linuxbrew if you have sudo access
 # and ~/.linuxbrew otherwise.
@@ -185,12 +180,6 @@ should_install_curl() {
 
 should_install_command_line_tools() {
   if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
-    return 1
-  fi
-
-  # Don't try to install CLT on 11.0/10.16 for now until Apple sorts out their CLT delivery.
-  # TODO: remove this when possible.
-  if [[ -n "${HOMEBREW_APPLE_SILICON-}" ]] || version_ge "$macos_version" "10.16"; then
     return 1
   fi
 
