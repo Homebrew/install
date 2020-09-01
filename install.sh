@@ -191,6 +191,10 @@ exists_but_not_writable() {
   [[ -e "$1" ]] && ! [[ -r "$1" && -w "$1" && -x "$1" ]]
 }
 
+exists_but_not_group_writable() {
+  [[ -e "$1" ]] && [[ "$(get_permission "$1")" != "775" ]]
+}
+
 get_owner() {
   $STAT "%u" "$1"
 }
@@ -386,11 +390,20 @@ directories=(bin etc include lib sbin share opt var
              var/log var/homebrew var/homebrew/linked
              bin/brew)
 group_chmods=()
+
 for dir in "${directories[@]}"; do
   if exists_but_not_writable "${HOMEBREW_PREFIX}/${dir}"; then
     group_chmods+=("${HOMEBREW_PREFIX}/${dir}")
   fi
 done
+
+if [[ -n "${HOMEBREW_MULTI_USER-}" ]] && exists_but_not_group_writable "${HOMEBREW_PREFIX}/Homebrew"; then
+  group_chmods+=("${HOMEBREW_PREFIX}/Homebrew")
+fi
+
+if [[ -n "${HOMEBREW_MULTI_USER-}" ]]; then
+  directories+=(Homebrew)
+fi
 
 # zsh refuses to read from these directories if group writable
 directories=(share/zsh share/zsh/site-functions)
@@ -459,6 +472,10 @@ fi
 if [[ "${#mkdirs[@]}" -gt 0 ]]; then
   ohai "The following new directories will be created:"
   printf "%s\n" "${mkdirs[@]}"
+fi
+
+if [[ -z "${HOMEBREW_MULTI_USER-}" ]]; then
+  echo "Set HOMEBREW_MULTI_USER env var to allow ${tty_underline}${GROUP}${tty_reset} group users to install packages"
 fi
 
 if should_install_command_line_tools; then
