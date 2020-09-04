@@ -550,23 +550,25 @@ ohai "Downloading and installing Homebrew..."
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
 
   # we do it in four steps to avoid merge errors when reinstalling
-  execute "git" "init" "-q"
+  #alias git='arch -arch x86_64 git'
+  execute "arch" "-arch" "x86_64" "git" "init" "-q"
+  #execute "git" "init" "-q"
 
   # "git remote add" will fail if the remote is defined in the global config
-  execute "git" "config" "remote.origin.url" "${BREW_REPO}"
-  execute "git" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
+  execute "arch" "-arch" "x86_64"  "git" "config" "remote.origin.url" "${BREW_REPO}"
+  execute "arch" "-arch" "x86_64" "git" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
 
   # ensure we don't munge line endings on checkout
-  execute "git" "config" "core.autocrlf" "false"
+  execute "arch" "-arch" "x86_64" "git" "config" "core.autocrlf" "false"
 
-  execute "git" "fetch" "origin" "--force"
-  execute "git" "fetch" "origin" "--tags" "--force"
+  execute "arch" "-arch" "x86_64" "git" "fetch" "origin" "--force"
+  execute "arch" "-arch" "x86_64" "git" "fetch" "origin" "--tags" "--force"
 
-  execute "git" "reset" "--hard" "origin/master"
+  execute "arch" "-arch" "x86_64" "git" "reset" "--hard" "origin/master"
 
   execute "ln" "-sf" "${HOMEBREW_REPOSITORY}/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
 
-  execute "${HOMEBREW_PREFIX}/bin/brew" "update" "--force"
+  execute "arch" "-arch" "x86_64" "${HOMEBREW_PREFIX}/bin/brew" "update" "--force"
 ) || exit 1
 
 if [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]; then
@@ -600,8 +602,8 @@ EOS
 
 (
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
-  execute "git" "config" "--replace-all" "homebrew.analyticsmessage" "true"
-  execute "git" "config" "--replace-all" "homebrew.caskanalyticsmessage" "true"
+  execute "arch" "-arch" "x86_64" "git" "config" "--replace-all" "homebrew.analyticsmessage" "true"
+  execute "arch" "-arch" "x86_64" "git" "config" "--replace-all" "homebrew.caskanalyticsmessage" "true"
 ) || exit 1
 
 ohai "Next steps:"
