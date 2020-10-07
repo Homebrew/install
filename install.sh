@@ -35,7 +35,7 @@ fi
 BREW_REPO="https://github.com/Homebrew/brew"
 
 # TODO: bump version when new macOS is released
-MACOS_LATEST_SUPPORTED="99.0"
+MACOS_LATEST_SUPPORTED="11.0"
 # TODO: bump version when new macOS is released
 MACOS_OLDEST_SUPPORTED="10.13"
 
