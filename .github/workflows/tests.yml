@@ -25,9 +25,9 @@ jobs:
     - name: Set up Homebrew PATH
       run: |
         if [ "$RUNNER_OS" = "macOS" ]; then
-          echo "::add-path::/usr/local/bin:/usr/bin:/bin"
+          echo "/usr/local/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
         else
-          echo "::add-path::/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin"
+          echo "/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
         fi
 
     - name: Test uninstalling GitHub Actions Homebrew
