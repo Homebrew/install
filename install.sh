@@ -32,7 +32,8 @@ else
   GROUP="$(id -gn)"
   TOUCH="/bin/touch"
 fi
-BREW_REPO="https://github.com/Homebrew/brew"
+# BREW_REPO="https://github.com/Homebrew/brew"
+BREW_REPO="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
 
 # TODO: bump version when new macOS is released
 MACOS_LATEST_SUPPORTED="10.15"
