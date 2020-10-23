@@ -172,9 +172,9 @@ should_install_command_line_tools() {
   fi
 
   if version_gt "$macos_version" "10.13"; then
-    ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]]
+    ! [[ -e "/usr/bin/git" ]]
   else
-    ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]] ||
+    ! [[ -e "/usr/bin/git" ]] ||
       ! [[ -e "/usr/include/iconv.h" ]]
   fi
 }
