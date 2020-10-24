@@ -66,11 +66,17 @@ have_sudo_access() {
     args=("-A")
   fi
 
+  if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
+      SUDO_TEST="-l mkdir"
+  else
+      SUDO_TEST="-v"
+  fi
+
   if [[ -z "${HAVE_SUDO_ACCESS-}" ]]; then
     if [[ -n "${args[*]-}" ]]; then
-      /usr/bin/sudo "${args[@]}" -v &>/dev/null
+      /usr/bin/sudo "${args[@]}" "${SUDO_TEST}" &>/dev/null
     else
-      /usr/bin/sudo -v &>/dev/null
+      /usr/bin/sudo "${SUDO_TEST}" &>/dev/null
     fi
     HAVE_SUDO_ACCESS="$?"
   fi
