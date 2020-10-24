@@ -68,9 +68,9 @@ have_sudo_access() {
 
   if [[ -z "${HAVE_SUDO_ACCESS-}" ]]; then
     if [[ -n "${args[*]-}" ]]; then
-      /usr/bin/sudo "${args[@]}" -l mkdir &>/dev/null
+      /usr/bin/sudo "${args[@]}" -v &>/dev/null
     else
-      /usr/bin/sudo -l mkdir &>/dev/null
+      /usr/bin/sudo -v &>/dev/null
     fi
     HAVE_SUDO_ACCESS="$?"
   fi
@@ -286,7 +286,7 @@ else
     HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
   else
     trap exit SIGINT
-    if [[ $(/usr/bin/sudo -n -l mkdir 2>&1) != *"mkdir"* ]]; then
+    if ! /usr/bin/sudo -n -v &>/dev/null; then
       ohai "Select the Homebrew installation directory"
       echo "- ${tty_bold}Enter your password${tty_reset} to install to ${tty_underline}${HOMEBREW_PREFIX_DEFAULT}${tty_reset} (${tty_bold}recommended${tty_reset})"
       echo "- ${tty_bold}Press Control-D${tty_reset} to install to ${tty_underline}$HOME/.linuxbrew${tty_reset}"
