@@ -221,11 +221,13 @@ test_ruby () {
 
 no_usable_ruby() {
   local ruby_exec
-  which -a ruby | while read -r ruby_exec; do
+  IFS=$'\n' # Do word splitting on new lines only
+  for ruby_exec in $(which -a ruby); do
     if test_ruby "$ruby_exec"; then
       return 1
     fi
   done
+  IFS=$' \t\n' # Restore IFS to its default value
   return 0
 }
 
