@@ -322,7 +322,7 @@ if [[ "$UNAME_MACHINE" == "arm64" ]]; then
   abort "$(cat <<EOABORT
 Homebrew is not (yet) supported on ARM processors!
 Rerun the Homebrew installer under Rosetta 2.
-If you really know what you are doing and are prepared for a very broken experience you can read use another installation option for installing on ARM:
+If you really know what you are doing and are prepared for a very broken experience you can use another installation option for installing on ARM:
   ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
 EOABORT
 )"
