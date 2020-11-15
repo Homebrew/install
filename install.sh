@@ -319,7 +319,7 @@ fi
 
 UNAME_MACHINE="$(uname -m)"
 
-if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && [[ "$UNAME_MACHINE" == "arm64" ]]; then
+if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && [[ "$UNAME_MACHINE" == "arm64" ]]; then
   abort "$(cat <<EOABORT
 Homebrew is not (yet) supported on ARM processors!
 Rerun the Homebrew installer under Rosetta 2.
@@ -329,7 +329,7 @@ EOABORT
 )"
 fi
 
-if [[ "$UNAME_MACHINE" != "x86_64" ]]; then
+if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && [[ "$UNAME_MACHINE" != "x86_64" ]]; then
   abort "Homebrew is only supported on Intel processors!"
 fi
 
