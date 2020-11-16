@@ -35,9 +35,9 @@ fi
 BREW_REPO="https://github.com/Homebrew/brew"
 
 # TODO: bump version when new macOS is released
-MACOS_LATEST_SUPPORTED="10.15"
+MACOS_LATEST_SUPPORTED="11.0"
 # TODO: bump version when new macOS is released
-MACOS_OLDEST_SUPPORTED="10.13"
+MACOS_OLDEST_SUPPORTED="10.14"
 
 # For Homebrew on Linux
 REQUIRED_RUBY_VERSION=2.6  # https://github.com/Homebrew/brew/pull/6556
@@ -235,11 +235,14 @@ test_ruby () {
 
 no_usable_ruby() {
   local ruby_exec
-  which -a ruby | while read -r ruby_exec; do
+  IFS=$'\n' # Do word splitting on new lines only
+  for ruby_exec in $(which -a ruby); do
     if test_ruby "$ruby_exec"; then
+      IFS=$' \t\n' # Restore IFS to its default value
       return 1
     fi
   done
+  IFS=$' \t\n' # Restore IFS to its default value
   return 0
 }
 
@@ -327,6 +330,22 @@ installer again:
     sudo chmod 775 ${HOMEBREW_PREFIX}
 EOABORT
 )"
+fi
+
+UNAME_MACHINE="$(uname -m)"
+
+if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && [[ "$UNAME_MACHINE" == "arm64" ]]; then
+  abort "$(cat <<EOABORT
+Homebrew is not (yet) supported on ARM processors!
+Rerun the Homebrew installer under Rosetta 2.
+If you really know what you are doing and are prepared for a very broken experience you can use another installation option for installing on ARM:
+  ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
+EOABORT
+)"
+fi
+
+if [[ "$UNAME_MACHINE" != "x86_64" ]]; then
+  abort "Homebrew is only supported on Intel processors!"
 fi
 
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
