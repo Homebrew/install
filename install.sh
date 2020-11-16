@@ -329,7 +329,7 @@ EOABORT
 )"
 fi
 
-if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && [[ "$UNAME_MACHINE" != "x86_64" ]]; then
+if [[ "$UNAME_MACHINE" != "x86_64" ]]; then
   abort "Homebrew is only supported on Intel processors!"
 fi
 
