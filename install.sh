@@ -286,7 +286,7 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
  have_sudo_access
 else
   if [[ -n "${CI-}" ]] || [[ -w "$HOMEBREW_PREFIX_DEFAULT" ]] || [[ -w "/home/linuxbrew" ]] || [[ -w "/home" ]]; then
-    HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
+    HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$HOMEBREW_PREFIX_DEFAULT}"
   else
     trap exit SIGINT
     if [[ $(/usr/bin/sudo -n -l mkdir 2>&1) != *"mkdir"* ]]; then
@@ -296,9 +296,9 @@ else
       echo "- ${tty_bold}Press Control-C${tty_reset} to cancel installation"
     fi
     if have_sudo_access; then
-      HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
+      HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$HOMEBREW_PREFIX_DEFAULT}"
     else
-      HOMEBREW_PREFIX="$HOME/.linuxbrew"
+      HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-$HOME/.linuxbrew}"
     fi
     trap - SIGINT
   fi
