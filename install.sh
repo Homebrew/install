@@ -67,26 +67,8 @@ have_sudo_access() {
   fi
 
   if [[ -z "${HAVE_SUDO_ACCESS-}" ]]; then
-
-    if [[ -n "${args[*]-}" ]]; then
-      SUDO="/usr/bin/sudo ${args[*]}"
-    else
-      SUDO="/usr/bin/sudo"
-    fi
-
-    if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
-      ${SUDO} -l mkdir
-    else
-      # We ask for password on Linux with sudo -v
-      # to give options as shown in the
-      # 'Select the Homebrew installation folder'
-      # But first we check if the user is allowed to run mkdir with sudo.
-      # (It is possible that the user is only allowed
-      # to run a subset of commands with sudo, but not mkdir.)
-      ${SUDO} -l mkdir &>/dev/null && ${SUDO} -v
-    fi
+    /usr/bin/sudo "${args[@]}" -v && /usr/bin/sudo "${args[@]}" -l mkdir &>/dev/null 
     HAVE_SUDO_ACCESS="$?"
-
   fi
 
   if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && [[ "$HAVE_SUDO_ACCESS" -ne 0 ]]; then
@@ -304,7 +286,7 @@ else
   else
     trap exit SIGINT
     # If allowed to run sudo for mkdir and required to provide sudo password: prompt:
-    if /usr/bin/sudo -l mkdir &>/dev/null && ! /usr/bin/sudo -n -v &>/dev/null; then
+    if ! /usr/bin/sudo -n -v &>/dev/null; then
       ohai "Select the Homebrew installation directory"
       echo "- ${tty_bold}Enter your password${tty_reset} to install to ${tty_underline}${HOMEBREW_PREFIX_DEFAULT}${tty_reset} (${tty_bold}recommended${tty_reset})"
       echo "- ${tty_bold}Press Control-D${tty_reset} to install to ${tty_underline}$HOME/.linuxbrew${tty_reset}"
