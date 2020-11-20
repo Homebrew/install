@@ -67,7 +67,11 @@ have_sudo_access() {
   fi
 
   if [[ -z "${HAVE_SUDO_ACCESS-}" ]]; then
-    /usr/bin/sudo "${args[@]}" -v && /usr/bin/sudo "${args[@]}" -l mkdir &>/dev/null 
+    if [[ -n "${args[*]-}" ]]; then
+      /usr/bin/sudo "${args[@]}" -v && /usr/bin/sudo "${args[@]}" -l mkdir &>/dev/null 
+  else
+      /usr/bin/sudo -v && /usr/bin/sudo -l mkdir &>/dev/null 
+    fi
     HAVE_SUDO_ACCESS="$?"
   fi
 
