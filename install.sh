@@ -34,8 +34,8 @@ else
 fi
 BREW_REPO="https://github.com/Homebrew/brew"
 
-# TODO: bump version when new macOS is released
-MACOS_LATEST_SUPPORTED="11.0"
+# TODO: bump version when new macOS is released or announced
+MACOS_NEWEST_UNSUPPORTED="12.0"
 # TODO: bump version when new macOS is released
 MACOS_OLDEST_SUPPORTED="10.14"
 
@@ -342,11 +342,11 @@ EOABORT
 )"
   elif version_lt "$macos_version" "10.10"; then
     abort "Your OS X version is too old"
-  elif version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED" || \
+  elif version_ge "$macos_version" "$MACOS_NEWEST_UNSUPPORTED" || \
     version_lt "$macos_version" "$MACOS_OLDEST_SUPPORTED"; then
     who="We"
     what=""
-    if version_gt "$macos_version" "$MACOS_LATEST_SUPPORTED"; then
+    if version_ge "$macos_version" "$MACOS_NEWEST_UNSUPPORTED"; then
       what="pre-release version"
     else
       who+=" (and Apple)"
