@@ -68,9 +68,9 @@ have_sudo_access() {
 
   if [[ -z "${HAVE_SUDO_ACCESS-}" ]]; then
     if [[ -n "${args[*]-}" ]]; then
-      /usr/bin/sudo "${args[@]}" -v && /usr/bin/sudo "${args[@]}" -l mkdir &>/dev/null 
-  else
-      /usr/bin/sudo -v && /usr/bin/sudo -l mkdir &>/dev/null 
+      /usr/bin/sudo "${args[@]}" -v && /usr/bin/sudo "${args[@]}" -l mkdir &>/dev/null
+    else
+      /usr/bin/sudo -v && /usr/bin/sudo -l mkdir &>/dev/null
     fi
     HAVE_SUDO_ACCESS="$?"
   fi
@@ -289,7 +289,6 @@ else
     HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
   else
     trap exit SIGINT
-    # If allowed to run sudo for mkdir and required to provide sudo password: prompt:
     if ! /usr/bin/sudo -n -v &>/dev/null; then
       ohai "Select the Homebrew installation directory"
       echo "- ${tty_bold}Enter your password${tty_reset} to install to ${tty_underline}${HOMEBREW_PREFIX_DEFAULT}${tty_reset} (${tty_bold}recommended${tty_reset})"
