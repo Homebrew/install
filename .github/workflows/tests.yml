@@ -53,3 +53,50 @@ jobs:
       run: |
         bash uninstall.sh -d >/dev/null
         bash uninstall.sh -f >/dev/null
+        
+  tests-wsl:
+    strategy:
+      matrix:
+        os:
+        - windows-latest
+        wsl:
+        - Ubuntu-18.04
+    runs-on: ${{matrix.os}}
+    steps:
+    - name: Set up Git
+      run: |
+        git config --global core.autocrlf false
+        git config --global core.eol lf
+        
+    - name: Set up Git repository
+      uses: actions/checkout@main
+      
+    - name: Set up Homebrew PATH
+      run: echo "/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
+      
+    - name: Set up WSL
+      uses: Vampire/setup-wsl@v1
+      with:
+        distribution: ${{matrix.wsl}}
+        use-cache: 'false'
+
+    - shell: wsl-bash {0}
+      name: Test install.sh
+      run: |
+        bash install.sh
+        brew install ack
+        bash uninstall.sh -f >/dev/null
+        bash install.sh
+
+    - shell: wsl-bash {0}
+      name: Install Shellcheck
+      run: brew install shellcheck
+
+    - shell: wsl-bash {0}
+      run: shellcheck *.sh
+
+    - shell: wsl-bash {0}
+      name: Test uninstalling newly installed Homebrew
+      run: |
+        bash uninstall.sh -d >/dev/null
+        bash uninstall.sh -f >/dev/null
