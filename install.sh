@@ -1,6 +1,12 @@
 #!/bin/bash
 set -u
 
+# Check if script is run non-interactively (e.g. CI)
+# If it is run non-interactively we should not prompt for passwords.
+if [[ ! -t 0 ]] || [[ ! -t 1 ]] || [[ $SHLVL == 1 ]] || ! tty -s; then
+  NONINTERACTIVE=1
+fi
+
 # First check if the OS is Linux.
 if [[ "$(uname)" = "Linux" ]]; then
   HOMEBREW_ON_LINUX=1
@@ -61,6 +67,9 @@ tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
 have_sudo_access() {
+  if [[ ! -z "${NONINTERACTIVE-}" ]]; then
+    return 0
+  fi
   local -a args
   if [[ -n "${SUDO_ASKPASS-}" ]]; then
     args=("-A")
