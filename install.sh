@@ -309,9 +309,9 @@ if [[ "$UID" == "0" ]]; then
   abort "Don't run this as root!"
 elif [[ -d "$HOMEBREW_PREFIX" && ! -x "$HOMEBREW_PREFIX" ]]; then
   abort "$(cat <<EOABORT
-The Homebrew prefix, ${HOMEBREW_PREFIX}, exists but is not searchable. If this is
-not intentional, please restore the default permissions and try running the
-installer again:
+The Homebrew prefix, ${HOMEBREW_PREFIX}, exists but is not searchable.
+If this is not intentional, please restore the default permissions and
+try running the installer again:
     sudo chmod 775 ${HOMEBREW_PREFIX}
 EOABORT
 )"
@@ -323,7 +323,8 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && [[ "$UNAME_MACHINE" == "arm64" ]]; then
   abort "$(cat <<EOABORT
 Homebrew is not (yet) supported on ARM processors!
 Rerun the Homebrew installer under Rosetta 2.
-If you really know what you are doing and are prepared for a very broken experience you can use another installation option for installing on ARM:
+If you really know what you are doing and are prepared for a very broken
+experience you can use another installation option for installing on ARM:
   ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
 EOABORT
 )"
