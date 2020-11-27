@@ -3,7 +3,7 @@ set -u
 
 # Check if script is run non-interactively (e.g. CI)
 # If it is run non-interactively we should not prompt for passwords.
-if [[ ! -t 0 ]] || [[ ! -t 1 ]] || [[ $SHLVL == 1 ]] || ! tty -s; then
+if [[ ! -t 0 || ! -t 1 || $SHLVL == 1 ]] || ! tty -s; then
   NONINTERACTIVE=1
 fi
 
