@@ -1,55 +1,62 @@
 name: GitHub Actions CI
 on:
   push:
-    branches: master
+    branches:
+      - master
   pull_request:
 jobs:
   tests:
     strategy:
       matrix:
         os:
-        - macOS-latest
-        - ubuntu-latest
+          - macOS-latest
+          - ubuntu-latest
     runs-on: ${{matrix.os}}
     steps:
-    - name: Set up Git repository
-      uses: actions/checkout@main
+      - name: Set up Git repository
+        uses: actions/checkout@main
 
-    - name: Cleanup macOS
-      if: runner.os == 'macOS'
-      run: |
-        sudo rm -rf /Applications/Xcode.app \
-                    /Library/Developer/CommandLineTools
-        sudo xcode-select --reset
+      - name: Cleanup macOS
+        if: runner.os == 'macOS'
+        run: |
+          sudo rm -rf /Applications/Xcode.app \
+                      /Library/Developer/CommandLineTools
+          sudo xcode-select --reset
 
-    - name: Set up Homebrew PATH
-      run: |
-        if [ "$RUNNER_OS" = "macOS" ]; then
-          echo "/usr/local/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
-        else
-          echo "/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
-        fi
+      - name: Set up Homebrew PATH
+        run: |
+          if [ "${RUNNER_OS}" = "macOS" ]; then
+            echo "/usr/local/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
+          else
+            echo "/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
+          fi
 
-    - name: Test uninstalling GitHub Actions Homebrew
-      run: |
-        if which brew &>/dev/null; then
-          bash uninstall.sh -d >/dev/null
-          bash uninstall.sh -f >/dev/null
-        fi
+      - name: Uninstall GitHub Actions Homebrew
+        run: |
+          if which brew &>/dev/null; then
+            /bin/bash uninstall.sh -d >/dev/null
+            /bin/bash uninstall.sh -f >/dev/null
+          fi
 
-    - name: Test install.sh
-      run: |
-        bash install.sh
-        brew install ack
-        bash uninstall.sh -f >/dev/null
-        bash install.sh
+      - run: /bin/bash -c "$(cat install.sh)"
 
-    - name: Install Shellcheck
-      run: brew install shellcheck
+      - run: brew install ack
 
-    - run: shellcheck *.sh
+      - run: /bin/bash uninstall.sh -f >/dev/null
 
-    - name: Test uninstalling newly installed Homebrew
-      run: |
-        bash uninstall.sh -d >/dev/null
-        bash uninstall.sh -f >/dev/null
+      - run: /bin/bash -c "$(cat install.sh)"
+
+      - name: Uninstall and reinstall with sudo NOPASSWD
+        if: runner.os == 'linux'
+        run: |
+          echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee "/etc/sudoers.d/$USER"
+          /bin/bash uninstall.sh -f >/dev/null
+          /bin/bash -c "$(cat install.sh)"
+
+      - run: brew install shellcheck
+
+      - run: shellcheck *.sh
+
+      - run: /bin/bash uninstall.sh -d >/dev/null
+
+      - run: /bin/bash uninstall.sh -f >/dev/null
