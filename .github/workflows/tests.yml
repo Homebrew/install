@@ -11,8 +11,27 @@ jobs:
         os:
           - macOS-latest
           - ubuntu-latest
+          - windows-latest
+        include:
+          - os: macOS-latest
+            shell: bash
+          - os: ubuntu-latest
+            shell: bash
+          - os: windows-latest
+            shell: "wsl-bash {0}"
     runs-on: ${{matrix.os}}
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
     steps:
+      - name: Set up WSL
+        if: runner.os == 'windows'
+        shell: powershell
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+          echo "/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
+
       - name: Set up Git repository
         uses: actions/checkout@main
 
@@ -22,6 +41,20 @@ jobs:
           sudo rm -rf /Applications/Xcode.app \
                       /Library/Developer/CommandLineTools
           sudo xcode-select --reset
+
+      - name: Install WSL
+        if: runner.os == 'windows'
+        # https://github.com/Vampire/setup-wsl/releases/tag/v1.0.1
+        uses: Vampire/setup-wsl@bb4708da2512aac2a4c2947effc1061ecc0a9aef
+        with:
+          distribution: Ubuntu-16.04
+          wsl-shell-command: 'bash -c "sudo -u runner bash --noprofile --norc -euo pipefail "\'
+
+      - name: Set up WSL users
+        if: runner.os == 'windows'
+        shell: wsl-bash {0}
+        run: |
+          adduser runner --disabled-password --gecos ""
 
       - name: Set up Homebrew PATH
         run: |
