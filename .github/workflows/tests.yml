@@ -1,8 +1,6 @@
 name: GitHub Actions CI
 on:
   push:
-    branches:
-      - master
   pull_request:
 jobs:
   tests:
@@ -70,13 +68,17 @@ jobs:
         run: |
           adduser runner --disabled-password --gecos ""
 
+      - name: Set default WSL user
+        if: runner.os == 'windows'
+        # https://github.com/Vampire/setup-wsl/releases/tag/v1.0.1
+        uses: Vampire/setup-wsl@bb4708da2512aac2a4c2947effc1061ecc0a9aef
+        with:
+          distribution: Ubuntu-16.04
+          wsl-shell-command: 'bash -c "sudo -u runner bash --noprofile --norc -euo pipefail "\'
+
       - run: users
 
       - run: whoami
-
-      - run: whoami
-        if: runner.os == 'windows'
-        shell: "wsl-bash su runner -c {0}"
 
       - run: /bin/bash -c "$(cat install.sh)"
 
