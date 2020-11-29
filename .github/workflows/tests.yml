@@ -44,21 +44,17 @@ jobs:
 
       - name: Install WSL
         if: runner.os == 'windows'
-        # https://github.com/Vampire/setup-wsl/releases/tag/v1.0.1
-        uses: Vampire/setup-wsl@bb4708da2512aac2a4c2947effc1061ecc0a9aef
+        # https://github.com/Vampire/setup-wsl/releases/tag/v1.1.0
+        uses: Vampire/setup-wsl@c8afb39d908a55f133accd98a27e160edc255810
         with:
           distribution: Ubuntu-16.04
-          wsl-shell-command: 'bash -c "sudo -u runner bash --noprofile --norc -euo pipefail "\'
-
-      - name: Set up WSL users
-        if: runner.os == 'windows'
-        shell: wsl-bash {0}
-        run: |
-          adduser runner --disabled-password --gecos ""
+          wsl-shell-user: runner
 
       - name: Set up Homebrew PATH
+        env:
+          WSLENV: GITHUB_PATH/p
         run: |
-          if [ "${RUNNER_OS}" = "macOS" ]; then
+          if [ "${{ runner.os }}" = "macOS" ]; then
             echo "/usr/local/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
           else
             echo "/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
