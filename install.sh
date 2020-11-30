@@ -67,6 +67,9 @@ tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
 have_sudo_access() {
+  if [[ -n "${NONINTERACTIVE-}" ]]; then
+    return 0
+  fi
   local -a args
   if [[ -n "${SUDO_ASKPASS-}" ]]; then
     args=("-A")
