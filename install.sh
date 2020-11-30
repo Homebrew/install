@@ -67,9 +67,6 @@ tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
 have_sudo_access() {
-  # if [[ -n "${NONINTERACTIVE-}" ]]; then
-  #   return 0
-  # fi
   local -a args
   if [[ -n "${SUDO_ASKPASS-}" ]]; then
     args=("-A")
@@ -79,13 +76,14 @@ have_sudo_access() {
 
   if [[ -z "${HAVE_SUDO_ACCESS-}" ]]; then
     if [[ -n "${args[*]-}" ]]; then
-        echo "HELLO RUN COMMAND with args"
-        echo THIS: "${args[@]}"
-      /usr/bin/sudo "${args[@]}" -v && /usr/bin/sudo "${args[@]}" -l mkdir
-      echo "HAVE PRINTED ERROR"
-      /usr/bin/sudo "${args[@]}" -v && /usr/bin/sudo "${args[@]}" -l mkdir &>/dev/null
+      SUDO="/usr/bin/sudo ${args[*]}"
     else
-      /usr/bin/sudo -v && /usr/bin/sudo -l mkdir &>/dev/null
+      SUDO="/usr/bin/sudo"
+    fi
+    if [[ -n "${NONINTERACTIVE-}" ]]; then
+      ${SUDO} -l mkdir &>/dev/null
+  else
+      ${SUDO} -v && ${SUDO} -l mkdir &>/dev/null
     fi
     HAVE_SUDO_ACCESS="$?"
   fi
