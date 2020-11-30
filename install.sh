@@ -3,7 +3,7 @@ set -u
 
 # Check if script is run non-interactively (e.g. CI)
 # If it is run non-interactively we should not prompt for passwords.
-if [[ ! -t 0 || ! -t 1 || $SHLVL == 1 ]] || ! tty -s; then
+if [[ ! -t 0 || -n "${CI-}" ]]; then
   NONINTERACTIVE=1
 fi
 
@@ -67,13 +67,11 @@ tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
 have_sudo_access() {
-  if [[ -n "${NONINTERACTIVE-}" && -z "${SUDO_ASKPASS-}" ]]; then
-    return 0
-  fi
-
   local -a args
   if [[ -n "${SUDO_ASKPASS-}" ]]; then
     args=("-A")
+  elif [[ -n "${NONINTERACTIVE-}" ]]; then
+    args=("-n")
   fi
 
   if [[ -z "${HAVE_SUDO_ACCESS-}" ]]; then
