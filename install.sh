@@ -298,7 +298,10 @@ fi
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
  have_sudo_access
 else
-  if [[ -n "${CI-}" ]] || [[ -w "$HOMEBREW_PREFIX_DEFAULT" ]] || [[ -w "/home/linuxbrew" ]] || [[ -w "/home" ]]; then
+  if [[ -n "${NONINTERACTIVE-}" ]] ||
+     [[ -w "$HOMEBREW_PREFIX_DEFAULT" ]] ||
+     [[ -w "/home/linuxbrew" ]] ||
+     [[ -w "/home" ]]; then
     HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
   else
     trap exit SIGINT
@@ -479,7 +482,7 @@ if should_install_command_line_tools; then
   ohai "The Xcode Command Line Tools will be installed."
 fi
 
-if [[ -t 0 && -z "${CI-}" ]]; then
+if [[ -z "${NONINTERACTIVE-}" ]]; then
   wait_for_user
 fi
 
