@@ -82,7 +82,7 @@ have_sudo_access() {
     fi
     if [[ -n "${NONINTERACTIVE-}" ]]; then
       ${SUDO} -l mkdir &>/dev/null
-  else
+    else
       ${SUDO} -v && ${SUDO} -l mkdir &>/dev/null
     fi
     HAVE_SUDO_ACCESS="$?"
