@@ -11,8 +11,26 @@ jobs:
         os:
           - macOS-latest
           - ubuntu-latest
+          - windows-latest
+        include:
+          - os: macOS-latest
+            shell: bash
+          - os: ubuntu-latest
+            shell: bash
+          - os: windows-latest
+            shell: "wsl-bash {0}"
     runs-on: ${{matrix.os}}
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
     steps:
+      - name: Set up WSL
+        if: runner.os == 'windows'
+        shell: powershell
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
       - name: Set up Git repository
         uses: actions/checkout@main
 
@@ -23,9 +41,19 @@ jobs:
                       /Library/Developer/CommandLineTools
           sudo xcode-select --reset
 
+      - name: Install WSL
+        if: runner.os == 'windows'
+        # https://github.com/Vampire/setup-wsl/releases/tag/v1.1.0
+        uses: Vampire/setup-wsl@c8afb39d908a55f133accd98a27e160edc255810
+        with:
+          distribution: Ubuntu-16.04
+          wsl-shell-user: runner
+          additional-packages: build-essential
+
       - name: Set up Homebrew PATH
+        if: runner.os != 'windows'
         run: |
-          if [ "${RUNNER_OS}" = "macOS" ]; then
+          if [ "${{ runner.os }}" = "macOS" ]; then
             echo "/usr/local/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
           else
             echo "/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
@@ -38,7 +66,18 @@ jobs:
             /bin/bash uninstall.sh -f >/dev/null
           fi
 
+      - name: Set up WSL environment
+        if: runner.os == 'windows'
+        shell: "wsl-bash -u root {0}"
+        run: |
+          echo "runner ALL=(ALL) NOPASSWD:ALL" | tee /etc/sudoers.d/runner
+          chmod 644 /etc/sudoers.d/runner
+          echo -e "#!/bin/bash\nexec /home/linuxbrew/.linuxbrew/bin/brew \"\$@\"" | tee /usr/local/bin/brew
+          chmod 755 /usr/local/bin/brew
+
       - run: /bin/bash -c "$(cat install.sh)"
+
+      - run: brew config
 
       - run: brew install ack
 
@@ -56,6 +95,7 @@ jobs:
       - run: brew install shellcheck
 
       - run: shellcheck *.sh
+        if: runner.os != 'windows'
 
       - run: /bin/bash uninstall.sh -d >/dev/null
 
