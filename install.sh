@@ -298,11 +298,12 @@ fi
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
  have_sudo_access
 else
-  if [[ -n "${NONINTERACTIVE-}" ]] ||
-     [[ -w "$HOMEBREW_PREFIX_DEFAULT" ]] ||
-     [[ -w "/home/linuxbrew" ]] ||
-     [[ -w "/home" ]]; then
-    HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
+  if [[ -n "${NONINTERACTIVE-}" ]]; then
+    if have_sudo_access; then
+      HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
+    else
+      HOMEBREW_PREFIX="$HOME/.linuxbrew"
+    fi
   else
     trap exit SIGINT
     if ! /usr/bin/sudo -n -v &>/dev/null; then
