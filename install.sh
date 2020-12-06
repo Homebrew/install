@@ -54,7 +54,7 @@ else
   GROUP="$(id -gn)"
   TOUCH="/bin/touch"
 fi
-BREW_REPO="https://github.com/Homebrew/brew"
+HOMEBREW_BREW_GIT_REMOTE="https://github.com/Homebrew/brew"
 
 # TODO: bump version when new macOS is released or announced
 MACOS_NEWEST_UNSUPPORTED="12.0"
@@ -176,10 +176,6 @@ major_minor() {
   echo "${1%%.*}.$(x="${1#*.}"; echo "${x%%.*}")"
 }
 
-if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
-  macos_version="$(major_minor "$(/usr/bin/sw_vers -productVersion)")"
-fi
-
 version_gt() {
   [[ "${1%.*}" -gt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -gt "${2#*.}" ]]
 }
@@ -232,7 +228,7 @@ file_not_grpowned() {
 }
 
 # Please sync with 'test_ruby()' in 'Library/Homebrew/utils/ruby.sh' from Homebrew/brew repository.
-test_ruby () {
+test_ruby() {
   if [[ ! -x $1 ]]
   then
     return 1
@@ -307,10 +303,10 @@ EOABORT
 fi
 
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
- have_sudo_access
+  have_sudo_access
 else
   if [[ -n "${NONINTERACTIVE-}" ]] ||
-     [[ -w "$HOMEBREW_PREFIX_DEFAULT" ]] ||
+     [[ -w "${HOMEBREW_PREFIX_DEFAULT}" ]] ||
      [[ -w "/home/linuxbrew" ]] ||
      [[ -w "/home" ]]; then
     HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
@@ -334,7 +330,7 @@ fi
 
 if [[ "${EUID:-${UID}}" == "0" ]]; then
   abort "Don't run this as root!"
-elif [[ -d "$HOMEBREW_PREFIX" && ! -x "$HOMEBREW_PREFIX" ]]; then
+elif [[ -d "${HOMEBREW_PREFIX}" && ! -x "${HOMEBREW_PREFIX}" ]]; then
   abort "$(cat <<EOABORT
 The Homebrew prefix, ${HOMEBREW_PREFIX}, exists but is not searchable.
 If this is not intentional, please restore the default permissions and
@@ -357,6 +353,7 @@ else
 fi
 
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
+  macos_version="$(major_minor "$(/usr/bin/sw_vers -productVersion)")"
   if version_lt "$macos_version" "10.7"; then
     abort "$(cat <<EOABORT
 Your Mac OS X version is too old. See:
@@ -598,14 +595,14 @@ ohai "Downloading and installing Homebrew..."
   execute "git" "init" "-q"
 
   # "git remote add" will fail if the remote is defined in the global config
-  execute "git" "config" "remote.origin.url" "${BREW_REPO}"
+  execute "git" "config" "remote.origin.url" "${HOMEBREW_BREW_GIT_REMOTE}"
   execute "git" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
 
   # ensure we don't munge line endings on checkout
   execute "git" "config" "core.autocrlf" "false"
 
-  execute "git" "fetch" "origin" "--force"
-  execute "git" "fetch" "origin" "--tags" "--force"
+  execute "git" "fetch" "--force" "origin"
+  execute "git" "fetch" "--force" "--tags" "origin"
 
   execute "git" "reset" "--hard" "origin/master"
 
