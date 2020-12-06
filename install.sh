@@ -36,6 +36,7 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
     HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
   fi
   HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
+  HOMEBREW_CORE_GIT_REMOTE="https://github.com/Homebrew/homebrew-core"
 
   STAT="stat -f"
   CHOWN="/usr/sbin/chown"
@@ -47,6 +48,7 @@ else
   # and ~/.linuxbrew (which is unsupported) if run interactively.
   HOMEBREW_PREFIX_DEFAULT="/home/linuxbrew/.linuxbrew"
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
+  HOMEBREW_CORE_GIT_REMOTE="https://github.com/Homebrew/linuxbrew-core"
 
   STAT="stat --printf"
   CHOWN="/bin/chown"
@@ -327,6 +329,7 @@ else
   fi
   HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
 fi
+HOMEBREW_CORE="${HOMEBREW_REPOSITORY}/Library/Taps/homebrew/homebrew-core"
 
 if [[ "${EUID:-${UID}}" == "0" ]]; then
   abort "Don't run this as root!"
@@ -610,7 +613,25 @@ ohai "Downloading and installing Homebrew..."
     execute "ln" "-sf" "${HOMEBREW_REPOSITORY}/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
   fi
 
-  execute "${HOMEBREW_PREFIX}/bin/brew" "update" "--force"
+  if [[ ! -d "${HOMEBREW_CORE}" ]]; then
+    ohai "Tapping homebrew/core"
+    (
+      execute "/bin/mkdir" "-p" "${HOMEBREW_CORE}"
+      cd "${HOMEBREW_CORE}" >/dev/null || return
+
+      execute "git" "init" "-q"
+      execute "git" "config" "remote.origin.url" "${HOMEBREW_CORE_GIT_REMOTE}"
+      execute "git" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
+      execute "git" "config" "core.autocrlf" "false"
+      execute "git" "fetch" "--force" "origin" "refs/heads/master:refs/remotes/origin/master"
+      execute "git" "remote" "set-head" "origin" "--auto" >/dev/null
+      execute "git" "reset" "--hard" "origin/master"
+
+      cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
+    ) || exit 1
+  fi
+
+  execute "${HOMEBREW_PREFIX}/bin/brew" "update" "--force" "--quiet"
 ) || exit 1
 
 if [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]; then
