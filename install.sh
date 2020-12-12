@@ -12,15 +12,21 @@ if [[ "$(uname)" = "Linux" ]]; then
   HOMEBREW_ON_LINUX=1
 fi
 
-# On macOS, this script installs to /usr/local only.
-# On Linux, it installs to /home/linuxbrew/.linuxbrew if you have sudo access
-# and ~/.linuxbrew otherwise.
-# To install elsewhere (which is unsupported)
+UNAME_MACHINE="$(uname -m)"
+
+# Required installation paths. To install elsewhere (which is unsupported)
 # you can untar https://github.com/Homebrew/brew/tarball/master
 # anywhere you like.
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
-  HOMEBREW_PREFIX="/usr/local"
-  HOMEBREW_REPOSITORY="/usr/local/Homebrew"
+  [[ "$UNAME_MACHINE" == "arm64" ]]; then
+    # On ARM macOS, this script installs to /opt/homebrew only
+    HOMEBREW_PREFIX="/opt/homebrew"
+    HOMEBREW_REPOSITORY="/opt/homebrew"
+  else
+    # On Intel macOS, this script installs to /usr/local only
+    HOMEBREW_PREFIX="/usr/local"
+    HOMEBREW_REPOSITORY="/usr/local/Homebrew"
+  fi
   HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
 
   STAT="stat -f"
@@ -29,6 +35,8 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   GROUP="admin"
   TOUCH="/usr/bin/touch"
 else
+  # On Linux, it installs to /home/linuxbrew/.linuxbrew if you have sudo access
+  # and ~/.linuxbrew otherwise.
   HOMEBREW_PREFIX_DEFAULT="/home/linuxbrew/.linuxbrew"
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
 
@@ -333,21 +341,16 @@ EOABORT
 )"
 fi
 
-UNAME_MACHINE="$(uname -m)"
-
-if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && [[ "$UNAME_MACHINE" == "arm64" ]]; then
-  abort "$(cat <<EOABORT
-Homebrew is not (yet) supported on ARM processors!
-Rerun the Homebrew installer under Rosetta 2.
-If you really know what you are doing and are prepared for a very broken
-experience you can use another installation option for installing on ARM:
-  ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
-EOABORT
-)"
-fi
-
-if [[ "$UNAME_MACHINE" != "x86_64" ]]; then
-  abort "Homebrew is only supported on Intel processors!"
+if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
+  # On macOS, support 64-bit Intel and ARM
+  if [[ "$UNAME_MACHINE" != "arm64" ]] && [[ "$UNAME_MACHINE" != "x86_64" ]]; then
+    abort "Homebrew is only supported on Intel and ARM processors!"
+  fi
+else
+  # On Linux, support only 64-bit Intel
+  if [[ "$UNAME_MACHINE" != "x86_64" ]]; then
+    abort "Homebrew is only supported on Intel processors!"
+  fi
 fi
 
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
