@@ -18,7 +18,7 @@ UNAME_MACHINE="$(uname -m)"
 # you can untar https://github.com/Homebrew/brew/tarball/master
 # anywhere you like.
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
-  [[ "$UNAME_MACHINE" == "arm64" ]]; then
+  if [[ "$UNAME_MACHINE" == "arm64" ]]; then
     # On ARM macOS, this script installs to /opt/homebrew only
     HOMEBREW_PREFIX="/opt/homebrew"
     HOMEBREW_REPOSITORY="/opt/homebrew"
