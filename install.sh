@@ -21,11 +21,11 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   if [[ "$UNAME_MACHINE" == "arm64" ]]; then
     # On ARM macOS, this script installs to /opt/homebrew only
     HOMEBREW_PREFIX="/opt/homebrew"
-    HOMEBREW_REPOSITORY="/opt/homebrew"
+    HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}"
   else
     # On Intel macOS, this script installs to /usr/local only
     HOMEBREW_PREFIX="/usr/local"
-    HOMEBREW_REPOSITORY="/usr/local/Homebrew"
+    HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
   fi
   HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
 
@@ -606,7 +606,9 @@ ohai "Downloading and installing Homebrew..."
 
   execute "git" "reset" "--hard" "origin/master"
 
-  execute "ln" "-sf" "${HOMEBREW_REPOSITORY}/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
+  if [[ "${HOMEBREW_REPOSITORY}" != "${HOMEBREW_PREFIX}" ]]; then
+    execute "ln" "-sf" "${HOMEBREW_REPOSITORY}/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
+  fi
 
   execute "${HOMEBREW_PREFIX}/bin/brew" "update" "--force"
 ) || exit 1
