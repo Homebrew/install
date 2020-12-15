@@ -422,7 +422,7 @@ done
 directories=(bin etc include lib sbin share var opt
              share/zsh share/zsh/site-functions
              var/homebrew var/homebrew/linked
-             Cellar Caskroom Homebrew Frameworks)
+             Cellar Caskroom Frameworks)
 mkdirs=()
 for dir in "${directories[@]}"; do
   if ! [[ -d "${HOMEBREW_PREFIX}/${dir}" ]]; then
@@ -520,6 +520,11 @@ if [[ "${#mkdirs[@]}" -gt 0 ]]; then
   execute_sudo "$CHOWN" "$USER" "${mkdirs[@]}"
   execute_sudo "$CHGRP" "$GROUP" "${mkdirs[@]}"
 fi
+
+if ! [[ -d "${HOMEBREW_REPOSITORY}" ]]; then
+  execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_REPOSITORY}"
+fi
+execute_sudo "$CHOWN" "$USER:$GROUP" "${HOMEBREW_REPOSITORY}"
 
 if ! [[ -d "${HOMEBREW_CACHE}" ]]; then
   if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
