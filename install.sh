@@ -36,7 +36,7 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   TOUCH="/usr/bin/touch"
 else
   # On Linux, it installs to /home/linuxbrew/.linuxbrew if you have sudo access
-  # and ~/.linuxbrew otherwise.
+  # and ~/.linuxbrew (which is unsupported) if run interactively.
   HOMEBREW_PREFIX_DEFAULT="/home/linuxbrew/.linuxbrew"
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
 
