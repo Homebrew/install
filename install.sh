@@ -298,9 +298,9 @@ fi
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
  have_sudo_access
 else
-  if [[ -n "${NONINTERACTIVE-}" ]] ||
-     [[ -w "$HOMEBREW_PREFIX_DEFAULT" ]] ||
-     [[ -w "/home/linuxbrew" ]] ||
+  if [[ -n "${NONINTERACTIVE-}" ]] &&
+     [[ -w "$HOMEBREW_PREFIX_DEFAULT" ]] &&
+     [[ -w "/home/linuxbrew" ]] &&
      [[ -w "/home" ]]; then
     HOMEBREW_PREFIX="$HOMEBREW_PREFIX_DEFAULT"
   else
