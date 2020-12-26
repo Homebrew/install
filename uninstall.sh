@@ -170,7 +170,7 @@ Usage: $0 [options]
                      Skips removal of HOMEBREW_CACHE and HOMEBREW_LOGS.
     -f, --force      Uninstall without prompting.
     -q, --quiet      Suppress all output.
-    -d, --dry-run    Simulate uninstall but don't remove anything.
+    -n, --dry-run    Simulate uninstall but don't remove anything.
     -h, --help       Display this message.
 EOS
   exit "${1:-0}"
@@ -183,7 +183,7 @@ while [[ $# -gt 0 ]]; do
     --skip-cache-and-logs) opt_skip_cache_and_logs=1;;
     -f|--force) opt_force=1;;
     -q|--quiet) opt_quiet=1;;
-    -d|--dry-run) opt_dry_run=1;;
+    -d|-n|--dry-run) opt_dry_run=1;;
     -h|--help) usage;;
     *) warn "Unrecognized option: '$1'"; usage 1;;
   esac
