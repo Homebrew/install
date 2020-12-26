@@ -62,7 +62,7 @@ jobs:
       - name: Uninstall GitHub Actions Homebrew
         run: |
           if which brew &>/dev/null; then
-            /bin/bash uninstall.sh -d >/dev/null
+            /bin/bash uninstall.sh -n >/dev/null
             /bin/bash uninstall.sh -f >/dev/null
           fi
 
@@ -97,6 +97,6 @@ jobs:
       - run: shellcheck *.sh
         if: runner.os != 'windows'
 
-      - run: /bin/bash uninstall.sh -d >/dev/null
+      - run: /bin/bash uninstall.sh -n >/dev/null
 
       - run: /bin/bash uninstall.sh -f >/dev/null
