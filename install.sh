@@ -7,9 +7,17 @@ if [[ ! -t 0 || -n "${CI-}" ]]; then
   NONINTERACTIVE=1
 fi
 
-# First check if the OS is Linux.
-if [[ "$(uname)" = "Linux" ]]; then
+abort() {
+  printf "%s\n" "$1"
+  exit 1
+}
+
+# First check OS.
+OS="$(uname)"
+if [[ "$OS" == "Linux" ]]; then
   HOMEBREW_ON_LINUX=1
+elif [[ "$OS" != "Darwin" ]]; then
+  abort "Homebrew is only supported on macOS and Linux."
 fi
 
 # On macOS, this script installs to /usr/local only.
@@ -115,11 +123,6 @@ ohai() {
 
 warn() {
   printf "${tty_red}Warning${tty_reset}: %s\n" "$(chomp "$1")"
-}
-
-abort() {
-  printf "%s\n" "$1"
-  exit 1
 }
 
 execute() {
