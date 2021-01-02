@@ -42,7 +42,6 @@ opt_skip_cache_and_logs=""
 failed=false
 
 un=$(uname)
-unm=$(uname -m)
 case "$un" in
   Linux)
     ostype=linux
@@ -50,7 +49,7 @@ case "$un" in
   ;;
   Darwin)
     ostype=macos
-    if [[ "$unm" == "arm64" ]]; then
+    if [[ "$(uname -m)" == "arm64" ]]; then
       homebrew_prefix_default=/opt/homebrew
     else
       homebrew_prefix_default=/usr/local
