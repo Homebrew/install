@@ -382,8 +382,8 @@ EOABORT
 This installation may not succeed.
 After installation, you will encounter build failures with some formulae.
 Please create pull requests instead of asking for help on Homebrew\'s GitHub,
-Discourse, Twitter or IRC. You are responsible for resolving any issues you
-experience while you are running this ${what}.
+Twitter or IRC. You are responsible for resolving any issues you experience
+while you are running this ${what}.
 EOS
 )
 "
