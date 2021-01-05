@@ -651,11 +651,6 @@ EOS
   execute "git" "config" "--replace-all" "homebrew.caskanalyticsmessage" "true"
 ) || exit 1
 
-ohai "Next steps:"
-echo "- Run \`brew help\` to get started"
-echo "- Further documentation: "
-echo "    ${tty_underline}https://docs.brew.sh${tty_reset}"
-
 if [[ "$UNAME_MACHINE" == "arm64" ]] || [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
   case "$SHELL" in
     */bash*)
@@ -676,11 +671,25 @@ fi
 
 # HOMEBREW_PREFIX is not in PATH on ARM macOS, so remind users to set up their shell
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && [[ "$UNAME_MACHINE" == "arm64" ]]; then
-  cat <<EOS
+  if [[ -z "$(command -v brew)" ]]; then
+    ohai "Homebrew is currently not in your ${tty_bold}PATH${tty_reset}."
+    read -p "Would you like this script to add Homebrew to your path? (Press y|Y for Yes, any other key for No): " ans
+    case $ans in
+      [Yy]*)
+        $(${HOMEBREW_PREFIX}/bin/brew shellenv >> ${shell_profile})
+        echo "$(cat <<EOS
+Homebrew added to your ${tty_bold}PATH${tty_reset} successfully in ${tty_underline}${shell_profile}${tty_reset}
+EOS
+)
+";;
+      *)
+        cat <<EOS
 - Add Homebrew to your ${tty_bold}PATH${tty_reset} in ${tty_underline}${shell_profile}${tty_reset}:
     echo 'eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)' >> ${shell_profile}
     eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)
 EOS
+    esac
+  fi
 fi
 
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
@@ -706,3 +715,8 @@ if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
 
 EOS
 fi
+
+ohai "Next steps:"
+echo "- Run \`brew help\` to get started"
+echo "- Further documentation: "
+echo "    ${tty_underline}https://docs.brew.sh${tty_reset}"
