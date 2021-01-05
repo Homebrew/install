@@ -49,7 +49,11 @@ case "$un" in
   ;;
   Darwin)
     ostype=macos
-    homebrew_prefix_default=/usr/local
+    if [[ "$(uname -m)" == "arm64" ]]; then
+      homebrew_prefix_default=/opt/homebrew
+    else
+      homebrew_prefix_default=/usr/local
+    fi
     realpath() {
       cd "$(dirname "$1")" && echo "$(pwd -P)/$(basename "$1")"
     }
