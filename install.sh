@@ -351,8 +351,15 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   fi
 else
   # On Linux, support only 64-bit Intel
-  if [[ "$UNAME_MACHINE" != "x86_64" ]]; then
-    abort "Homebrew is only supported on Intel processors!"
+  if [[ "$UNAME_MACHINE" == "arm64" ]]; then
+    abort "$(cat <<EOABORT
+Homebrew on Linux is not supported on ARM processors.
+You can try an alternate installation method instead:
+  ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#arm${tty_reset}
+EOABORT
+)"
+  elif [[ "$UNAME_MACHINE" != "x86_64" ]]; then
+    abort "Homebrew on Linux is only supported on Intel processors!"
   fi
 fi
 
