@@ -676,20 +676,7 @@ EOS
   execute "git" "config" "--replace-all" "homebrew.caskanalyticsmessage" "true"
 ) || exit 1
 
-# HOMEBREW_PREFIX is not in PATH on ARM macOS, so remind users to set up their shell
-if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && [[ "$UNAME_MACHINE" == "arm64" ]]; then
-  cat <<EOS
-- Add Homebrew to your ${tty_bold}PATH${tty_reset} in ${tty_underline}${shell_profile}${tty_reset}:
-    echo 'eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)' >> ${shell_profile}
-    eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)
-EOS
-fi
-
 ohai "Next steps:"
-echo "- Run \`brew help\` to get started"
-echo "- Further documentation: "
-echo "    ${tty_underline}https://docs.brew.sh${tty_reset}"
-
 if [[ "$UNAME_MACHINE" == "arm64" ]] || [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
   case "$SHELL" in
     */bash*)
@@ -706,7 +693,17 @@ if [[ "$UNAME_MACHINE" == "arm64" ]] || [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
       shell_profile="$HOME/.profile"
       ;;
   esac
+
+  cat <<EOS
+- Add Homebrew to your ${tty_bold}PATH${tty_reset} in ${tty_underline}${shell_profile}${tty_reset}:
+    echo 'eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)' >> ${shell_profile}
+    eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)
+EOS
 fi
+
+echo "- Run \`brew help\` to get started"
+echo "- Further documentation: "
+echo "    ${tty_underline}https://docs.brew.sh${tty_reset}"
 
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
   echo "- Install the Homebrew dependencies if you have sudo access:"
@@ -723,9 +720,6 @@ if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
 
   cat <<EOS
     See ${tty_underline}https://docs.brew.sh/linux${tty_reset} for more information
-- Add Homebrew to your ${tty_bold}PATH${tty_reset} in ${tty_underline}${shell_profile}${tty_reset}:
-    echo 'eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)' >> ${shell_profile}
-    eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)
 - We recommend that you install GCC:
     brew install gcc
 
