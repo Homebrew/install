@@ -614,7 +614,7 @@ ohai "Downloading and installing Homebrew..."
   execute "git" "fetch" "--force" "origin"
   execute "git" "fetch" "--force" "--tags" "origin"
 
-  execute "git" "reset" "--hard" "origin/master"
+  execute "git" "reset" "--hard" "${HOMEBREW_BREW_GIT_REF:-origin/master}"
 
   if [[ "${HOMEBREW_REPOSITORY}" != "${HOMEBREW_PREFIX}" ]]; then
     execute "ln" "-sf" "${HOMEBREW_REPOSITORY}/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
@@ -632,7 +632,7 @@ ohai "Downloading and installing Homebrew..."
       execute "git" "config" "core.autocrlf" "false"
       execute "git" "fetch" "--force" "origin" "refs/heads/master:refs/remotes/origin/master"
       execute "git" "remote" "set-head" "origin" "--auto" >/dev/null
-      execute "git" "reset" "--hard" "origin/master"
+      execute "git" "reset" "--hard" "${HOMEBREW_CORE_GIT_REF:-origin/master}"
 
       cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
     ) || exit 1
