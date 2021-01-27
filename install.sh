@@ -534,7 +534,7 @@ fi
 if ! [[ -d "${HOMEBREW_REPOSITORY}" ]]; then
   execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_REPOSITORY}"
 fi
-execute_sudo "$CHOWN" "$USER:$GROUP" "${HOMEBREW_REPOSITORY}"
+execute_sudo "$CHOWN" "-R" "$USER:$GROUP" "${HOMEBREW_REPOSITORY}"
 
 if ! [[ -d "${HOMEBREW_CACHE}" ]]; then
   if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
@@ -547,10 +547,10 @@ if exists_but_not_writable "${HOMEBREW_CACHE}"; then
   execute_sudo "/bin/chmod" "g+rwx" "${HOMEBREW_CACHE}"
 fi
 if file_not_owned "${HOMEBREW_CACHE}"; then
-  execute_sudo "$CHOWN" "$USER" "${HOMEBREW_CACHE}"
+  execute_sudo "$CHOWN" "-R" "$USER" "${HOMEBREW_CACHE}"
 fi
 if file_not_grpowned "${HOMEBREW_CACHE}"; then
-  execute_sudo "$CHGRP" "$GROUP" "${HOMEBREW_CACHE}"
+  execute_sudo "$CHGRP" "-R" "$GROUP" "${HOMEBREW_CACHE}"
 fi
 if [[ -d "${HOMEBREW_CACHE}" ]]; then
   execute "$TOUCH" "${HOMEBREW_CACHE}/.cleaned"
