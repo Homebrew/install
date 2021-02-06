@@ -85,6 +85,8 @@ tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
 have_sudo_access() {
+  echo "We're testing for sudo access. You may be prompted for your password."
+
   local -a args
   if [[ -n "${SUDO_ASKPASS-}" ]]; then
     args=("-A")
