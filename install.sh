@@ -85,8 +85,6 @@ tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
 have_sudo_access() {
-  echo "We're testing for sudo access. You may be prompted for your password."
-
   local -a args
   if [[ -n "${SUDO_ASKPASS-}" ]]; then
     args=("-A")
@@ -305,6 +303,8 @@ You must install cURL before installing Homebrew. See:
 EOABORT
 )"
 fi
+
+echo "We're testing for sudo access. You may be prompted for your password."
 
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   have_sudo_access
