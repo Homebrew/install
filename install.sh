@@ -304,7 +304,7 @@ EOABORT
 )"
 fi
 
-echo "We're testing for sudo access. You may be prompted for your password."
+ohai 'Checking for `sudo` access (which may request your password).'
 
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   have_sudo_access
