@@ -304,6 +304,9 @@ EOABORT
 )"
 fi
 
+# shellcheck disable=SC2016
+ohai 'Checking for `sudo` access (which may request your password).'
+
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   have_sudo_access
 else
