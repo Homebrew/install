@@ -20,12 +20,12 @@ elif [[ "$OS" != "Darwin" ]]; then
   abort "Homebrew is only supported on macOS and Linux."
 fi
 
-UNAME_MACHINE="$(uname -m)"
-
 # Required installation paths. To install elsewhere (which is unsupported)
 # you can untar https://github.com/Homebrew/brew/tarball/master
 # anywhere you like.
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
+  UNAME_MACHINE="$(/usr/bin/uname -m)"
+
   if [[ "$UNAME_MACHINE" == "arm64" ]]; then
     # On ARM macOS, this script installs to /opt/homebrew only
     HOMEBREW_PREFIX="/opt/homebrew"
@@ -44,6 +44,8 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   GROUP="admin"
   TOUCH="/usr/bin/touch"
 else
+  UNAME_MACHINE="$(uname -m)"
+
   # On Linux, it installs to /home/linuxbrew/.linuxbrew if you have sudo access
   # and ~/.linuxbrew (which is unsupported) if run interactively.
   HOMEBREW_PREFIX_DEFAULT="/home/linuxbrew/.linuxbrew"
