@@ -60,9 +60,6 @@ else
 fi
 HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/brew"
 
-HOMEBREW_BREW_GIT_REMOTE="${HOMEBREW_BREW_GIT_REMOTE:-"${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}"}"
-HOMEBREW_CORE_GIT_REMOTE="${HOMEBREW_CORE_GIT_REMOTE:-"${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}"}"
-
 # TODO: bump version when new macOS is released or announced
 MACOS_NEWEST_UNSUPPORTED="12.0"
 # TODO: bump version when new macOS is released
@@ -264,6 +261,60 @@ outdated_glibc() {
   glibc_version=$(ldd --version | head -n1 | grep -o '[0-9.]*$' | grep -o '^[0-9]\+\.[0-9]\+')
   version_lt "$glibc_version" "$REQUIRED_GLIBC_VERSION"
 }
+
+usage() {
+  cat <<EOS
+Homebrew Installer
+Usage: /bin/bash install.sh [--help] [--brew-git-remote URL] [--core-git-remote URL]
+
+This script installs Homebrew, the missing package manager for macOS (or Linux).
+
+Options:
+  -b, --brew-git-remote=URL   Use this URL as the Homebrew/brew git remote.
+                              Default: ${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}.
+
+  -c, --core-git-remote=URL   Use this URL as the Homebrew/homebrew-core git remote.
+                              Default: ${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}.
+
+  -h, --help                  Show this help message and exit.
+EOS
+  exit "${1:-0}"
+}
+
+# Parse remote URLs of Homebrew repositories from command line arguments if presented.
+unset HOMEBREW_{BREW,CORE}_GIT_REMOTE  # unset variables from environment at first
+# The value of the script basename in different situations:
+#   - shell name (usually "bash" or "sh"): invoked by `SHELL -c` with no arguments.
+#   - script name "install.sh":            invoked by SHELL directly.
+#   - otherwise:                           invoked by `SHELL -c` with at least one argument.
+SHELL_NAME="$(ps -p $$ -oucomm= | tr -d ' ')"
+if [[ "$(basename -- "$0")" != "${SHELL_NAME}" &&
+      "$(basename -- "$0")" != "install.sh" ]]; then
+  # The script is invoked by `SHELL -c "$(cat install.sh)" ...` with at least one argument.
+  # Unshift the first argument back to the argument list
+  set -- "$0" "$@"
+fi
+while [[ "$#" -gt 0 ]]; do
+  OPT="$1"
+  shift  # expose the next argument
+  case "$OPT" in
+    -b | --brew-git-remote)
+      HOMEBREW_BREW_GIT_REMOTE="${1:-}"; shift ;;
+    --brew-git-remote=*)  # alternative format: --brew-git-remote=URL
+      HOMEBREW_BREW_GIT_REMOTE="${OPT#*=}" ;;
+    -c | --core-git-remote)
+      HOMEBREW_CORE_GIT_REMOTE="${1:-}"; shift ;;
+    --core-git-remote=*)  # alternative format: --core-git-remote=URL
+      HOMEBREW_CORE_GIT_REMOTE="${OPT#*=}" ;;
+    -h | --help)
+      usage ;;
+    *)
+      warn "Unrecognized option: '${OPT}'"; usage 1 ;;
+  esac
+done
+# Use the default remotes if not specified.
+HOMEBREW_BREW_GIT_REMOTE="${HOMEBREW_BREW_GIT_REMOTE:-"${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}"}"
+HOMEBREW_CORE_GIT_REMOTE="${HOMEBREW_CORE_GIT_REMOTE:-"${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}"}"
 
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && no_usable_ruby && outdated_glibc
 then
