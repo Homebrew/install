@@ -1,16 +1,21 @@
 #!/bin/bash
 set -u
 
+abort() {
+  printf "%s\n" "$@"
+  exit 1
+}
+
+# BASH is required
+if [ -z "${BASH_VERSION:-}" ]; then
+  abort "BASH is required to interpret this script."
+fi
+
 # Check if script is run non-interactively (e.g. CI)
 # If it is run non-interactively we should not prompt for passwords.
 if [[ ! -t 0 || -n "${CI-}" ]]; then
   NONINTERACTIVE=1
 fi
-
-abort() {
-  printf "%s\n" "$1"
-  exit 1
-}
 
 # First check OS.
 OS="$(uname)"
@@ -284,13 +289,12 @@ EOS
 # Parse remote URLs of Homebrew repositories from command line arguments if presented.
 unset HOMEBREW_{BREW,CORE}_GIT_REMOTE  # unset variables from environment at first
 # The value of the script basename in different situations:
-#   - shell name (usually "bash" or "sh"): invoked by `SHELL -c` with no arguments.
-#   - script name "install.sh":            invoked by SHELL directly.
-#   - otherwise:                           invoked by `SHELL -c` with at least one argument.
-SHELL_NAME="$(ps -p $$ -oucomm= | tr -d ' ')"
-if [[ "$(basename -- "$0")" != "${SHELL_NAME}" &&
-      "$(basename -- "$0")" != "install.sh" ]]; then
-  # The script is invoked by `SHELL -c "$(cat install.sh)" ...` with at least one argument.
+#   - "bash":       invoked by `bash -c` with no arguments.
+#   - "install.sh": invoked by bash directly.
+#   - otherwise:    invoked by `bash -c` with at least one argument.
+if ! [[ "$(basename -- "$0")" =~ ^(ba)?sh$ ||
+        "$(basename -- "$0")" == "install.sh" ]]; then
+  # The script is invoked by `bash -c "$(cat install.sh)" ...` with at least one argument.
   # Unshift the first argument back to the argument list
   set -- "$0" "$@"
 fi
