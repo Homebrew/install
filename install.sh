@@ -316,8 +316,8 @@ while [[ "$#" -gt 0 ]]; do
   esac
 done
 # Use the default remotes if not specified.
-HOMEBREW_BREW_GIT_REMOTE="${HOMEBREW_BREW_GIT_REMOTE:-"${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}"}"
-HOMEBREW_CORE_GIT_REMOTE="${HOMEBREW_CORE_GIT_REMOTE:-"${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}"}"
+export HOMEBREW_BREW_GIT_REMOTE="${HOMEBREW_BREW_GIT_REMOTE:-"${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}"}"
+export HOMEBREW_CORE_GIT_REMOTE="${HOMEBREW_CORE_GIT_REMOTE:-"${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}"}"
 
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && no_usable_ruby && outdated_glibc
 then
@@ -557,6 +557,15 @@ if should_install_command_line_tools; then
   ohai "The Xcode Command Line Tools will be installed."
 fi
 
+if [[ "$HOMEBREW_BREW_DEFAULT_GIT_REMOTE" != "$HOMEBREW_BREW_GIT_REMOTE" ]]; then
+  ohai "HOMEBREW_BREW_GIT_REMOTE is set to a non-default URL:"
+  echo "${tty_underline}${HOMEBREW_BREW_GIT_REMOTE}${tty_reset} will be used for Homebrew/brew Git remote."
+fi
+if [[ "$HOMEBREW_CORE_DEFAULT_GIT_REMOTE" != "$HOMEBREW_CORE_GIT_REMOTE" ]]; then
+  ohai "HOMEBREW_CORE_GIT_REMOTE is set to a non-default URL:"
+  echo "${tty_underline}${HOMEBREW_CORE_GIT_REMOTE}${tty_reset} will be used for Homebrew/core Git remote."
+fi
+
 if [[ -z "${NONINTERACTIVE-}" ]]; then
   wait_for_user
 fi
@@ -663,10 +672,6 @@ ohai "Downloading and installing Homebrew..."
 (
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
 
-  if [[ "$HOMEBREW_BREW_DEFAULT_GIT_REMOTE" != "$HOMEBREW_BREW_GIT_REMOTE" ]]; then
-    echo "HOMEBREW_BREW_GIT_REMOTE set: using $HOMEBREW_BREW_GIT_REMOTE for Homebrew/brew Git remote URL."
-  fi
-
   # we do it in four steps to avoid merge errors when reinstalling
   execute "git" "init" "-q"
 
@@ -691,10 +696,6 @@ ohai "Downloading and installing Homebrew..."
     (
       execute "/bin/mkdir" "-p" "${HOMEBREW_CORE}"
       cd "${HOMEBREW_CORE}" >/dev/null || return
-
-      if [[ "$HOMEBREW_CORE_DEFAULT_GIT_REMOTE" != "$HOMEBREW_CORE_GIT_REMOTE" ]]; then
-        echo "HOMEBREW_CORE_GIT_REMOTE set: using $HOMEBREW_CORE_GIT_REMOTE for Homebrew/core Git remote URL."
-      fi
 
       execute "git" "init" "-q"
       execute "git" "config" "remote.origin.url" "${HOMEBREW_CORE_GIT_REMOTE}"
