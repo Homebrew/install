@@ -6,9 +6,8 @@ abort() {
   exit 1
 }
 
-# BASH is required
 if [ -z "${BASH_VERSION:-}" ]; then
-  abort "BASH is required to interpret this script."
+  abort "Bash is required to interpret this script."
 fi
 
 # Check if script is run non-interactively (e.g. CI)
