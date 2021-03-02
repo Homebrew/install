@@ -270,17 +270,17 @@ outdated_glibc() {
 usage() {
   cat <<EOS
 Homebrew Installer
-Usage: /bin/bash install.sh [--help] [--brew-git-remote URL] [--core-git-remote URL]
+Usage: /bin/bash install.sh [--help] [--brew-git-remote [URL]] [--core-git-remote [URL]]
 
 This script installs Homebrew, the missing package manager for macOS (or Linux).
 
 Options:
   -b, --brew-git-remote=URL   Use this URL as the Homebrew/brew git remote.
-                              Default: ${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}.
-
+                              If no argument is given, the default remote is used.
+                              Default: ${tty_underline}${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}${tty_reset}.
   -c, --core-git-remote=URL   Use this URL as the Homebrew/homebrew-core git remote.
-                              Default: ${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}.
-
+                              If no argument is given, the default remote is used.
+                              Default: ${tty_underline}${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}${tty_reset}.
   -h, --help                  Show this help message and exit.
 EOS
   exit "${1:-0}"
