@@ -83,8 +83,8 @@ jobs:
 
       - run: /bin/bash uninstall.sh -f >/dev/null
 
-      - name: Install Homebrew with arguments
-        # Use Git Protocol for default remotes
+      - name: Install Homebrew with non-default remotes
+        # Use the default remotes but with Git Protocol
         run: |
           HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/brew"
           if [ "${{ runner.os }}" = "macOS" ]; then
@@ -92,11 +92,15 @@ jobs:
           else
             HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/linuxbrew-core"
           fi
-          /bin/bash -c "$(cat install.sh)" \
-            --brew-git-remote "${HOMEBREW_BREW_DEFAULT_GIT_REMOTE/%https/git}" \
-            --core-git-remote "${HOMEBREW_CORE_DEFAULT_GIT_REMOTE/%https/git}"
+          export HOMEBREW_BREW_GIT_REMOTE="${HOMEBREW_BREW_DEFAULT_GIT_REMOTE/%https/git}"
+          export HOMEBREW_CORE_GIT_REMOTE="${HOMEBREW_CORE_DEFAULT_GIT_REMOTE/%https/git}"
+          /bin/bash -c "$(cat install.sh)"
 
-      - run: /bin/bash uninstall.sh -f >/dev/null
+      - run: brew config
+
+      - run: |
+          /bin/bash uninstall.sh -f >/dev/null
+          unset HOMEBREW_{BREW,CORE}{,_DEFAULT}_GIT_REMOTE
 
       - run: /bin/bash -c "$(cat install.sh)"
 

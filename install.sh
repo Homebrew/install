@@ -64,6 +64,18 @@ else
 fi
 HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/brew"
 
+# Use remote URLs of Homebrew repositories from environment if set.
+HOMEBREW_BREW_GIT_REMOTE="${HOMEBREW_BREW_GIT_REMOTE:-"${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}"}"
+HOMEBREW_CORE_GIT_REMOTE="${HOMEBREW_CORE_GIT_REMOTE:-"${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}"}"
+# The URLs with and without the '.git' suffix are the same Git remote. Do not prompt.
+if [[ "$HOMEBREW_BREW_GIT_REMOTE" == "${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}.git" ]]; then
+  HOMEBREW_BREW_GIT_REMOTE="${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}"
+fi
+if [[ "$HOMEBREW_CORE_GIT_REMOTE" == "${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}.git" ]]; then
+  HOMEBREW_CORE_GIT_REMOTE="${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}"
+fi
+export HOMEBREW_{BREW,CORE}_GIT_REMOTE
+
 # TODO: bump version when new macOS is released or announced
 MACOS_NEWEST_UNSUPPORTED="12.0"
 # TODO: bump version when new macOS is released
@@ -265,59 +277,6 @@ outdated_glibc() {
   glibc_version=$(ldd --version | head -n1 | grep -o '[0-9.]*$' | grep -o '^[0-9]\+\.[0-9]\+')
   version_lt "$glibc_version" "$REQUIRED_GLIBC_VERSION"
 }
-
-usage() {
-  cat <<EOS
-Homebrew Installer
-Usage: /bin/bash install.sh [--help] [--brew-git-remote [URL]] [--core-git-remote [URL]]
-
-This script installs Homebrew, the missing package manager for macOS (or Linux).
-
-Options:
-  -b, --brew-git-remote=URL   Use this URL as the Homebrew/brew git remote.
-                              If no argument is given, the default remote is used.
-                              Default: ${tty_underline}${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}${tty_reset}.
-  -c, --core-git-remote=URL   Use this URL as the Homebrew/homebrew-core git remote.
-                              If no argument is given, the default remote is used.
-                              Default: ${tty_underline}${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}${tty_reset}.
-  -h, --help                  Show this help message and exit.
-EOS
-  exit "${1:-0}"
-}
-
-# Parse remote URLs of Homebrew repositories from command line arguments if presented.
-unset HOMEBREW_{BREW,CORE}_GIT_REMOTE  # unset variables from environment at first
-# The value of the script basename in different situations:
-#   - "bash":       invoked by `bash -c` with no arguments.
-#   - "install.sh": invoked by bash directly.
-#   - otherwise:    invoked by `bash -c` with at least one argument.
-if ! [[ "$(basename -- "$0")" =~ ^(ba)?sh$ ||
-        "$(basename -- "$0")" == "install.sh" ]]; then
-  # The script is invoked by `bash -c "$(cat install.sh)" ...` with at least one argument.
-  # Unshift the first argument back to the argument list
-  set -- "$0" "$@"
-fi
-while [[ "$#" -gt 0 ]]; do
-  OPT="$1"
-  shift  # expose the next argument
-  case "$OPT" in
-    -b | --brew-git-remote)
-      HOMEBREW_BREW_GIT_REMOTE="${1:-}"; shift ;;
-    --brew-git-remote=*)  # alternative format: --brew-git-remote=URL
-      HOMEBREW_BREW_GIT_REMOTE="${OPT#*=}" ;;
-    -c | --core-git-remote)
-      HOMEBREW_CORE_GIT_REMOTE="${1:-}"; shift ;;
-    --core-git-remote=*)  # alternative format: --core-git-remote=URL
-      HOMEBREW_CORE_GIT_REMOTE="${OPT#*=}" ;;
-    -h | --help)
-      usage ;;
-    *)
-      warn "Unrecognized option: '${OPT}'"; usage 1 ;;
-  esac
-done
-# Use the default remotes if not specified.
-export HOMEBREW_BREW_GIT_REMOTE="${HOMEBREW_BREW_GIT_REMOTE:-"${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}"}"
-export HOMEBREW_CORE_GIT_REMOTE="${HOMEBREW_CORE_GIT_REMOTE:-"${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}"}"
 
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && no_usable_ruby && outdated_glibc
 then
@@ -557,13 +516,19 @@ if should_install_command_line_tools; then
   ohai "The Xcode Command Line Tools will be installed."
 fi
 
+non_default_repos=""
+additional_shellenv_command=()
 if [[ "$HOMEBREW_BREW_DEFAULT_GIT_REMOTE" != "$HOMEBREW_BREW_GIT_REMOTE" ]]; then
   ohai "HOMEBREW_BREW_GIT_REMOTE is set to a non-default URL:"
   echo "${tty_underline}${HOMEBREW_BREW_GIT_REMOTE}${tty_reset} will be used for Homebrew/brew Git remote."
+  non_default_repos="Homebrew/brew"
+  additional_shellenv_command+=("export HOMEBREW_BREW_GIT_REMOTE=\"$HOMEBREW_BREW_GIT_REMOTE\"")
 fi
 if [[ "$HOMEBREW_CORE_DEFAULT_GIT_REMOTE" != "$HOMEBREW_CORE_GIT_REMOTE" ]]; then
   ohai "HOMEBREW_CORE_GIT_REMOTE is set to a non-default URL:"
   echo "${tty_underline}${HOMEBREW_CORE_GIT_REMOTE}${tty_reset} will be used for Homebrew/core Git remote."
+  non_default_repos="${non_default_repos:-}${non_default_repos:+ and }Homebrew/core"
+  additional_shellenv_command+=("export HOMEBREW_CORE_GIT_REMOTE=\"$HOMEBREW_CORE_GIT_REMOTE\"")
 fi
 
 if [[ -z "${NONINTERACTIVE-}" ]]; then
@@ -748,28 +713,33 @@ EOS
 ) || exit 1
 
 ohai "Next steps:"
-if [[ "$UNAME_MACHINE" == "arm64" ]] || [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
-  case "$SHELL" in
-    */bash*)
-      if [[ -r "$HOME/.bash_profile" ]]; then
-        shell_profile="$HOME/.bash_profile"
-      else
-        shell_profile="$HOME/.profile"
-      fi
-      ;;
-    */zsh*)
-      shell_profile="$HOME/.zprofile"
-      ;;
-    *)
+case "$SHELL" in
+  */bash*)
+    if [[ -r "$HOME/.bash_profile" ]]; then
+      shell_profile="$HOME/.bash_profile"
+    else
       shell_profile="$HOME/.profile"
-      ;;
-  esac
-
+    fi
+    ;;
+  */zsh*)
+    shell_profile="$HOME/.zprofile"
+    ;;
+  *)
+    shell_profile="$HOME/.profile"
+    ;;
+esac
+if [[ "$UNAME_MACHINE" == "arm64" ]] || [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
   cat <<EOS
 - Add Homebrew to your ${tty_bold}PATH${tty_reset} in ${tty_underline}${shell_profile}${tty_reset}:
-    echo 'eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)' >> ${shell_profile}
-    eval \$(${HOMEBREW_PREFIX}/bin/brew shellenv)
+    echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"' >> ${shell_profile}
+    eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
+fi
+if [[ -n "${non_default_repos}" ]]; then
+  if [[ "${#additional_shellenv_command[@]}" -gt 1 ]]; then remotes="remotes"; else remotes="remote"; fi
+  echo "- Add the non-default Git ${remotes} for ${non_default_repos} in ${tty_underline}${shell_profile}${tty_reset}:"
+  printf "    echo '%s' >> ${shell_profile}\n" "${additional_shellenv_command[@]}"
+  printf "    %s\n" "${additional_shellenv_command[@]}"
 fi
 
 echo "- Run \`brew help\` to get started"
