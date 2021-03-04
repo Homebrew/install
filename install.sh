@@ -181,6 +181,13 @@ getc() {
   /bin/stty "$save_state"
 }
 
+ring_bell() {
+  # Use the shell's audible bell.
+  if [[ -t 1 ]]; then
+    printf "\a"
+  fi
+}
+
 wait_for_user() {
   local c
   echo
@@ -517,21 +524,23 @@ if should_install_command_line_tools; then
 fi
 
 non_default_repos=""
-additional_shellenv_command=()
+additional_shellenv_commands=()
 if [[ "$HOMEBREW_BREW_DEFAULT_GIT_REMOTE" != "$HOMEBREW_BREW_GIT_REMOTE" ]]; then
   ohai "HOMEBREW_BREW_GIT_REMOTE is set to a non-default URL:"
   echo "${tty_underline}${HOMEBREW_BREW_GIT_REMOTE}${tty_reset} will be used for Homebrew/brew Git remote."
   non_default_repos="Homebrew/brew"
-  additional_shellenv_command+=("export HOMEBREW_BREW_GIT_REMOTE=\"$HOMEBREW_BREW_GIT_REMOTE\"")
+  additional_shellenv_commands+=("export HOMEBREW_BREW_GIT_REMOTE=\"$HOMEBREW_BREW_GIT_REMOTE\"")
 fi
+
 if [[ "$HOMEBREW_CORE_DEFAULT_GIT_REMOTE" != "$HOMEBREW_CORE_GIT_REMOTE" ]]; then
   ohai "HOMEBREW_CORE_GIT_REMOTE is set to a non-default URL:"
   echo "${tty_underline}${HOMEBREW_CORE_GIT_REMOTE}${tty_reset} will be used for Homebrew/core Git remote."
   non_default_repos="${non_default_repos:-}${non_default_repos:+ and }Homebrew/core"
-  additional_shellenv_command+=("export HOMEBREW_CORE_GIT_REMOTE=\"$HOMEBREW_CORE_GIT_REMOTE\"")
+  additional_shellenv_commands+=("export HOMEBREW_CORE_GIT_REMOTE=\"$HOMEBREW_CORE_GIT_REMOTE\"")
 fi
 
 if [[ -z "${NONINTERACTIVE-}" ]]; then
+  ring_bell
   wait_for_user
 fi
 
@@ -684,10 +693,7 @@ fi
 ohai "Installation successful!"
 echo
 
-# Use the shell's audible bell.
-if [[ -t 1 ]]; then
-  printf "\a"
-fi
+ring_bell
 
 # Use an extra newline and bold to avoid this being missed.
 ohai "Homebrew has enabled anonymous aggregate formulae and cask analytics."
@@ -736,10 +742,13 @@ if [[ "$UNAME_MACHINE" == "arm64" ]] || [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
 EOS
 fi
 if [[ -n "${non_default_repos}" ]]; then
-  if [[ "${#additional_shellenv_command[@]}" -gt 1 ]]; then remotes="remotes"; else remotes="remote"; fi
-  echo "- Add the non-default Git ${remotes} for ${non_default_repos} in ${tty_underline}${shell_profile}${tty_reset}:"
-  printf "    echo '%s' >> ${shell_profile}\n" "${additional_shellenv_command[@]}"
-  printf "    %s\n" "${additional_shellenv_command[@]}"
+  s=""
+  if [[ "${#additional_shellenv_commands[@]}" -gt 1 ]]; then
+    s="s"
+  fi
+  echo "- Add the non-default Git remote${s} for ${non_default_repos} in ${tty_underline}${shell_profile}${tty_reset}:"
+  printf "    echo '%s' >> ${shell_profile}\n" "${additional_shellenv_commands[@]}"
+  printf "    %s\n" "${additional_shellenv_commands[@]}"
 fi
 
 echo "- Run \`brew help\` to get started"
