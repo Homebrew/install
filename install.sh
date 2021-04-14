@@ -269,7 +269,7 @@ test_ruby() {
 no_usable_ruby() {
   local ruby_exec
   IFS=$'\n' # Do word splitting on new lines only
-  for ruby_exec in $(which -a ruby); do
+  for ruby_exec in $(which -a ruby 2>/dev/null); do
     if test_ruby "$ruby_exec"; then
       IFS=$' \t\n' # Restore IFS to its default value
       return 1
