@@ -576,6 +576,13 @@ if [[ "${#mkdirs[@]}" -gt 0 ]]; then
   execute_sudo "$CHGRP" "$GROUP" "${mkdirs[@]}"
 fi
 
+directories=(bin etc lib sbin)
+for dir in "${directories[@]}"; do
+  # Set sticky bit so that root-owned files within cannot be moved without root permissions.
+  # This helps when something may share prefixes with Homebrew on a different trust model.
+  execute_sudo "/bin/chmod" "+t" "${HOMEBREW_PREFIX}/${dir}"
+done
+
 if ! [[ -d "${HOMEBREW_REPOSITORY}" ]]; then
   execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_REPOSITORY}"
 fi
