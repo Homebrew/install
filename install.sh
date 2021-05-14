@@ -360,8 +360,14 @@ fi
 HOMEBREW_CORE="${HOMEBREW_REPOSITORY}/Library/Taps/homebrew/homebrew-core"
 
 if [[ "${EUID:-${UID}}" == "0" ]]; then
-  abort "Don't run this as root!"
-elif [[ -d "${HOMEBREW_PREFIX}" && ! -x "${HOMEBREW_PREFIX}" ]]; then
+  # Allow Azure Pipelines/GitHub Actions/Docker/Concourse/Kubernetes to do everything as root (as it's normal there)
+  if ! [[ -f /proc/1/cgroup ]] ||
+     ! grep -E "azpl_job|actions_job|docker|garden|kubepods" -q /proc/1/cgroup; then
+    abort "Don't run this as root!"
+  fi
+fi
+
+if [[ -d "${HOMEBREW_PREFIX}" && ! -x "${HOMEBREW_PREFIX}" ]]; then
   abort "$(cat <<EOABORT
 The Homebrew prefix, ${HOMEBREW_PREFIX}, exists but is not searchable.
 If this is not intentional, please restore the default permissions and
