@@ -648,6 +648,10 @@ EOABORT
 )"
 fi
 
+FETCH_OPTS=("--force")
+if [[ -t 2 ]]; then
+  FETCH_OPTS+=("--progress")
+fi
 ohai "Downloading and installing Homebrew..."
 (
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
@@ -662,8 +666,8 @@ ohai "Downloading and installing Homebrew..."
   # ensure we don't munge line endings on checkout
   execute "git" "config" "core.autocrlf" "false"
 
-  execute "git" "fetch" "--force" "origin"
-  execute "git" "fetch" "--force" "--tags" "origin"
+  execute "git" "fetch" "${FETCH_OPTS[@]}" "origin"
+  execute "git" "fetch" "${FETCH_OPTS[@]}" "--tags" "origin"
 
   execute "git" "reset" "--hard" "origin/master"
 
@@ -681,7 +685,7 @@ ohai "Downloading and installing Homebrew..."
       execute "git" "config" "remote.origin.url" "${HOMEBREW_CORE_GIT_REMOTE}"
       execute "git" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
       execute "git" "config" "core.autocrlf" "false"
-      execute "git" "fetch" "--force" "origin" "refs/heads/master:refs/remotes/origin/master"
+      execute "git" "fetch" "${FETCH_OPTS[@]}" "origin" "refs/heads/master:refs/remotes/origin/master"
       execute "git" "remote" "set-head" "origin" "--auto" >/dev/null
       execute "git" "reset" "--hard" "origin/master"
 
