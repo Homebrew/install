@@ -43,6 +43,7 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]; then
   HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/homebrew-core"
 
   STAT="stat -f"
+  PERMISSION_FORMAT="%A"
   CHOWN="/usr/sbin/chown"
   CHGRP="/usr/bin/chgrp"
   GROUP="admin"
@@ -57,6 +58,7 @@ else
   HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/linuxbrew-core"
 
   STAT="stat --printf"
+  PERMISSION_FORMAT="%a"
   CHOWN="/bin/chown"
   CHGRP="/bin/chgrp"
   GROUP="$(id -gn)"
@@ -227,11 +229,11 @@ should_install_command_line_tools() {
 }
 
 get_permission() {
-  $STAT "%A" "$1"
+  $STAT "${PERMISSION_FORMAT}" "$1"
 }
 
 user_only_chmod() {
-  [[ -d "$1" ]] && [[ "$(get_permission "$1")" != "755" ]]
+  [[ -d "$1" ]] && [[ "$(get_permission "$1")" != 75[0145] ]]
 }
 
 exists_but_not_writable() {
@@ -251,7 +253,7 @@ get_group() {
 }
 
 file_not_grpowned() {
-  [[ " $(id -G "$USER") " != *" $(get_group "$1") "*  ]]
+  [[ " $(id -G "$USER") " != *" $(get_group "$1") "* ]]
 }
 
 # Please sync with 'test_ruby()' in 'Library/Homebrew/utils/ruby.sh' from Homebrew/brew repository.
@@ -475,9 +477,12 @@ for dir in "${directories[@]}"; do
 done
 
 user_chmods=()
+mkdirs_user_only=()
 if [[ "${#zsh_dirs[@]}" -gt 0 ]]; then
   for dir in "${zsh_dirs[@]}"; do
-    if user_only_chmod "${dir}"; then
+    if [[ ! -d "${dir}" ]]; then
+      mkdirs_user_only+=("${dir}")
+    elif user_only_chmod "${dir}"; then
       user_chmods+=("${dir}")
     fi
   done
@@ -558,7 +563,7 @@ if [[ -d "${HOMEBREW_PREFIX}" ]]; then
     execute_sudo "/bin/chmod" "g+rwx" "${group_chmods[@]}"
   fi
   if [[ "${#user_chmods[@]}" -gt 0 ]]; then
-    execute_sudo "/bin/chmod" "755" "${user_chmods[@]}"
+    execute_sudo "/bin/chmod" "g-w,o-w" "${user_chmods[@]}"
   fi
   if [[ "${#chowns[@]}" -gt 0 ]]; then
     execute_sudo "$CHOWN" "$USER" "${chowns[@]}"
@@ -577,7 +582,10 @@ fi
 
 if [[ "${#mkdirs[@]}" -gt 0 ]]; then
   execute_sudo "/bin/mkdir" "-p" "${mkdirs[@]}"
-  execute_sudo "/bin/chmod" "g+rwx" "${mkdirs[@]}"
+  execute_sudo "/bin/chmod" "u=rwx,g=rwx" "${mkdirs[@]}"
+  if [[ "${#mkdirs_user_only[@]}" -gt 0 ]]; then
+    execute_sudo "/bin/chmod" "g-w,o-w" "${mkdirs_user_only[@]}"
+  fi
   execute_sudo "$CHOWN" "$USER" "${mkdirs[@]}"
   execute_sudo "$CHGRP" "$GROUP" "${mkdirs[@]}"
 fi
