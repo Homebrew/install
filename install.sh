@@ -750,7 +750,7 @@ case "$SHELL" in
 esac
 if [[ "$UNAME_MACHINE" == "arm64" ]] || [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
   cat <<EOS
-- Add Homebrew to your ${tty_bold}PATH${tty_reset} in ${tty_underline}${shell_profile}${tty_reset}:
+- Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
     echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"' >> ${shell_profile}
     eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
@@ -760,7 +760,7 @@ if [[ -n "${non_default_repos}" ]]; then
   if [[ "${#additional_shellenv_commands[@]}" -gt 1 ]]; then
     s="s"
   fi
-  echo "- Add the non-default Git remote${s} for ${non_default_repos} in ${tty_underline}${shell_profile}${tty_reset}:"
+  echo "- Run these commands in your terminal to add the non-default Git remote${s} for ${non_default_repos}:"
   printf "    echo '%s' >> ${shell_profile}\n" "${additional_shellenv_commands[@]}"
   printf "    %s\n" "${additional_shellenv_commands[@]}"
 fi
