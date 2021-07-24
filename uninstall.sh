@@ -169,7 +169,7 @@ usage() {
   cat <<EOS
 Homebrew Uninstaller
 Usage: $0 [options]
-    -p, --path=PATH  Sets Homebrew prefix. Defaults to /usr/local.
+    -p, --path=PATH  Sets Homebrew prefix. Defaults to ${homebrew_prefix_default}.
         --skip-cache-and-logs
                      Skips removal of HOMEBREW_CACHE and HOMEBREW_LOGS.
     -f, --force      Uninstall without prompting.
