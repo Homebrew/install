@@ -86,6 +86,8 @@ MACOS_OLDEST_SUPPORTED="10.14"
 # For Homebrew on Linux
 REQUIRED_RUBY_VERSION=2.6  # https://github.com/Homebrew/brew/pull/6556
 REQUIRED_GLIBC_VERSION=2.13  # https://docs.brew.sh/Homebrew-on-Linux#requirements
+REQUIRED_CURL_VERSION=7.41.0 # HOMEBREW_MINIMUM_CURL_VERSION in brew.sh in Homebrew/brew
+REQUIRED_GIT_VERSION=2.7.0 # HOMEBREW_MINIMUM_GIT_VERSION in brew.sh in Homebrew/brew
 
 # no analytics during installation
 export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
@@ -268,17 +270,45 @@ test_ruby() {
               Gem::Version.new('$REQUIRED_RUBY_VERSION').to_s.split('.').first(2)" 2>/dev/null
 }
 
-no_usable_ruby() {
-  local ruby_exec
+test_curl() {
+  if [[ ! -x $1 ]]; then
+    return 1
+  fi
+
+  local curl_version_output curl_name_and_version
+  curl_version_output=$("$1" --version 2>/dev/null)
+  curl_name_and_version="${curl_version_output%% (*}"
+  version_ge "$(major_minor "${curl_name_and_version##* }")" "$(major_minor "$REQUIRED_CURL_VERSION")"
+}
+
+test_git() {
+  if [[ ! -x $1 ]]; then
+    return 1
+  fi
+
+  local git_version_output
+  git_version_output=$("$1" --version 2>/dev/null)
+  version_ge "$(major_minor "${git_version_output##* }")" "$(major_minor "$REQUIRED_GIT_VERSION")"
+}
+
+# Search PATH for the specified program that satisfies Homebrew requirements
+find_tool() {
+  if [[ $# -ne 1 ]]; then
+    return
+  fi
+  local executable
   IFS=$'\n' # Do word splitting on new lines only
-  for ruby_exec in $(which -a ruby 2>/dev/null); do
-    if test_ruby "$ruby_exec"; then
-      IFS=$' \t\n' # Restore IFS to its default value
-      return 1
+  for executable in $(which -a "$1" 2>/dev/null); do
+    if "test_$1" "$executable"; then
+      echo "$executable"
+      break
     fi
   done
   IFS=$' \t\n' # Restore IFS to its default value
-  return 0
+}
+
+no_usable_ruby() {
+  [[ -z $(find_tool ruby) ]]
 }
 
 outdated_glibc() {
@@ -321,6 +351,18 @@ You must install Git before installing Homebrew. See:
   ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
 EOABORT
 )"
+elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
+  USABLE_GIT=$(find_tool git)
+  if [[ -z "$USABLE_GIT" ]]; then
+    abort "$(cat <<-EOABORT
+	Git that is available on your system does not satisfy Homebrew requirements.
+	Please install Git $REQUIRED_GIT_VERSION or newer and add it to your PATH.
+	EOABORT
+    )"
+  elif [[ "$USABLE_GIT" != /usr/bin/git ]]; then
+    export HOMEBREW_GIT_PATH=$USABLE_GIT
+    ohai "Found Git: $HOMEBREW_GIT_PATH"
+  fi
 fi
 
 if ! command -v curl >/dev/null; then
@@ -329,6 +371,25 @@ You must install cURL before installing Homebrew. See:
   ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
 EOABORT
 )"
+elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
+  USABLE_CURL=$(find_tool curl)
+  if [[ -z "$USABLE_CURL" ]]; then
+    abort "$(cat <<-EOABORT
+	cURL that is available on your system does not satisfy Homebrew requirements.
+	Please install cURL $REQUIRED_CURL_VERSION or newer and add it to your PATH.
+	EOABORT
+    )"
+  elif [[ "$USABLE_CURL" != /usr/bin/curl ]]; then
+    export HOMEBREW_CURL_PATH=$USABLE_CURL
+    ohai "Found cURL: $HOMEBREW_CURL_PATH"
+  fi
+fi
+
+# Set HOMEBREW_DEVELOPER on Linux systems where usable Git/cURL is not in /usr/bin
+if [[ "${HOMEBREW_ON_LINUX-}" && ( -n "${HOMEBREW_CURL_PATH-}" || -n "${HOMEBREW_GIT_PATH-}" ) ]]
+then
+  ohai "Setting HOMEBREW_DEVELOPER to use Git/cURL not in /usr/bin"
+  export HOMEBREW_DEVELOPER=1
 fi
 
 # shellcheck disable=SC2016
@@ -701,7 +762,9 @@ ohai "Downloading and installing Homebrew..."
 ) || exit 1
 
 if [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]; then
-  warn "${HOMEBREW_PREFIX}/bin is not in your PATH."
+  warn "${HOMEBREW_PREFIX}/bin is not in your PATH.
+  Instructions on how to configure your shell for Homebrew
+  can be found in the 'Next steps' section below."
 fi
 
 ohai "Installation successful!"
