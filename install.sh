@@ -819,6 +819,21 @@ if [[ "$UNAME_MACHINE" == "arm64" ]] || [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
     eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
 fi
+if [[ "${HOMEBREW_ON_LINUX-}" && ( -n "${HOMEBREW_CURL_PATH-}" || -n "${HOMEBREW_GIT_PATH-}" ) ]]
+then
+  s=${HOMEBREW_CURL_PATH:+export HOMEBREW_CURL_PATH=\"$HOMEBREW_CURL_PATH\"}
+  s=${HOMEBREW_GIT_PATH:+${s:+$s$'\n'    }export HOMEBREW_GIT_PATH=\"$HOMEBREW_GIT_PATH\"}
+  cat <<EOS
+- ${tty_red}Attention${tty_reset}: Git/cURL that satisfy Homebrew requirements are not in /usr/bin:
+    ${HOMEBREW_CURL_PATH:+cURL: $HOMEBREW_CURL_PATH}${HOMEBREW_GIT_PATH:+${HOMEBREW_CURL_PATH:+
+    }Git: $HOMEBREW_GIT_PATH}
+  To instruct Homebrew to use them, set the following environment variables in your current shell
+  and in ${shell_profile}:
+    export HOMEBREW_DEVELOPER=1
+    $s
+EOS
+  unset s
+fi
 if [[ -n "${non_default_repos}" ]]; then
   s=""
   if [[ "${#additional_shellenv_commands[@]}" -gt 1 ]]; then
