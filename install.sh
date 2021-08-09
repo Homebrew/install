@@ -296,6 +296,7 @@ find_tool() {
   if [[ $# -ne 1 ]]; then
     return
   fi
+
   local executable
   IFS=$'\n' # Do word splitting on new lines only
   for executable in $(which -a "$1" 2>/dev/null); do
