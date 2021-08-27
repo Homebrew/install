@@ -107,6 +107,8 @@ tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
 have_sudo_access() {
+  [[ ! -e "/usr/bin/sudo" ]] && return 1
+
   local -a args
   if [[ -n "${SUDO_ASKPASS-}" ]]; then
     args=("-A")
@@ -337,7 +339,7 @@ if [[ -z "${USER-}" ]]; then
 fi
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
-if ! /usr/bin/sudo -n -v 2>/dev/null; then
+if have_sudo_access && ! /usr/bin/sudo -n -v 2>/dev/null; then
   trap '/usr/bin/sudo -k' EXIT
 fi
 
