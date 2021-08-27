@@ -107,7 +107,9 @@ tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
 have_sudo_access() {
-  [[ ! -e "/usr/bin/sudo" ]] && return 1
+  if [[ ! -x "/usr/bin/sudo" ]]; then
+    return 1
+  fi
 
   local -a args
   if [[ -n "${SUDO_ASKPASS-}" ]]; then
