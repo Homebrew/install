@@ -742,7 +742,11 @@ ohai "Downloading and installing Homebrew..."
   execute "git" "reset" "--hard" "origin/master"
 
   if [[ "${HOMEBREW_REPOSITORY}" != "${HOMEBREW_PREFIX}" ]]; then
-    execute "ln" "-sf" "${HOMEBREW_REPOSITORY}/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
+    if [[ "${HOMEBREW_REPOSITORY}" == "${HOMEBREW_PREFIX}/Homebrew" ]]; then
+      execute "ln" "-sf" "../Homebrew/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
+    else
+      abort "The Homebrew/brew repository should be placed in the Homebrew prefix directory."
+    fi
   fi
 
   if [[ ! -d "${HOMEBREW_CORE}" ]]; then
