@@ -744,8 +744,8 @@ ohai "Downloading and installing Homebrew..."
   if [[ "${HOMEBREW_REPOSITORY}" != "${HOMEBREW_PREFIX}" ]]; then
     if [[ "${HOMEBREW_REPOSITORY}" == "${HOMEBREW_PREFIX}/Homebrew" ]]; then
       execute "ln" "-sf" "../Homebrew/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
-    else  # absolute path as fallback option (we probably never reach here)
-      execute "ln" "-sf" "${HOMEBREW_REPOSITORY}/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
+    else
+      abort "The Homebrew/brew repository should be placed in the Homebrew prefix directory."
     fi
   fi
 
