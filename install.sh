@@ -341,7 +341,7 @@ if [[ -z "${USER-}" ]]; then
 fi
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
-if have_sudo_access && ! /usr/bin/sudo -n -v 2>/dev/null; then
+if [[ -x /usr/bin/sudo ]] && ! /usr/bin/sudo -n -v 2>/dev/null; then
   trap '/usr/bin/sudo -k' EXIT
 fi
 
