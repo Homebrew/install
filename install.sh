@@ -264,8 +264,7 @@ file_not_grpowned() {
 
 # Please sync with 'test_ruby()' in 'Library/Homebrew/utils/ruby.sh' from Homebrew/brew repository.
 test_ruby() {
-  if [[ ! -x $1 ]]
-  then
+  if [[ ! -x "$1" ]]; then
     return 1
   fi
 
@@ -275,7 +274,7 @@ test_ruby() {
 }
 
 test_curl() {
-  if [[ ! -x $1 ]]; then
+  if [[ ! -x "$1" ]]; then
     return 1
   fi
 
@@ -286,7 +285,7 @@ test_curl() {
 }
 
 test_git() {
-  if [[ ! -x $1 ]]; then
+  if [[ ! -x "$1" ]]; then
     return 1
   fi
 
@@ -301,15 +300,16 @@ find_tool() {
     return
   fi
 
-  local executable
-  IFS=$'\n' # Do word splitting on new lines only
-  for executable in $(which -a "$1" 2>/dev/null); do
-    if "test_$1" "$executable"; then
-      echo "$executable"
+  # Search all PATH entries (remove dependency for `which` command)
+  local executable entries entry
+  readarray -d ':' -t entries <<< "$PATH"  # as we are using Bash, use readarray
+  for entry in "${entries[@]}"; do
+    executable="${entry}/$1"
+    if [[ -x "${executable}" ]] && "test_$1" "${executable}"; then
+      echo "${executable}"
       break
     fi
   done
-  IFS=$' \t\n' # Restore IFS to its default value
 }
 
 no_usable_ruby() {
