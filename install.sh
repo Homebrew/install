@@ -302,7 +302,7 @@ find_tool() {
 
   # Search all PATH entries (remove dependency for `which` command)
   local executable entries entry
-  readarray -d ':' -t entries <<< "$PATH"  # as we are using Bash, use readarray
+  IFS=':' read -r -a entries <<< "$PATH"  # `readarray -d ':' -t` seems not applicable on WSL Bash
   for entry in "${entries[@]}"; do
     executable="${entry}/$1"
     if [[ -x "${executable}" ]] && "test_$1" "${executable}"; then
