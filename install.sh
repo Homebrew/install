@@ -294,22 +294,41 @@ test_git() {
   version_ge "$(major_minor "${git_version_output##* }")" "$(major_minor "$REQUIRED_GIT_VERSION")"
 }
 
+# Search given executable in all PATH entries (remove dependency for `which` command)
+which_all() {
+  if [[ $# -ne 1 ]]; then
+    return 1
+  fi
+
+  local executable entries entry presented=''
+  IFS=':' read -r -a entries <<< "${PATH}"  # `readarray -d ':' -t` seems not applicable on WSL Bash
+  for entry in "${entries[@]}"; do
+    executable="${entry}/$1"
+    if [[ -x "${executable}" ]]; then
+      echo "${executable}"
+      presented='yes'
+    fi
+  done
+  if [[ -n "${presented}" ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 # Search PATH for the specified program that satisfies Homebrew requirements
 find_tool() {
   if [[ $# -ne 1 ]]; then
-    return
+    return 1
   fi
 
-  # Search all PATH entries (remove dependency for `which` command)
-  local executable entries entry
-  IFS=':' read -r -a entries <<< "$PATH"  # `readarray -d ':' -t` seems not applicable on WSL Bash
-  for entry in "${entries[@]}"; do
-    executable="${entry}/$1"
-    if [[ -x "${executable}" ]] && "test_$1" "${executable}"; then
+  local executable
+  while read -r executable; do
+    if "test_$1" "${executable}"; then
       echo "${executable}"
       break
     fi
-  done
+  done < <(which_all "$1")
 }
 
 no_usable_ruby() {
