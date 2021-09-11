@@ -264,7 +264,8 @@ file_not_grpowned() {
 
 # Please sync with 'test_ruby()' in 'Library/Homebrew/utils/ruby.sh' from Homebrew/brew repository.
 test_ruby() {
-  if [[ ! -x "$1" ]]; then
+  if [[ ! -x "$1" ]]
+  then
     return 1
   fi
 
@@ -274,7 +275,8 @@ test_ruby() {
 }
 
 test_curl() {
-  if [[ ! -x "$1" ]]; then
+  if [[ ! -x "$1" ]]
+  then
     return 1
   fi
 
@@ -285,7 +287,8 @@ test_curl() {
 }
 
 test_git() {
-  if [[ ! -x "$1" ]]; then
+  if [[ ! -x "$1" ]]
+  then
     return 1
   fi
 
@@ -296,35 +299,38 @@ test_git() {
 
 # Search given executable in all PATH entries (remove dependency for `which` command)
 which_all() {
-  if [[ $# -ne 1 ]]; then
+  if [[ $# -ne 1 ]]
+  then
     return 1
   fi
 
-  local executable entries entry presented=''
+  local executable entries entry retcode=1
   IFS=':' read -r -a entries <<< "${PATH}"  # `readarray -d ':' -t` seems not applicable on WSL Bash
-  for entry in "${entries[@]}"; do
+  for entry in "${entries[@]}"
+  do
     executable="${entry}/$1"
-    if [[ -x "${executable}" ]]; then
+    if [[ -x "${executable}" ]]
+    then
       echo "${executable}"
-      presented='yes'
+      retcode=0  # present
     fi
   done
-  if [[ -n "${presented}" ]]; then
-    return 0
-  else
-    return 1
-  fi
+
+  return "${retcode}"
 }
 
 # Search PATH for the specified program that satisfies Homebrew requirements
 find_tool() {
-  if [[ $# -ne 1 ]]; then
+  if [[ $# -ne 1 ]]
+  then
     return 1
   fi
 
   local executable
-  while read -r executable; do
-    if "test_$1" "${executable}"; then
+  while read -r executable
+  do
+    if "test_$1" "${executable}"
+    then
       echo "${executable}"
       break
     fi
