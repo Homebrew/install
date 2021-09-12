@@ -264,7 +264,7 @@ file_not_grpowned() {
 
 # Please sync with 'test_ruby()' in 'Library/Homebrew/utils/ruby.sh' from Homebrew/brew repository.
 test_ruby() {
-  if [[ ! -x $1 ]]
+  if [[ ! -x "$1" ]]
   then
     return 1
   fi
@@ -275,7 +275,8 @@ test_ruby() {
 }
 
 test_curl() {
-  if [[ ! -x $1 ]]; then
+  if [[ ! -x "$1" ]]
+  then
     return 1
   fi
 
@@ -286,7 +287,8 @@ test_curl() {
 }
 
 test_git() {
-  if [[ ! -x $1 ]]; then
+  if [[ ! -x "$1" ]]
+  then
     return 1
   fi
 
@@ -295,21 +297,44 @@ test_git() {
   version_ge "$(major_minor "${git_version_output##* }")" "$(major_minor "$REQUIRED_GIT_VERSION")"
 }
 
+# Search given executable in all PATH entries (remove dependency for `which` command)
+which_all() {
+  if [[ $# -ne 1 ]]
+  then
+    return 1
+  fi
+
+  local executable entries entry retcode=1
+  IFS=':' read -r -a entries <<< "${PATH}"  # `readarray -d ':' -t` seems not applicable on WSL Bash
+  for entry in "${entries[@]}"
+  do
+    executable="${entry}/$1"
+    if [[ -x "${executable}" ]]
+    then
+      echo "${executable}"
+      retcode=0  # present
+    fi
+  done
+
+  return "${retcode}"
+}
+
 # Search PATH for the specified program that satisfies Homebrew requirements
 find_tool() {
-  if [[ $# -ne 1 ]]; then
-    return
+  if [[ $# -ne 1 ]]
+  then
+    return 1
   fi
 
   local executable
-  IFS=$'\n' # Do word splitting on new lines only
-  for executable in $(which -a "$1" 2>/dev/null); do
-    if "test_$1" "$executable"; then
-      echo "$executable"
+  while read -r executable
+  do
+    if "test_$1" "${executable}"
+    then
+      echo "${executable}"
       break
     fi
-  done
-  IFS=$' \t\n' # Restore IFS to its default value
+  done < <(which_all "$1")
 }
 
 no_usable_ruby() {
