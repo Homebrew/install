@@ -244,16 +244,17 @@ fi
 
   if [[ "${HOMEBREW_PREFIX}" != "${HOMEBREW_REPOSITORY}" ]]; then
     echo "${HOMEBREW_REPOSITORY}"
-    for p in \
-      bin/brew \
-      etc/bash_completion.d/brew \
-      share/doc/homebrew \
-      share/man/man1/brew.1 \
-      share/man/man1/brew-cask.1 \
-      share/zsh/site-functions/_brew \
-      share/zsh/site-functions/_brew_cask \
-      var/homebrew \
-    ; do
+    directories=(
+      bin/brew
+      etc/bash_completion.d/brew
+      share/doc/homebrew
+      share/man/man1/brew.1
+      share/man/man1/brew-cask.1
+      share/zsh/site-functions/_brew
+      share/zsh/site-functions/_brew_cask
+      var/homebrew
+    )
+    for p in "${directories[@]}"; do
       echo "${HOMEBREW_PREFIX}/${p}"
     done
   else
@@ -263,13 +264,13 @@ fi
   echo "${HOMEBREW_PREFIX}/Caskroom"
 
   [[ -n ${opt_skip_cache_and_logs} ]] || cat <<-EOS
-	${HOME}/Library/Caches/Homebrew
-	${HOME}/Library/Logs/Homebrew
-	/Library/Caches/Homebrew
-	${HOME}/.cache/Homebrew
-	${HOMEBREW_CACHE:-}
-	${HOMEBREW_LOGS:-}
-	EOS
+${HOME}/Library/Caches/Homebrew
+${HOME}/Library/Logs/Homebrew
+/Library/Caches/Homebrew
+${HOME}/.cache/Homebrew
+${HOMEBREW_CACHE:-}
+${HOMEBREW_LOGS:-}
+EOS
 
   if [[ "${ostype}" == macos ]]; then
     dir_children "/Applications" "${HOME}/Applications" | while read -r p2; do
@@ -344,8 +345,7 @@ sudo() {
 
 [[ -n "${opt_quiet}" ]] || ohai "Removing empty directories..."
 paths=()
-for p in bin etc include lib opt sbin share var \
-         Caskroom Cellar Homebrew Frameworks; do
+for p in bin etc include lib opt sbin share var Caskroom Cellar Homebrew Frameworks; do
   p="${HOMEBREW_PREFIX}/${p}"
   [[ -e "${p}" ]] && paths+=("${p}")
 done

@@ -336,12 +336,12 @@ outdated_glibc() {
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && no_usable_ruby && outdated_glibc
 then
     abort "$(cat <<-EOFABORT
-	Homebrew requires Ruby ${REQUIRED_RUBY_VERSION} which was not found on your system.
-	Homebrew portable Ruby requires Glibc version ${REQUIRED_GLIBC_VERSION} or newer,
-	and your Glibc version is too old.
-	See ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#requirements${tty_reset}
-	Install Ruby ${REQUIRED_RUBY_VERSION} and add its location to your PATH.
-	EOFABORT
+Homebrew requires Ruby ${REQUIRED_RUBY_VERSION} which was not found on your system.
+Homebrew portable Ruby requires Glibc version ${REQUIRED_GLIBC_VERSION} or newer,
+and your Glibc version is too old.
+See ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#requirements${tty_reset}
+Install Ruby ${REQUIRED_RUBY_VERSION} and add its location to your PATH.
+EOFABORT
     )"
 fi
 
@@ -371,9 +371,9 @@ elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
   USABLE_GIT="$(find_tool git)"
   if [[ -z "${USABLE_GIT}" ]]; then
     abort "$(cat <<-EOABORT
-	Git that is available on your system does not satisfy Homebrew requirements.
-	Please install Git ${REQUIRED_GIT_VERSION} or newer and add it to your PATH.
-	EOABORT
+Git that is available on your system does not satisfy Homebrew requirements.
+Please install Git ${REQUIRED_GIT_VERSION} or newer and add it to your PATH.
+EOABORT
     )"
   elif [[ "${USABLE_GIT}" != /usr/bin/git ]]; then
     export HOMEBREW_GIT_PATH="${USABLE_GIT}"
@@ -391,9 +391,9 @@ elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
   USABLE_CURL="$(find_tool curl)"
   if [[ -z "${USABLE_CURL}" ]]; then
     abort "$(cat <<-EOABORT
-	cURL that is available on your system does not satisfy Homebrew requirements.
-	Please install cURL ${REQUIRED_CURL_VERSION} or newer and add it to your PATH.
-	EOABORT
+cURL that is available on your system does not satisfy Homebrew requirements.
+Please install cURL ${REQUIRED_CURL_VERSION} or newer and add it to your PATH.
+EOABORT
     )"
   elif [[ "${USABLE_CURL}" != /usr/bin/curl ]]; then
     export HOMEBREW_CURL_PATH="${USABLE_CURL}"
