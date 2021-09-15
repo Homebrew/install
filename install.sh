@@ -140,9 +140,10 @@ have_sudo_access() {
     fi
     if [[ -n "${NONINTERACTIVE-}" ]]
     then
-      "${SUDO}" -l mkdir &>/dev/null
+      # Don't add quotes around ${SUDO} here
+      ${SUDO} -l mkdir &>/dev/null
     else
-      "${SUDO}" -v && "${SUDO}" -l mkdir &>/dev/null
+      ${SUDO} -v && ${SUDO} -l mkdir &>/dev/null
     fi
     HAVE_SUDO_ACCESS="$?"
   fi
