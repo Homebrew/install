@@ -582,14 +582,16 @@ echo "${HOMEBREW_REPOSITORY}"
 
 # Keep relatively in sync with
 # https://github.com/Homebrew/brew/blob/master/Library/Homebrew/keg.rb
-directories=(bin etc include lib sbin share opt var
+directories=(
+  bin etc include lib sbin share opt var
   Frameworks
   etc/bash_completion.d lib/pkgconfig
   share/aclocal share/doc share/info share/locale share/man
   share/man/man1 share/man/man2 share/man/man3 share/man/man4
   share/man/man5 share/man/man6 share/man/man7 share/man/man8
   var/log var/homebrew var/homebrew/linked
-  bin/brew)
+  bin/brew
+)
 group_chmods=()
 for dir in "${directories[@]}"
 do
@@ -607,10 +609,12 @@ do
   zsh_dirs+=("${HOMEBREW_PREFIX}/${dir}")
 done
 
-directories=(bin etc include lib sbin share var opt
+directories=(
+  bin etc include lib sbin share var opt
   share/zsh share/zsh/site-functions
   var/homebrew var/homebrew/linked
-  Cellar Caskroom Frameworks)
+  Cellar Caskroom Frameworks
+)
 mkdirs=()
 for dir in "${directories[@]}"
 do

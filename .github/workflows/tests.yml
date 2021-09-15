@@ -53,15 +53,17 @@ jobs:
       - name: Set up Homebrew PATH
         if: runner.os != 'windows'
         run: |
-          if [ "${{ runner.os }}" = "macOS" ]; then
-            echo "/usr/local/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
+          if [[ "${{ runner.os }}" = "macOS" ]]
+          then
+            echo "/usr/local/bin:/usr/bin:/bin" >> "${GITHUB_PATH}"
           else
-            echo "/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin" >> ${GITHUB_PATH}
+            echo "/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin" >> "${GITHUB_PATH}"
           fi
 
       - name: Uninstall GitHub Actions Homebrew
         run: |
-          if which brew &>/dev/null; then
+          if which brew &>/dev/null
+          then
             /bin/bash uninstall.sh -n >/dev/null
             /bin/bash uninstall.sh -f >/dev/null
           fi
@@ -87,7 +89,8 @@ jobs:
         # Use the default remotes but with Git Protocol
         run: |
           HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/brew"
-          if [ "${{ runner.os }}" = "macOS" ]; then
+          if [[ "${{ runner.os }}" = "macOS" ]]
+          then
             HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/homebrew-core"
           else
             HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/linuxbrew-core"
@@ -107,7 +110,7 @@ jobs:
       - name: Uninstall and reinstall with sudo NOPASSWD
         if: runner.os == 'linux'
         run: |
-          echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee "/etc/sudoers.d/$USER"
+          echo "${USER} ALL=(ALL) NOPASSWD:ALL" | sudo tee "/etc/sudoers.d/${USER}"
           /bin/bash uninstall.sh -f >/dev/null
           /bin/bash -c "$(cat install.sh)"
 
