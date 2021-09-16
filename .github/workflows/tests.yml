@@ -114,10 +114,11 @@ jobs:
           /bin/bash uninstall.sh -f >/dev/null
           /bin/bash -c "$(cat install.sh)"
 
-      - run: brew install shellcheck
-
-      - run: shellcheck --enable=all *.sh
+      - name: Check code styles
         if: runner.os != 'windows'
+        run: |
+          brew install shellcheck shfmt
+          brew style *.sh
 
       - run: /bin/bash uninstall.sh -n >/dev/null
 
