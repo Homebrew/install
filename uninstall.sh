@@ -11,7 +11,7 @@ strip_s() {
   local s
   for s in "$@"
   do
-    s=${s## }
+    s="${s## }"
     echo "${s%% }"
   done
 }
@@ -26,7 +26,7 @@ dir_children() {
 }
 
 # Set up temp dir
-tmpdir=/tmp/uninstall.$$
+tmpdir="/tmp/uninstall.$$"
 mkdir -p "${tmpdir}" || abort "Unable to create temp dir '${tmpdir}'"
 trap '
   rm -fr "${tmpdir}"
@@ -43,7 +43,7 @@ opt_skip_cache_and_logs=""
 # global status to indicate whether there is anything wrong.
 failed=false
 
-un=$(uname)
+un="$(uname)"
 case "${un}" in
   Linux)
     ostype=linux
@@ -74,10 +74,10 @@ else
   tty_escape() { :; }
 fi
 tty_mkbold() { tty_escape "1;${1:-39}"; }
-tty_blue=$(tty_mkbold 34)
-tty_red=$(tty_mkbold 31)
-tty_bold=$(tty_mkbold 39)
-tty_reset=$(tty_escape 0)
+tty_blue="$(tty_mkbold 34)"
+tty_red="$(tty_mkbold 31)"
+tty_bold="$(tty_mkbold 39)"
+tty_reset="$(tty_escape 0)"
 
 have_sudo_access() {
   local -a args
@@ -219,7 +219,7 @@ if [[ "${#homebrew_prefix_candidates[@]}" -eq 0 ]]
 then
   prefix="$(brew --prefix)"
   [[ -n "${prefix}" ]] && homebrew_prefix_candidates+=("${prefix}")
-  prefix=$(command -v brew) || prefix=""
+  prefix="$(command -v brew)" || prefix=""
   [[ -n "${prefix}" ]] && homebrew_prefix_candidates+=("$(dirname "$(dirname "$(strip_s "${prefix}")")")")
   homebrew_prefix_candidates+=("${homebrew_prefix_default}") # Homebrew default path
   homebrew_prefix_candidates+=("${HOME}/.linuxbrew")         # Linuxbrew default path
@@ -372,7 +372,7 @@ do
   then
     echo "Would delete ${file}"
   else
-    if ! err=$(rm -fr "${file}" 2>&1)
+    if ! err="$(rm -fr "${file}" 2>&1)"
     then
       warn "Failed to delete ${file}"
       echo "${err}"
