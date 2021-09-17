@@ -48,7 +48,7 @@ then
   HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
   HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/homebrew-core"
 
-  STAT="stat -f"
+  STAT_FLAG="-f"
   PERMISSION_FORMAT="%A"
   CHOWN="/usr/sbin/chown"
   CHGRP="/usr/bin/chgrp"
@@ -63,7 +63,7 @@ else
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
   HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/linuxbrew-core"
 
-  STAT="stat --printf"
+  STAT_FLAG="--printf"
   PERMISSION_FORMAT="%a"
   CHOWN="/bin/chown"
   CHGRP="/bin/chgrp"
@@ -263,7 +263,7 @@ should_install_command_line_tools() {
 }
 
 get_permission() {
-  "${STAT}" "${PERMISSION_FORMAT}" "$1"
+  stat "${STAT_FLAG}" "${PERMISSION_FORMAT}" "$1"
 }
 
 user_only_chmod() {
@@ -275,7 +275,7 @@ exists_but_not_writable() {
 }
 
 get_owner() {
-  "${STAT}" "%u" "$1"
+  stat "${STAT_FLAG}" "%u" "$1"
 }
 
 file_not_owned() {
@@ -283,7 +283,7 @@ file_not_owned() {
 }
 
 get_group() {
-  "${STAT}" "%g" "$1"
+  stat "${STAT_FLAG}" "%g" "$1"
 }
 
 file_not_grpowned() {
