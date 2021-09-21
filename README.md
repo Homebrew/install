@@ -20,10 +20,10 @@ export HOMEBREW_CORE_GIT_REMOTE="..."  # put your Git mirror of Homebrew/homebre
 
 The default Git remote will be used if the corresponding environment variable is unset.
 
-You can set `CI=true` to make the installation unattended. This will disable any interactive prompt, making it suitable for running on CI and on scripts. Note that some CI tools set this environment variable by default, [such as GitHub Actions](https://docs.github.com/en/actions/reference/environment-variables#default-environment-variables). Example:
+You can set `CI` environment variable to any non-empty value to make the installation unattended. This will disable any interactive prompt, making it suitable for running on CI and on scripts. Note that some CI tools set this environment variable by default, [such as GitHub Actions](https://docs.github.com/en/actions/reference/environment-variables#default-environment-variables). Example:
 
 ```bash
-CI=true /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+CI=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
 When running the installation unattendedly on Linux, you can also set `HOMEBREW_PREFIX` in your shell environment to change the target directory where Homebrew will get installed. Example:
