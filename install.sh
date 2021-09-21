@@ -458,8 +458,10 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]
 then
   have_sudo_access
 else
-  if [[ -z "${HOMEBREW_PREFIX-}" ]] &&
-     [[ -n "${NONINTERACTIVE-}" ]] ||
+  if [[ -n "${HOMEBREW_PREFIX-}" ]] && [[ -n "${NONINTERACTIVE-}" ]]
+  then
+    HOMEBREW_PREFIX="${HOMEBREW_PREFIX}"
+  elif [[ -n "${NONINTERACTIVE-}" ]] ||
      [[ -w "${HOMEBREW_PREFIX_DEFAULT}" ]] ||
      [[ -w "/home/linuxbrew" ]] ||
      [[ -w "/home" ]]
