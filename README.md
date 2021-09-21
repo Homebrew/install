@@ -29,7 +29,7 @@ CI=true /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/in
 When running the installation unattendedly, you can also set `HOMEBREW_PREFIX` in your shell environment to change the target directory where Homebrew will get installed. Example:
 
 ```bash
-CI=true HOMEBREW_PREFIX=/tmp/linuxbrew /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+HOMEBREW_PREFIX=/tmp/linuxbrew CI=true /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
 ## Uninstall Homebrew
