@@ -26,11 +26,13 @@ You can set `CI=true` to make the installation unattended. This will disable any
 CI=true /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-When running the installation unattendedly, you can also set `HOMEBREW_PREFIX` in your shell environment to change the target directory where Homebrew will get installed. Example:
+When running the installation unattendedly on Linux, you can also set `HOMEBREW_PREFIX` in your shell environment to change the target directory where Homebrew will get installed. Example:
 
 ```bash
 HOMEBREW_PREFIX=/tmp/linuxbrew CI=true /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
+
+Note that installing Homebrew on locations different than the default is not recommended and it is strongly discouraged. While it may work, this functionality is provided without any warranties, and it is not a supported use case for Homebrew itself.
 
 ## Uninstall Homebrew
 
