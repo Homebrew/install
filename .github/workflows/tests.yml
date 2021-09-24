@@ -105,6 +105,13 @@ jobs:
           /bin/bash uninstall.sh -f >/dev/null
           unset HOMEBREW_{BREW,CORE}{,_DEFAULT}_GIT_REMOTE
 
+      - name: Install and uninstall Homebrew in user home directory on Linux
+        if: runner.os == 'linux'
+        run: |
+          HAVE_SUDO_ACCESS=false /bin/bash -c "$(cat install.sh)"
+          test -x "${HOME}/.linuxbrew/bin/brew"
+          /bin/bash uninstall.sh --path="${HOME}/.linuxbrew"
+
       - run: /bin/bash -c "$(cat install.sh)"
 
       - name: Uninstall and reinstall with sudo NOPASSWD
@@ -117,7 +124,7 @@ jobs:
       - name: Check code styles
         if: runner.os != 'windows'
         run: |
-          brew install shellcheck shfmt
+          brew install shellcheck shfmt diffutils
           brew style *.sh
 
       - run: /bin/bash uninstall.sh -n >/dev/null
