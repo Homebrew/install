@@ -279,8 +279,10 @@ fi
       share/doc/homebrew
       share/man/man1/brew.1
       share/man/man1/brew-cask.1
+      share/man/man1/README.md
       share/zsh/site-functions/_brew
       share/zsh/site-functions/_brew_cask
+      share/fish/vendor_completions.d/brew.fish
       var/homebrew
     )
     for p in "${directories[@]}"

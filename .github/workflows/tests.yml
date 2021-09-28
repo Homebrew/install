@@ -117,7 +117,7 @@ jobs:
       - name: Check code styles
         if: runner.os != 'windows'
         run: |
-          brew install shellcheck shfmt
+          brew install shellcheck shfmt diffutils
           brew style *.sh
 
       - run: /bin/bash uninstall.sh -n >/dev/null

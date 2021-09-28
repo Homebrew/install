@@ -115,6 +115,8 @@ tty_red="$(tty_mkbold 31)"
 tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
+unset HAVE_SUDO_ACCESS # unset this from the environment
+
 have_sudo_access() {
   if [[ ! -x "/usr/bin/sudo" ]]
   then
@@ -458,12 +460,19 @@ if [[ -z "${HOMEBREW_ON_LINUX-}" ]]
 then
   have_sudo_access
 else
-  if [[ -n "${NONINTERACTIVE-}" ]] ||
-     [[ -w "${HOMEBREW_PREFIX_DEFAULT}" ]] ||
+  if [[ -w "${HOMEBREW_PREFIX_DEFAULT}" ]] ||
      [[ -w "/home/linuxbrew" ]] ||
      [[ -w "/home" ]]
   then
     HOMEBREW_PREFIX="${HOMEBREW_PREFIX_DEFAULT}"
+  elif [[ -n "${NONINTERACTIVE-}" ]]
+  then
+    if have_sudo_access
+    then
+      HOMEBREW_PREFIX="${HOMEBREW_PREFIX_DEFAULT}"
+    else
+      abort "Insufficient permissions to install Homebrew to \"${HOMEBREW_PREFIX_DEFAULT}\"."
+    fi
   else
     trap exit SIGINT
     if ! /usr/bin/sudo -n -v &>/dev/null
