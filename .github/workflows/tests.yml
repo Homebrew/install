@@ -89,12 +89,7 @@ jobs:
         # Use the default remotes but with Git Protocol
         run: |
           HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/brew"
-          if [[ "${{ runner.os }}" = "macOS" ]]
-          then
-            HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/homebrew-core"
-          else
-            HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/linuxbrew-core"
-          fi
+          HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/homebrew-core"
           export HOMEBREW_BREW_GIT_REMOTE="${HOMEBREW_BREW_DEFAULT_GIT_REMOTE/#https/git}"
           export HOMEBREW_CORE_GIT_REMOTE="${HOMEBREW_CORE_DEFAULT_GIT_REMOTE/#https/git}"
           /bin/bash -c "$(cat install.sh)"
