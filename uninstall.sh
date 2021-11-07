@@ -11,8 +11,8 @@ abort() {
   exit 1
 }
 
-# Fail fast with concise message when not using bash
-# Single brackets is needed here for POSIX compatibility
+# Fail fast with a concise message when not using bash
+# Single brackets are needed here for POSIX compatibility
 # shellcheck disable=SC2292
 if [ -z "${BASH_VERSION:-}" ]
 then
@@ -113,7 +113,7 @@ have_sudo_access() {
 
   if [[ -z "${HOMEBREW_ON_LINUX-}" ]] && [[ "${HAVE_SUDO_ACCESS}" -ne 0 ]]
   then
-    abort "Need sudo access on macOS (e.g. the user ${USER} to be an Administrator)!"
+    abort "Need sudo access on macOS (e.g. the user ${USER} needs to be an administrator)!"
   fi
 
   return "${HAVE_SUDO_ACCESS}"
