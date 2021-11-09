@@ -11,8 +11,8 @@ abort() {
   exit 1
 }
 
-# Fail fast with concise message when not using bash
-# Single brackets is needed here for POSIX compatibility
+# Fail fast with a concise message when not using bash
+# Single brackets are needed here for POSIX compatibility
 # shellcheck disable=SC2292
 if [ -z "${BASH_VERSION:-}" ]
 then
@@ -230,7 +230,7 @@ ring_bell() {
 wait_for_user() {
   local c
   echo
-  echo "Press RETURN to continue or any other key to abort"
+  echo "Press ${tty_bold}RETURN${tty_reset} to continue or any other key to abort:"
   getc c
   # we test for \r and \n because some stuff does \r instead
   if ! [[ "${c}" == $'\r' || "${c}" == $'\n' ]]
@@ -299,7 +299,7 @@ file_not_grpowned() {
   [[ " $(id -G "${USER}") " != *" $(get_group "$1") "* ]]
 }
 
-# Please sync with 'test_ruby()' in 'Library/Homebrew/utils/ruby.sh' from Homebrew/brew repository.
+# Please sync with 'test_ruby()' in 'Library/Homebrew/utils/ruby.sh' from the Homebrew/brew repository.
 test_ruby() {
   if [[ ! -x "$1" ]]
   then
@@ -334,7 +334,7 @@ test_git() {
   version_ge "$(major_minor "${git_version_output##* }")" "$(major_minor "${REQUIRED_GIT_VERSION}")"
 }
 
-# Search given executable in PATH (remove dependency for `which` command)
+# Search for the given executable in PATH (avoids a dependency on the `which` command)
 which() {
   # Alias to Bash built-in command `type -P`
   type -P "$@"
@@ -373,13 +373,13 @@ outdated_glibc() {
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && no_usable_ruby && outdated_glibc
 then
   abort "$(
-    cat <<-EOFABORT
+    cat <<EOABORT
 Homebrew requires Ruby ${REQUIRED_RUBY_VERSION} which was not found on your system.
 Homebrew portable Ruby requires Glibc version ${REQUIRED_GLIBC_VERSION} or newer,
-and your Glibc version is too old.
-See ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#requirements${tty_reset}
-Install Ruby ${REQUIRED_RUBY_VERSION} and add its location to your PATH.
-EOFABORT
+and your Glibc version is too old. See:
+  ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#requirements${tty_reset}
+Please install Ruby ${REQUIRED_RUBY_VERSION} and add its location to your PATH.
+EOABORT
   )"
 fi
 
@@ -415,8 +415,8 @@ then
   if [[ -z "${USABLE_GIT}" ]]
   then
     abort "$(
-      cat <<-EOABORT
-Git that is available on your system does not satisfy Homebrew requirements.
+      cat <<EOABORT
+The version of Git that was found does not satisfy requirements for Homebrew.
 Please install Git ${REQUIRED_GIT_VERSION} or newer and add it to your PATH.
 EOABORT
     )"
@@ -441,8 +441,8 @@ then
   if [[ -z "${USABLE_CURL}" ]]
   then
     abort "$(
-      cat <<-EOABORT
-cURL that is available on your system does not satisfy Homebrew requirements.
+      cat <<EOABORT
+The version of cURL that was found does not satisfy requirements for Homebrew.
 Please install cURL ${REQUIRED_CURL_VERSION} or newer and add it to your PATH.
 EOABORT
     )"
@@ -461,7 +461,7 @@ then
 fi
 
 # shellcheck disable=SC2016
-ohai 'Checking for `sudo` access (which may request your password).'
+ohai 'Checking for `sudo` access (which may request your password)...'
 
 if [[ -z "${HOMEBREW_ON_LINUX-}" ]]
 then
@@ -484,7 +484,7 @@ else
     trap exit SIGINT
     if ! /usr/bin/sudo -n -v &>/dev/null
     then
-      ohai "Select the Homebrew installation directory"
+      ohai "Select a Homebrew installation directory:"
       echo "- ${tty_bold}Enter your password${tty_reset} to install to ${tty_underline}${HOMEBREW_PREFIX_DEFAULT}${tty_reset} (${tty_bold}recommended${tty_reset})"
       echo "- ${tty_bold}Press Control-D${tty_reset} to install to ${tty_underline}${HOME}/.linuxbrew${tty_reset}"
       echo "- ${tty_bold}Press Control-C${tty_reset} to cancel installation"
@@ -515,7 +515,7 @@ if [[ -d "${HOMEBREW_PREFIX}" && ! -x "${HOMEBREW_PREFIX}" ]]
 then
   abort "$(
     cat <<EOABORT
-The Homebrew prefix, ${HOMEBREW_PREFIX}, exists but is not searchable.
+The Homebrew prefix ${tty_underline}${HOMEBREW_PREFIX}${tty_reset} exists but is not searchable.
 If this is not intentional, please restore the default permissions and
 try running the installer again:
     sudo chmod 775 ${HOMEBREW_PREFIX}
@@ -560,7 +560,7 @@ EOABORT
     )"
   elif version_lt "${macos_version}" "10.10"
   then
-    abort "Your OS X version is too old"
+    abort "Your OS X version is too old."
   elif version_ge "${macos_version}" "${MACOS_NEWEST_UNSUPPORTED}" ||
        version_lt "${macos_version}" "${MACOS_OLDEST_SUPPORTED}"
   then
@@ -581,11 +581,11 @@ EOABORT
 This installation may not succeed.
 After installation, you will encounter build failures with some formulae.
 Please create pull requests instead of asking for help on Homebrew\'s GitHub,
-Twitter or IRC. You are responsible for resolving any issues you experience
-while you are running this ${what}.
+Twitter or any other official channels. You are responsible for resolving any
+issues you experience while you are running this ${what}.
 EOS
     )
-"
+" | tr -d "\\"
   fi
 fi
 
@@ -720,7 +720,7 @@ additional_shellenv_commands=()
 if [[ "${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}" != "${HOMEBREW_BREW_GIT_REMOTE}" ]]
 then
   ohai "HOMEBREW_BREW_GIT_REMOTE is set to a non-default URL:"
-  echo "${tty_underline}${HOMEBREW_BREW_GIT_REMOTE}${tty_reset} will be used for Homebrew/brew Git remote."
+  echo "${tty_underline}${HOMEBREW_BREW_GIT_REMOTE}${tty_reset} will be used as the Homebrew/brew Git remote."
   non_default_repos="Homebrew/brew"
   additional_shellenv_commands+=("export HOMEBREW_BREW_GIT_REMOTE=\"${HOMEBREW_BREW_GIT_REMOTE}\"")
 fi
@@ -728,8 +728,8 @@ fi
 if [[ "${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}" != "${HOMEBREW_CORE_GIT_REMOTE}" ]]
 then
   ohai "HOMEBREW_CORE_GIT_REMOTE is set to a non-default URL:"
-  echo "${tty_underline}${HOMEBREW_CORE_GIT_REMOTE}${tty_reset} will be used for Homebrew/core Git remote."
-  non_default_repos="${non_default_repos:-}${non_default_repos:+ and }Homebrew/core"
+  echo "${tty_underline}${HOMEBREW_CORE_GIT_REMOTE}${tty_reset} will be used as the Homebrew/homebrew-core Git remote."
+  non_default_repos="${non_default_repos:-}${non_default_repos:+ and }Homebrew/homebrew-core"
   additional_shellenv_commands+=("export HOMEBREW_CORE_GIT_REMOTE=\"${HOMEBREW_CORE_GIT_REMOTE}\"")
 fi
 
@@ -930,7 +930,7 @@ echo "$(
   cat <<EOS
 ${tty_bold}Read the analytics documentation (and how to opt-out) here:
   ${tty_underline}https://docs.brew.sh/Analytics${tty_reset}
-No analytics data has been sent yet (or will be during this \`install\` run).
+No analytics data has been sent yet (nor will any be during this ${tty_bold}install${tty_reset} run).
 EOS
 )
 "
@@ -986,13 +986,9 @@ then
   printf "    %s\n" "${additional_shellenv_commands[@]}"
 fi
 
-echo "- Run \`brew help\` to get started"
-echo "- Further documentation: "
-echo "    ${tty_underline}https://docs.brew.sh${tty_reset}"
-
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
 then
-  echo "- Install the Homebrew dependencies if you have sudo access:"
+  echo "- Install Homebrew's dependencies if you have sudo access:"
 
   if [[ -x "$(command -v apt-get)" ]]
   then
@@ -1009,9 +1005,16 @@ then
   fi
 
   cat <<EOS
-    See ${tty_underline}https://docs.brew.sh/linux${tty_reset} for more information
+  For more information, see:
+    ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux${tty_reset}
 - We recommend that you install GCC:
     brew install gcc
-
 EOS
 fi
+
+cat <<EOS
+- Run ${tty_bold}brew help${tty_reset} to get started
+- Further documentation: 
+    ${tty_underline}https://docs.brew.sh${tty_reset}
+
+EOS
