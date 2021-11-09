@@ -55,12 +55,12 @@ then
   fi
   HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
 
-  STAT_FLAG="-f"
+  STAT_PRINTF=("stat" "-f")
   PERMISSION_FORMAT="%A"
-  CHOWN="/usr/sbin/chown"
-  CHGRP="/usr/bin/chgrp"
+  CHOWN=("/usr/sbin/chown")
+  CHGRP=("/usr/bin/chgrp")
   GROUP="admin"
-  TOUCH="/usr/bin/touch"
+  TOUCH=("/usr/bin/touch")
 else
   UNAME_MACHINE="$(uname -m)"
 
@@ -69,13 +69,15 @@ else
   HOMEBREW_PREFIX_DEFAULT="/home/linuxbrew/.linuxbrew"
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
 
-  STAT_FLAG="--printf"
+  STAT_PRINTF=("stat" "--printf")
   PERMISSION_FORMAT="%a"
-  CHOWN="/bin/chown"
-  CHGRP="/bin/chgrp"
+  CHOWN=("/bin/chown")
+  CHGRP=("/bin/chgrp")
   GROUP="$(id -gn)"
-  TOUCH="/bin/touch"
+  TOUCH=("/bin/touch")
 fi
+CHMOD=("/bin/chmod")
+MKDIR=("/bin/mkdir" "-p")
 HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/brew"
 HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/homebrew-core"
 
@@ -130,29 +132,22 @@ have_sudo_access() {
     return 1
   fi
 
-  local -a args
+  local -a SUDO=("/usr/bin/sudo")
   if [[ -n "${SUDO_ASKPASS-}" ]]
   then
-    args=("-A")
+    SUDO+=("-A")
   elif [[ -n "${NONINTERACTIVE-}" ]]
   then
-    args=("-n")
+    SUDO+=("-n")
   fi
 
   if [[ -z "${HAVE_SUDO_ACCESS-}" ]]
   then
-    if [[ -n "${args[*]-}" ]]
-    then
-      SUDO="/usr/bin/sudo ${args[*]}"
-    else
-      SUDO="/usr/bin/sudo"
-    fi
     if [[ -n "${NONINTERACTIVE-}" ]]
     then
-      # Don't add quotes around ${SUDO} here
-      ${SUDO} -l mkdir &>/dev/null
+      "${SUDO[@]}" -l mkdir &>/dev/null
     else
-      ${SUDO} -v && ${SUDO} -l mkdir &>/dev/null
+      "${SUDO[@]}" -v && "${SUDO[@]}" -l mkdir &>/dev/null
     fi
     HAVE_SUDO_ACCESS="$?"
   fi
@@ -272,7 +267,7 @@ should_install_command_line_tools() {
 }
 
 get_permission() {
-  stat "${STAT_FLAG}" "${PERMISSION_FORMAT}" "$1"
+  "${STAT_PRINTF[@]}" "${PERMISSION_FORMAT}" "$1"
 }
 
 user_only_chmod() {
@@ -284,7 +279,7 @@ exists_but_not_writable() {
 }
 
 get_owner() {
-  stat "${STAT_FLAG}" "%u" "$1"
+  "${STAT_PRINTF[@]}" "%u" "$1"
 }
 
 file_not_owned() {
@@ -292,7 +287,7 @@ file_not_owned() {
 }
 
 get_group() {
-  stat "${STAT_FLAG}" "%g" "$1"
+  "${STAT_PRINTF[@]}" "%g" "$1"
 }
 
 file_not_grpowned() {
@@ -743,76 +738,76 @@ if [[ -d "${HOMEBREW_PREFIX}" ]]
 then
   if [[ "${#chmods[@]}" -gt 0 ]]
   then
-    execute_sudo "/bin/chmod" "u+rwx" "${chmods[@]}"
+    execute_sudo "${CHMOD[@]}" "u+rwx" "${chmods[@]}"
   fi
   if [[ "${#group_chmods[@]}" -gt 0 ]]
   then
-    execute_sudo "/bin/chmod" "g+rwx" "${group_chmods[@]}"
+    execute_sudo "${CHMOD[@]}" "g+rwx" "${group_chmods[@]}"
   fi
   if [[ "${#user_chmods[@]}" -gt 0 ]]
   then
-    execute_sudo "/bin/chmod" "g-w,o-w" "${user_chmods[@]}"
+    execute_sudo "${CHMOD[@]}" "go-w" "${user_chmods[@]}"
   fi
   if [[ "${#chowns[@]}" -gt 0 ]]
   then
-    execute_sudo "${CHOWN}" "${USER}" "${chowns[@]}"
+    execute_sudo "${CHOWN[@]}" "${USER}" "${chowns[@]}"
   fi
   if [[ "${#chgrps[@]}" -gt 0 ]]
   then
-    execute_sudo "${CHGRP}" "${GROUP}" "${chgrps[@]}"
+    execute_sudo "${CHGRP[@]}" "${GROUP}" "${chgrps[@]}"
   fi
 else
-  execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_PREFIX}"
+  execute_sudo "${MKDIR[@]}" "${HOMEBREW_PREFIX}"
   if [[ -z "${HOMEBREW_ON_LINUX-}" ]]
   then
-    execute_sudo "${CHOWN}" "root:wheel" "${HOMEBREW_PREFIX}"
+    execute_sudo "${CHOWN[@]}" "root:wheel" "${HOMEBREW_PREFIX}"
   else
-    execute_sudo "${CHOWN}" "${USER}:${GROUP}" "${HOMEBREW_PREFIX}"
+    execute_sudo "${CHOWN[@]}" "${USER}:${GROUP}" "${HOMEBREW_PREFIX}"
   fi
 fi
 
 if [[ "${#mkdirs[@]}" -gt 0 ]]
 then
-  execute_sudo "/bin/mkdir" "-p" "${mkdirs[@]}"
-  execute_sudo "/bin/chmod" "u=rwx,g=rwx" "${mkdirs[@]}"
+  execute_sudo "${MKDIR[@]}" "${mkdirs[@]}"
+  execute_sudo "${CHMOD[@]}" "ug=rwx" "${mkdirs[@]}"
   if [[ "${#mkdirs_user_only[@]}" -gt 0 ]]
   then
-    execute_sudo "/bin/chmod" "g-w,o-w" "${mkdirs_user_only[@]}"
+    execute_sudo "${CHMOD[@]}" "go-w" "${mkdirs_user_only[@]}"
   fi
-  execute_sudo "${CHOWN}" "${USER}" "${mkdirs[@]}"
-  execute_sudo "${CHGRP}" "${GROUP}" "${mkdirs[@]}"
+  execute_sudo "${CHOWN[@]}" "${USER}" "${mkdirs[@]}"
+  execute_sudo "${CHGRP[@]}" "${GROUP}" "${mkdirs[@]}"
 fi
 
 if ! [[ -d "${HOMEBREW_REPOSITORY}" ]]
 then
-  execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_REPOSITORY}"
+  execute_sudo "${MKDIR[@]}" "${HOMEBREW_REPOSITORY}"
 fi
-execute_sudo "${CHOWN}" "-R" "${USER}:${GROUP}" "${HOMEBREW_REPOSITORY}"
+execute_sudo "${CHOWN[@]}" "-R" "${USER}:${GROUP}" "${HOMEBREW_REPOSITORY}"
 
 if ! [[ -d "${HOMEBREW_CACHE}" ]]
 then
   if [[ -z "${HOMEBREW_ON_LINUX-}" ]]
   then
-    execute_sudo "/bin/mkdir" "-p" "${HOMEBREW_CACHE}"
+    execute_sudo "${MKDIR[@]}" "${HOMEBREW_CACHE}"
   else
-    execute "/bin/mkdir" "-p" "${HOMEBREW_CACHE}"
+    execute "${MKDIR[@]}" "${HOMEBREW_CACHE}"
   fi
 fi
 if exists_but_not_writable "${HOMEBREW_CACHE}"
 then
-  execute_sudo "/bin/chmod" "g+rwx" "${HOMEBREW_CACHE}"
+  execute_sudo "${CHMOD[@]}" "g+rwx" "${HOMEBREW_CACHE}"
 fi
 if file_not_owned "${HOMEBREW_CACHE}"
 then
-  execute_sudo "${CHOWN}" "-R" "${USER}" "${HOMEBREW_CACHE}"
+  execute_sudo "${CHOWN[@]}" "-R" "${USER}" "${HOMEBREW_CACHE}"
 fi
 if file_not_grpowned "${HOMEBREW_CACHE}"
 then
-  execute_sudo "${CHGRP}" "-R" "${GROUP}" "${HOMEBREW_CACHE}"
+  execute_sudo "${CHGRP[@]}" "-R" "${GROUP}" "${HOMEBREW_CACHE}"
 fi
 if [[ -d "${HOMEBREW_CACHE}" ]]
 then
-  execute "${TOUCH}" "${HOMEBREW_CACHE}/.cleaned"
+  execute "${TOUCH[@]}" "${HOMEBREW_CACHE}/.cleaned"
 fi
 
 if should_install_command_line_tools && version_ge "${macos_version}" "10.13"
@@ -820,7 +815,7 @@ then
   ohai "Searching online for the Command Line Tools"
   # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
   clt_placeholder="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
-  execute_sudo "${TOUCH}" "${clt_placeholder}"
+  execute_sudo "${TOUCH[@]}" "${clt_placeholder}"
 
   clt_label_command="/usr/sbin/softwareupdate -l |
                       grep -B 1 -E 'Command Line Tools' |
@@ -894,7 +889,7 @@ ohai "Downloading and installing Homebrew..."
   then
     ohai "Tapping homebrew/core"
     (
-      execute "/bin/mkdir" "-p" "${HOMEBREW_CORE}"
+      execute "${MKDIR[@]}" "${HOMEBREW_CORE}"
       cd "${HOMEBREW_CORE}" >/dev/null || return
 
       execute "git" "init" "-q"
@@ -1014,7 +1009,7 @@ fi
 
 cat <<EOS
 - Run ${tty_bold}brew help${tty_reset} to get started
-- Further documentation: 
+- Further documentation:
     ${tty_underline}https://docs.brew.sh${tty_reset}
 
 EOS
