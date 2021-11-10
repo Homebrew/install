@@ -93,21 +93,23 @@ tty_red="$(tty_mkbold 31)"
 tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
+unset HAVE_SUDO_ACCESS # unset this from the environment
+
 have_sudo_access() {
-  local -a args
+  if [[ ! -x "/usr/bin/sudo" ]]
+  then
+    return 1
+  fi
+
+  local -a SUDO=("/usr/bin/sudo")
   if [[ -n "${SUDO_ASKPASS-}" ]]
   then
-    args=("-A")
+    SUDO+=("-A")
   fi
 
   if [[ -z "${HAVE_SUDO_ACCESS-}" ]]
   then
-    if [[ -n "${args[*]-}" ]]
-    then
-      /usr/bin/sudo "${args[@]}" -l mkdir &>/dev/null
-    else
-      /usr/bin/sudo -l mkdir &>/dev/null
-    fi
+    "${SUDO[@]}" -l mkdir &>/dev/null
     HAVE_SUDO_ACCESS="$?"
   fi
 
@@ -169,12 +171,12 @@ execute() {
 
 execute_sudo() {
   local -a args=("$@")
-  if [[ -n "${SUDO_ASKPASS-}" ]]
-  then
-    args=("-A" "${args[@]}")
-  fi
   if have_sudo_access
   then
+    if [[ -n "${SUDO_ASKPASS-}" ]]
+    then
+      args=("-A" "${args[@]}")
+    fi
     ohai "/usr/bin/sudo" "${args[@]}"
     system "/usr/bin/sudo" "${args[@]}"
   else
@@ -395,11 +397,6 @@ do
     fi
   fi
 done
-
-sudo() {
-  ohai "/usr/bin/sudo" "$@"
-  system /usr/bin/sudo "$@"
-}
 
 [[ -n "${opt_quiet}" ]] || ohai "Removing empty directories..."
 paths=()
