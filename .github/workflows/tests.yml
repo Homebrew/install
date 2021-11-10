@@ -50,6 +50,12 @@ jobs:
           wsl-shell-user: runner
           additional-packages: build-essential
 
+      - name: Check Bash 3.x syntax
+        if: runner.os == 'macOS'
+        run: |
+          /bin/bash -u -n install.sh
+          /bin/bash -u -O extglob -n uninstall.sh
+
       - name: Set up Homebrew PATH
         if: runner.os != 'windows'
         run: |
