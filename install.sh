@@ -527,7 +527,7 @@ then
   fi
 else
   # On Linux, support only 64-bit Intel
-  if [[ "${UNAME_MACHINE}" == "arm64" ]]
+  if [[ "${UNAME_MACHINE}" == "aarch64" ]]
   then
     abort "$(
       cat <<EOABORT
