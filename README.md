@@ -20,7 +20,7 @@ export HOMEBREW_CORE_GIT_REMOTE="..."  # put your Git mirror of Homebrew/homebre
 
 The default Git remote will be used if the corresponding environment variable is unset.
 
-If you want to run the Homebrew installer non-iteratively without prompting for passwords (e.g. in automation scripts), you can use:
+If you want to run the Homebrew installer non-interactively without prompting for passwords (e.g. in automation scripts), you can use:
 
 ```bash
 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
