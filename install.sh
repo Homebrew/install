@@ -19,11 +19,79 @@ then
   abort "Bash is required to interpret this script."
 fi
 
+# Check if script is run with force-interactive mode in CI
+if [[ -n "${CI-}" && -n "${INTERACTIVE-}" ]]
+then
+  abort "Cannot run force-interactive mode in CI."
+fi
+
+# Check if both `INTERACTIVE` and `NONINTERACTIVE` are set
+# Always use single-quoted strings with `exp` expressions
+# shellcheck disable=SC2016
+if [[ -n "${INTERACTIVE-}" && -n "${NONINTERACTIVE-}" ]]
+then
+  abort 'Both `$INTERACTIVE` and `$NONINTERACTIVE` are set. Please unset at least one variable and try again.'
+fi
+
+# string formatters
+if [[ -t 1 ]]
+then
+  tty_escape() { printf "\033[%sm" "$1"; }
+else
+  tty_escape() { :; }
+fi
+tty_mkbold() { tty_escape "1;$1"; }
+tty_underline="$(tty_escape "4;39")"
+tty_blue="$(tty_mkbold 34)"
+tty_red="$(tty_mkbold 31)"
+tty_bold="$(tty_mkbold 39)"
+tty_reset="$(tty_escape 0)"
+
+shell_join() {
+  local arg
+  printf "%s" "$1"
+  shift
+  for arg in "$@"
+  do
+    printf " "
+    printf "%s" "${arg// /\ }"
+  done
+}
+
+chomp() {
+  printf "%s" "${1/"$'\n'"/}"
+}
+
+ohai() {
+  printf "${tty_blue}==>${tty_bold} %s${tty_reset}\n" "$(shell_join "$@")"
+}
+
+warn() {
+  printf "${tty_red}Warning${tty_reset}: %s\n" "$(chomp "$1")"
+}
+
 # Check if script is run non-interactively (e.g. CI)
 # If it is run non-interactively we should not prompt for passwords.
-if [[ ! -t 0 || -n "${CI-}" ]]
+# Always use single-quoted strings with `exp` expressions
+# shellcheck disable=SC2016
+if [[ -z "${NONINTERACTIVE-}" ]]
 then
-  NONINTERACTIVE=1
+  if [[ -n "${CI-}" ]]
+  then
+    warn 'Running in non-interactive mode because `$CI` is set.'
+    NONINTERACTIVE=1
+  elif [[ ! -t 0 ]]
+  then
+    if [[ -z "${INTERACTIVE-}" ]]
+    then
+      warn 'Running in non-interactive mode because `stdin` is not a TTY.'
+      NONINTERACTIVE=1
+    else
+      warn 'Running in interactive mode despite `stdin` not being a TTY because `$INTERACTIVE` is set.'
+    fi
+  fi
+else
+  ohai 'Running in non-interactive mode because `$NONINTERACTIVE` is set.'
 fi
 
 # First check OS.
@@ -110,20 +178,6 @@ REQUIRED_GIT_VERSION=2.7.0   # HOMEBREW_MINIMUM_GIT_VERSION in brew.sh in Homebr
 export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
 export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 
-# string formatters
-if [[ -t 1 ]]
-then
-  tty_escape() { printf "\033[%sm" "$1"; }
-else
-  tty_escape() { :; }
-fi
-tty_mkbold() { tty_escape "1;$1"; }
-tty_underline="$(tty_escape "4;39")"
-tty_blue="$(tty_mkbold 34)"
-tty_red="$(tty_mkbold 31)"
-tty_bold="$(tty_mkbold 39)"
-tty_reset="$(tty_escape 0)"
-
 unset HAVE_SUDO_ACCESS # unset this from the environment
 
 have_sudo_access() {
@@ -158,29 +212,6 @@ have_sudo_access() {
   fi
 
   return "${HAVE_SUDO_ACCESS}"
-}
-
-shell_join() {
-  local arg
-  printf "%s" "$1"
-  shift
-  for arg in "$@"
-  do
-    printf " "
-    printf "%s" "${arg// /\ }"
-  done
-}
-
-chomp() {
-  printf "%s" "${1/"$'\n'"/}"
-}
-
-ohai() {
-  printf "${tty_blue}==>${tty_bold} %s${tty_reset}\n" "$(shell_join "$@")"
-}
-
-warn() {
-  printf "${tty_red}Warning${tty_reset}: %s\n" "$(chomp "$1")"
 }
 
 execute() {
