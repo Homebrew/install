@@ -860,9 +860,9 @@ then
   then
     ohai "Installing ${clt_label}"
     execute_sudo "/usr/sbin/softwareupdate" "-i" "${clt_label}"
-    execute_sudo "/bin/rm" "-f" "${clt_placeholder}"
     execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
   fi
+  execute_sudo "/bin/rm" "-f" "${clt_placeholder}"
 fi
 
 # Headless install may have failed, so fallback to original 'xcode-select' method
