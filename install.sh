@@ -763,7 +763,6 @@ if [[ -n "${HOMEBREW_INSTALL_FROM_API-}" ]]
 then
   ohai "HOMEBREW_INSTALL_FROM_API is set."
   echo "Homebrew/homebrew-core will not be tapped during this ${tty_bold}install${tty_reset} run."
-  additional_shellenv_commands+=("export HOMEBREW_INSTALL_FROM_API=\"${HOMEBREW_INSTALL_FROM_API}\"")
 fi
 
 if [[ -z "${NONINTERACTIVE-}" ]]
