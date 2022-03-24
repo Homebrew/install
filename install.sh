@@ -924,6 +924,7 @@ ohai "Downloading and installing Homebrew..."
 
   if [[ -n "${HOMEBREW_INSTALL_FROM_API-}" ]]
   then
+    # shellcheck disable=SC2016
     ohai 'Skip tapping homebrew/core because `$HOMEBREW_INSTALL_FROM_API` is set.'
     # Unset HOMEBREW_DEVELOPER since it is no longer needed and causes warnings during brew update below
     if [[ -n "${HOMEBREW_ON_LINUX-}" && (-n "${HOMEBREW_CURL_PATH-}" || -n "${HOMEBREW_GIT_PATH-}") ]]
