@@ -26,6 +26,20 @@ If you want to run the Homebrew installer non-interactively without prompting fo
 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
+## Create Offline Installer
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/sharball-release.sh)"
+```
+
+This script will create a sharball installer `Homebrew-<tag>.sh` with the latest release of Homebrew. Then you can run:
+
+```bash
+/bin/bash Homebrew-<tag>.sh
+```
+
+to install Homebrew.
+
 ## Uninstall Homebrew
 
 ```bash
