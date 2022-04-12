@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# @@SHEBANG@@
+
 # We don't need return codes for "$(command)", only stdout is needed.
 # Allow `[[ -n "$(command)" ]]`, `func "$(command)"`, pipes, etc.
 # shellcheck disable=SC2312
@@ -421,6 +423,17 @@ if [[ -x /usr/bin/sudo ]] && ! /usr/bin/sudo -n -v 2>/dev/null
 then
   trap '/usr/bin/sudo -k' EXIT
 fi
+
+# Variable for sharball release
+# shellcheck disable=SC2034
+THIS_DIR="$(
+  cd "$(dirname "$0")" || exit 1
+  pwd -P
+)"
+
+# Variable for sharball release
+# shellcheck disable=SC2034
+THIS_FILE="${THIS_DIR}/$(basename "$0")"
 
 # Things can fail later if `pwd` doesn't exist.
 # Also sudo prints a warning message for no good reason
@@ -893,9 +906,11 @@ EOABORT
   )"
 fi
 
-ohai "Downloading and installing Homebrew..."
 (
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
+
+  # @@INSTALL-START@@
+  ohai "Downloading and installing Homebrew..."
 
   # we do it in four steps to avoid merge errors when reinstalling
   execute "git" "init" "-q"
@@ -911,6 +926,7 @@ ohai "Downloading and installing Homebrew..."
   execute "git" "fetch" "--force" "--tags" "origin"
 
   execute "git" "reset" "--hard" "origin/master"
+  # @@INSTALL-END@@
 
   if [[ "${HOMEBREW_REPOSITORY}" != "${HOMEBREW_PREFIX}" ]]
   then
@@ -1059,3 +1075,6 @@ cat <<EOS
     ${tty_underline}https://docs.brew.sh${tty_reset}
 
 EOS
+
+exit
+# @@END-HEADER@@
