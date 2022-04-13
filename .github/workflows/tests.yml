@@ -91,6 +91,16 @@ jobs:
 
       - run: /bin/bash uninstall.sh -f >/dev/null
 
+      - name: Create sharball installer
+        run: /bin/bash sharball-release.sh
+
+      - name: Install Homebrew with sharball installer
+        run: /bin/bash Homebrew-latest.sh
+
+      - run: brew config
+
+      - run: /bin/bash uninstall.sh -f >/dev/null
+
       - run: /bin/bash -c "$(cat install.sh)"
 
       - name: Uninstall and reinstall with sudo NOPASSWD
@@ -104,7 +114,7 @@ jobs:
         if: runner.os != 'windows'
         run: |
           brew install shellcheck shfmt diffutils
-          brew style *.sh
+          brew style install.sh uninstall.sh sharball-release.sh
 
       - run: /bin/bash uninstall.sh -n >/dev/null
 
