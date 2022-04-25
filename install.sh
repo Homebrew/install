@@ -129,6 +129,7 @@ then
   CHGRP=("/usr/bin/chgrp")
   GROUP="admin"
   TOUCH=("/usr/bin/touch")
+  INSTALL=("/usr/bin/install" -d -o "root" -g "wheel" -m "0750")
 else
   UNAME_MACHINE="$(uname -m)"
 
@@ -143,6 +144,7 @@ else
   CHGRP=("/bin/chgrp")
   GROUP="$(id -gn)"
   TOUCH=("/bin/touch")
+  INSTALL=("/usr/bin/install" -d -o "${USER}" -g "${GROUP}" -m "0750")
 fi
 CHMOD=("/bin/chmod")
 MKDIR=("/bin/mkdir" "-p")
@@ -794,13 +796,7 @@ then
     execute_sudo "${CHGRP[@]}" "${GROUP}" "${chgrps[@]}"
   fi
 else
-  execute_sudo "${MKDIR[@]}" "${HOMEBREW_PREFIX}"
-  if [[ -z "${HOMEBREW_ON_LINUX-}" ]]
-  then
-    execute_sudo "${CHOWN[@]}" "root:wheel" "${HOMEBREW_PREFIX}"
-  else
-    execute_sudo "${CHOWN[@]}" "${USER}:${GROUP}" "${HOMEBREW_PREFIX}"
-  fi
+  execute_sudo "${INSTALL[@]}" "${HOMEBREW_PREFIX}"
 fi
 
 if [[ "${#mkdirs[@]}" -gt 0 ]]
