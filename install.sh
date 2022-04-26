@@ -129,7 +129,7 @@ then
   CHGRP=("/usr/bin/chgrp")
   GROUP="admin"
   TOUCH=("/usr/bin/touch")
-  INSTALL=("/usr/bin/install" -d -o "root" -g "wheel" -m "0750")
+  INSTALL=("/usr/bin/install" -d -o "root" -g "wheel" -m "0755")
 else
   UNAME_MACHINE="$(uname -m)"
 
@@ -144,7 +144,7 @@ else
   CHGRP=("/bin/chgrp")
   GROUP="$(id -gn)"
   TOUCH=("/bin/touch")
-  INSTALL=("/usr/bin/install" -d -o "${USER}" -g "${GROUP}" -m "0750")
+  INSTALL=("/usr/bin/install" -d -o "${USER}" -g "${GROUP}" -m "0755")
 fi
 CHMOD=("/bin/chmod")
 MKDIR=("/bin/mkdir" "-p")
