@@ -94,6 +94,13 @@ else
   ohai 'Running in non-interactive mode because `$NONINTERACTIVE` is set.'
 fi
 
+# USER isn't always set so provide a fall back for the installer and subprocesses.
+if [[ -z "${USER-}" ]]
+then
+  USER="$(chomp "$(id -un)")"
+  export USER
+fi
+
 # First check OS.
 OS="$(uname)"
 if [[ "${OS}" == "Linux" ]]
@@ -409,13 +416,6 @@ and your Glibc version is too old. See:
 Please install Ruby ${REQUIRED_RUBY_VERSION} and add its location to your PATH.
 EOABORT
   )"
-fi
-
-# USER isn't always set so provide a fall back for the installer and subprocesses.
-if [[ -z "${USER-}" ]]
-then
-  USER="$(chomp "$(id -un)")"
-  export USER
 fi
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
