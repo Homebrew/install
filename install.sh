@@ -1003,7 +1003,10 @@ case "${SHELL}" in
     shell_profile="${HOME}/.profile"
     ;;
 esac
-if [[ "${UNAME_MACHINE}" == "arm64" ]] || [[ -n "${HOMEBREW_ON_LINUX-}" ]]
+
+# `which` is a shell function defined above.
+# shellcheck disable=SC2230
+if [[ "$(which brew)" != "${HOMEBREW_PREFIX}/bin/brew" ]]
 then
   cat <<EOS
 - Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
