@@ -187,7 +187,7 @@ REQUIRED_GIT_VERSION=2.7.0   # HOMEBREW_MINIMUM_GIT_VERSION in brew.sh in Homebr
 export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
 export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 
-unset HAVE_SUDO_ACCESS # unset this from the environment
+unset GIT_DIR GIT_WORK_TREE HAVE_SUDO_ACCESS # unset these from the environment
 
 have_sudo_access() {
   if [[ ! -x "/usr/bin/sudo" ]]
