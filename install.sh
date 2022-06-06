@@ -586,7 +586,7 @@ Your Mac OS X version is too old. See:
   ${tty_underline}https://github.com/mistydemeo/tigerbrew${tty_reset}
 EOABORT
     )"
-  elif version_lt "${macos_version}" "10.10"
+  elif version_lt "${macos_version}" "10.11"
   then
     abort "Your OS X version is too old."
   elif version_ge "${macos_version}" "${MACOS_NEWEST_UNSUPPORTED}" ||
