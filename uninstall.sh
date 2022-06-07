@@ -53,7 +53,6 @@ opt_force=""
 opt_quiet=""
 opt_dry_run=""
 opt_skip_cache_and_logs=""
-NONINTERACTIVE="${NONINTERACTIVE:-0}"
 
 # global status to indicate whether there is anything wrong.
 failed=false
@@ -209,7 +208,7 @@ Usage: [NONINTERACTIVE=1] $0 [options]
     -q, --quiet      Suppress all output.
     -n, --dry-run    Simulate uninstall but don't remove anything.
     -h, --help       Display this message.
-    NONINTERACTIVE   Uninstall without prompting if NONINTERACTIVE is set to 1.
+    NONINTERACTIVE   Imply `--force` if NONINTERACTIVE is non-empty.
 EOS
   exit "${1:-0}"
 }
@@ -344,9 +343,15 @@ then
   pretty_print_pathnames "${homebrew_files[@]}"
 fi
 
-[[ "${NONINTERACTIVE}" -ne 1 ]] || ohai "Running in non-interactive mode because `$NONINTERACTIVE` is set."
+# Always use single-quoted strings with `exp` expressions
+# shellcheck disable=SC2016
+if [[ -n "${NONINTERACTIVE-}" ]]
+then
+  ohai 'Running in non-interactive mode because `$NONINTERACTIVE` is set.'
+  opt_force=1
+fi
 
-if [[ -t 0 && -z "${opt_force}" && -z "${opt_dry_run}" && "${NONINTERACTIVE}" -ne 1 ]]
+if [[ -t 0 && -z "${opt_force}" && -z "${opt_dry_run}" ]]
 then
   read -rp "Are you sure you want to uninstall Homebrew? This will remove your installed packages! [y/N] "
   [[ "${REPLY}" == [yY]* ]] || abort
