@@ -208,7 +208,7 @@ Usage: [NONINTERACTIVE=1] $0 [options]
     -q, --quiet      Suppress all output.
     -n, --dry-run    Simulate uninstall but don't remove anything.
     -h, --help       Display this message.
-    NONINTERACTIVE   Imply `--force` if NONINTERACTIVE is non-empty.
+	NONINTERACTIVE   Imply --force if NONINTERACTIVE is non-empty.
 EOS
   exit "${1:-0}"
 }
