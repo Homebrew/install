@@ -344,7 +344,7 @@ then
   pretty_print_pathnames "${homebrew_files[@]}"
 fi
 
-[[ "${NONINTERACTIVE}" -ne 1 ]] || ohai 'Running in non-interactive mode because `$NONINTERACTIVE` is set.'
+[[ "${NONINTERACTIVE}" -ne 1 ]] || ohai "Running in non-interactive mode because `$NONINTERACTIVE` is set."
 
 if [[ -t 0 && -z "${opt_force}" && -z "${opt_dry_run}" && "${NONINTERACTIVE}" -ne 1 ]]
 then
