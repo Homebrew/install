@@ -200,7 +200,7 @@ homebrew_prefix_candidates=()
 usage() {
   cat <<EOS
 Homebrew Uninstaller
-Usage: $0 [options]
+Usage: [NONINTERACTIVE=1] $0 [options]
     -p, --path=PATH  Sets Homebrew prefix. Defaults to ${homebrew_prefix_default}.
         --skip-cache-and-logs
                      Skips removal of HOMEBREW_CACHE and HOMEBREW_LOGS.
@@ -208,6 +208,7 @@ Usage: $0 [options]
     -q, --quiet      Suppress all output.
     -n, --dry-run    Simulate uninstall but don't remove anything.
     -h, --help       Display this message.
+    NONINTERACTIVE   Imply --force if NONINTERACTIVE is non-empty.
 EOS
   exit "${1:-0}"
 }
@@ -340,6 +341,14 @@ then
   dry_str="${opt_dry_run:+would}"
   warn "This script ${dry_str:-will} remove:"
   pretty_print_pathnames "${homebrew_files[@]}"
+fi
+
+# Always use single-quoted strings with `exp` expressions
+# shellcheck disable=SC2016
+if [[ -n "${NONINTERACTIVE-}" ]]
+then
+  ohai 'Running in non-interactive mode because `$NONINTERACTIVE` is set.'
+  opt_force=1
 fi
 
 if [[ -t 0 && -z "${opt_force}" && -z "${opt_dry_run}" ]]
