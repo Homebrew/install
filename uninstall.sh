@@ -234,9 +234,9 @@ done
 # Attempt to locate Homebrew unless `--path` is passed
 if [[ "${#homebrew_prefix_candidates[@]}" -eq 0 ]]
 then
-  prefix="$(brew --prefix)"
+  prefix="$($homebrew_prefix_default/bin/brew --prefix)"
   [[ -n "${prefix}" ]] && homebrew_prefix_candidates+=("${prefix}")
-  prefix="$(command -v brew)" || prefix=""
+  prefix="$(command -v $homebrew_prefix_default/bin/brew)" || prefix=""
   [[ -n "${prefix}" ]] && homebrew_prefix_candidates+=("$(dirname "$(dirname "$(strip_s "${prefix}")")")")
   homebrew_prefix_candidates+=("${homebrew_prefix_default}") # Homebrew default path
   homebrew_prefix_candidates+=("${HOME}/.linuxbrew")         # Linuxbrew default path
