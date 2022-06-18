@@ -253,10 +253,12 @@ ring_bell() {
   fi
 }
 
+CONFIRM_MESSAGE="Press ${tty_bold}RETURN${tty_reset}/${tty_bold}ENTER${tty_reset} to continue or any other key to abort:"
+
 wait_for_user() {
   local c
   echo
-  echo "Press ${tty_bold}RETURN${tty_reset}/${tty_bold}ENTER${tty_reset} to continue or any other key to abort:"
+  echo "${CONFIRM_MESSAGE}"
   getc c
   # we test for \r and \n because some stuff does \r instead
   if ! [[ "${c}" == $'\r' || "${c}" == $'\n' ]]
@@ -323,6 +325,30 @@ get_group() {
 
 file_not_grpowned() {
   [[ " $(id -G "${USER}") " != *" $(get_group "$1") "* ]]
+}
+
+resolve_symlink() {
+  local path="$1"
+  if ! [[ -f "${path}" || -d "${path}" || -L "${path}" ]]
+  then
+    return 1
+  fi
+
+  local dir dest
+  dir="$(
+    cd "$(dirname "$1")" || exit
+    pwd -P
+  )"
+  dest="$(
+    cd "${dir}" || exit
+    readlink "$1" || basename "$1"
+  )"
+
+  if [[ "${dest}" != "/"* ]]
+  then
+    dest="${dir}/${dest}"
+  fi
+  echo "${dest}"
 }
 
 # Please sync with 'test_ruby()' in 'Library/Homebrew/utils/ruby.sh' from the Homebrew/brew repository.
@@ -526,6 +552,61 @@ else
   HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
 fi
 HOMEBREW_CORE="${HOMEBREW_REPOSITORY}/Library/Taps/homebrew/homebrew-core"
+
+# Check if the prefix contains symlinks
+if [[ -z "${NONINTERACTIVE-}" && "${HOMEBREW_PREFIX_DEFAULT}" == "${HOMEBREW_PREFIX}" ]]
+then
+
+  path="${HOMEBREW_PREFIX}"
+  symlinks=()
+  deadlink=''
+  while [[ "${path}" != "/" ]]
+  do
+    if [[ -L "${path}" ]]
+    then
+      resolved="$(resolve_symlink "${path}")"
+      if [[ ! -f "${resolved}" && ! -d "${resolved}" ]]
+      then
+        symlinks=("- ${path} (resolved as '${resolved}' ${tty_red}[Dead link]${tty_reset})" "${symlinks[@]}")
+        deadlink=1
+      else
+        symlinks=("- ${path} (resolved as '${resolved}')" "${symlinks[@]}")
+      fi
+    fi
+    path="$(dirname "${path}")"
+  done
+
+  if [[ "${#symlinks[@]}" -gt 0 ]]
+  then
+    # Found symlinks
+    if [[ "${#symlinks[@]}" -gt 1 ]]
+    then
+      warn "The following paths are symbolic links:"
+    else
+      warn "The following path is a symbolic link:"
+    fi
+    printf "%s\n" "${symlinks[@]}"
+    echo
+    cat <<EOS
+Symlinked paths can cause problems. Homebrew may refuse to use the pre-built
+binaries (bottles) and build things from the souce when installing packages.
+Please consider replacing the symbolic link with a real directory or a binded
+mount point.
+EOS
+    echo
+    if [[ -n "${deadlink}" ]]
+    then
+      abort "$(
+        cat <<EOABORT
+The Homebrew prefix ${tty_underline}${HOMEBREW_PREFIX}${tty_reset} contains dead symbolic link.
+Please pick a different prefix or resolve the dead link first.
+EOABORT
+      )"
+    fi
+
+    CONFIRM_MESSAGE="Press ${tty_bold}RETURN${tty_reset}/${tty_bold}ENTER${tty_reset} to continue with symlinked prefix or any other key to abort:"
+  fi
+fi
 
 if [[ "${EUID:-${UID}}" == "0" ]]
 then
