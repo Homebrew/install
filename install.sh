@@ -33,6 +33,12 @@ then
   abort 'Both `$INTERACTIVE` and `$NONINTERACTIVE` are set. Please unset at least one variable and try again.'
 fi
 
+# Check if script is run in POSIX mode
+if [[ -n "${POSIXLY_CORRECT+1}" ]]
+then
+  abort 'Bash must not run in POSIX mode. Please unset POSIXLY_CORRECT and try again.'
+fi
+
 # string formatters
 if [[ -t 1 ]]
 then
