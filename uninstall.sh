@@ -246,6 +246,7 @@ then
   [[ -n "${prefix}" ]] && homebrew_prefix_candidates+=("$(dirname "$(dirname "$(strip_s "${prefix}")")")")
   homebrew_prefix_candidates+=("${homebrew_prefix_default}") # Homebrew default path
   homebrew_prefix_candidates+=("${HOME}/.linuxbrew")         # Linuxbrew default path
+  [[ "$(uname -m)" == "arm64" ]] && homebrew_prefix_candidates+=("/usr/local") # If migrated from Intel to ARM old path will remain
 fi
 
 HOMEBREW_PREFIX="$(
