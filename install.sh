@@ -297,6 +297,16 @@ version_lt() {
   [[ "${1%.*}" -lt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -lt "${2#*.}" ]]
 }
 
+check_run_command_as_root() {
+  [[ "${EUID:-${UID}}" == "0" ]] || return
+
+  # Allow Azure Pipelines/GitHub Actions/Docker/Concourse/Kubernetes to do everything as root (as it's normal there)
+  [[ -f /.dockerenv ]] && return
+  [[ -f /proc/1/cgroup ]] && grep -E "azpl_job|actions_job|docker|garden|kubepods" -q /proc/1/cgroup && return
+
+  abort "Don't run this as root!"
+}
+
 should_install_command_line_tools() {
   if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
   then
@@ -535,15 +545,7 @@ else
 fi
 HOMEBREW_CORE="${HOMEBREW_REPOSITORY}/Library/Taps/homebrew/homebrew-core"
 
-if [[ "${EUID:-${UID}}" == "0" ]]
-then
-  # Allow Azure Pipelines/GitHub Actions/Docker/Concourse/Kubernetes to do everything as root (as it's normal there)
-  if ! [[ -f /proc/1/cgroup ]] ||
-     ! grep -E "azpl_job|actions_job|docker|garden|kubepods" -q /proc/1/cgroup
-  then
-    abort "Don't run this as root!"
-  fi
-fi
+check_run_command_as_root
 
 if [[ -d "${HOMEBREW_PREFIX}" && ! -x "${HOMEBREW_PREFIX}" ]]
 then
