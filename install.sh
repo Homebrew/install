@@ -1017,7 +1017,8 @@ esac
 if [[ "$(which brew)" != "${HOMEBREW_PREFIX}/bin/brew" ]]
 then
   cat <<EOS
-- Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
+- Run these three commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
+    echo '# Set PATH, MANPATH, etc., for Homebrew.' >> ${shell_profile}
     echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"' >> ${shell_profile}
     eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
@@ -1029,8 +1030,9 @@ then
   then
     plural="s"
   fi
-  echo "- Run these commands in your terminal to add the non-default Git remote${plural} for ${non_default_repos}:"
-  printf "    echo '%s' >> ${shell_profile}\n" "${additional_shellenv_commands[@]}"
+  printf "- Run these commands in your terminal to add the non-default Git remote%s for %s:" "${plural}" "${non_default_repos}"
+  printf "    echo '# Set PATH, MANPATH, etc., for Homebrew.' >> %s" "${shell_profile}"
+  printf "    echo '%s' >> %s\n" "${additional_shellenv_commands[@]}" "${shell_profile}"
   printf "    %s\n" "${additional_shellenv_commands[@]}"
 fi
 
