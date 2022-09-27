@@ -25,6 +25,16 @@ then
   abort 'Bash must not run in POSIX mode. Please unset POSIXLY_CORRECT and try again.'
 fi
 
+if ! command -v install-info &> /dev/null
+then
+  cat <<EOS
+install-info is needed as part of the uninstall process.
+Please install the texinfo package (via Homebrew or your system package manager).
+You also need to ensure it is exported as part of your PATH.
+EOS
+  exit 1
+fi
+
 shopt -s extglob
 
 strip_s() {
@@ -385,7 +395,7 @@ then
     echo "Would delete:"
   else
     args+=(-exec /bin/bash -c)
-    args+=("/usr/bin/install-info --delete --quiet {} \"\$(dirname {})/dir\"")
+    args+=("$(command -v install-info) --delete --quiet {} \"\$(dirname {})/dir\"")
     args+=(';')
   fi
   system /usr/bin/find "${args[@]}"
