@@ -373,22 +373,6 @@ do
 done
 if [[ "${#paths[@]}" -gt 0 ]]
 then
-  if [[ "${ostype}" == macos ]]
-  then
-    args=(-E "${paths[@]}" -regex '.*/info/([^.][^/]*\.info|dir)')
-  else
-    args=("${paths[@]}" -regextype posix-extended -regex '.*/info/([^.][^/]*\.info|dir)')
-  fi
-  if [[ -n "${opt_dry_run}" ]]
-  then
-    args+=(-print)
-    echo "Would delete:"
-  else
-    args+=(-exec /bin/bash -c)
-    args+=("/usr/bin/install-info --delete --quiet {} \"\$(dirname {})/dir\"")
-    args+=(';')
-  fi
-  system /usr/bin/find "${args[@]}"
   args=("${paths[@]}" -type l -lname '*/Cellar/*')
   if [[ -n "${opt_dry_run}" ]]
   then
