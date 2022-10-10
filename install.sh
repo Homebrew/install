@@ -909,7 +909,10 @@ ohai "Downloading and installing Homebrew..."
   execute "git" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
 
   # ensure we don't munge line endings on checkout
-  execute "git" "config" "core.autocrlf" "false"
+  execute "git" "config" "--bool" "core.autocrlf" "false"
+
+  # make sure symlinks are saved as-is
+  execute "git" "config" "--bool" "core.symlinks" "true"
 
   execute "git" "fetch" "--force" "origin"
   execute "git" "fetch" "--force" "--tags" "origin"
@@ -945,7 +948,8 @@ ohai "Downloading and installing Homebrew..."
       execute "git" "init" "-q"
       execute "git" "config" "remote.origin.url" "${HOMEBREW_CORE_GIT_REMOTE}"
       execute "git" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
-      execute "git" "config" "core.autocrlf" "false"
+      execute "git" "config" "--bool" "core.autocrlf" "false"
+      execute "git" "config" "--bool" "core.symlinks" "true"
       execute "git" "fetch" "--force" "origin" "refs/heads/master:refs/remotes/origin/master"
       execute "git" "remote" "set-head" "origin" "--auto" >/dev/null
       execute "git" "reset" "--hard" "origin/master"
