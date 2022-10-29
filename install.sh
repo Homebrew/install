@@ -559,8 +559,7 @@ else
     abort "$(
       cat <<EOABORT
 Homebrew on Linux is not supported on ARM processors.
-You can try an alternate installation method instead:
-  ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#arm${tty_reset}
+  ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#arm-unsupported${tty_reset}
 EOABORT
     )"
   elif [[ "${UNAME_MACHINE}" != "x86_64" ]]
