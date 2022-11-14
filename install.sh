@@ -864,7 +864,7 @@ fi
 if should_install_command_line_tools && test -t 0
 then
   ohai "Installing the Command Line Tools (expect a GUI popup):"
-  execute_sudo "/usr/bin/xcode-select" "--install"
+  execute "/usr/bin/xcode-select" "--install"
   echo "Press any key when the installation has completed."
   getc
   execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
