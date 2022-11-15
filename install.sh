@@ -1019,9 +1019,9 @@ then
   then
     plural="s"
   fi
-  printf "- Run these commands in your terminal to add the non-default Git remote%s for %s:" "${plural}" "${non_default_repos}"
-  printf "    echo '# Set PATH, MANPATH, etc., for Homebrew.' >> %s" "${shell_profile}"
-  printf "    echo '%s' >> %s\n" "${additional_shellenv_commands[@]}" "${shell_profile}"
+  printf -- "- Run these commands in your terminal to add the non-default Git remote%s for %s:\n" "${plural}" "${non_default_repos}"
+  printf "    echo '# Set PATH, MANPATH, etc., for Homebrew.' >> %s\n" "${shell_profile}"
+  printf "    echo '%s' >> ${shell_profile}\n" "${additional_shellenv_commands[@]}"
   printf "    %s\n" "${additional_shellenv_commands[@]}"
 fi
 
