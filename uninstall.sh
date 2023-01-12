@@ -222,6 +222,14 @@ EOS
 while [[ $# -gt 0 ]]
 do
   case "$1" in
+    -p)
+      homebrew_prefix_candidates+=("$2")
+      shift
+      ;;
+    --path)
+      homebrew_prefix_candidates+=("$2")
+      shift
+      ;;
     -p*) homebrew_prefix_candidates+=("${1#-p}") ;;
     --path=*) homebrew_prefix_candidates+=("${1#--path=}") ;;
     --skip-cache-and-logs) opt_skip_cache_and_logs=1 ;;
