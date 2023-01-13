@@ -1001,17 +1001,11 @@ case "${SHELL}" in
     ;;
 esac
 
-# `which` is a shell function defined above.
-# shellcheck disable=SC2230
-if [[ "$(which brew)" != "${HOMEBREW_PREFIX}/bin/brew" ]]
-then
-  cat <<EOS
-- Run these three commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
-    echo '# Set PATH, MANPATH, etc., for Homebrew.' >> ${shell_profile}
-    echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"' >> ${shell_profile}
+cat <<EOS
+- Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
+    (echo; echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"') >> ${shell_profile}
     eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
-fi
 if [[ -n "${non_default_repos}" ]]
 then
   plural=""
