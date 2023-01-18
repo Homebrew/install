@@ -754,7 +754,7 @@ then
   additional_shellenv_commands+=("export HOMEBREW_CORE_GIT_REMOTE=\"${HOMEBREW_CORE_GIT_REMOTE}\"")
 fi
 
-if [[ -n "${HOMEBREW_INSTALL_FROM_API-}" ]]
+if [[ -z "${HOMEBREW_NO_INSTALL_FROM_API-}" && -n "${HOMEBREW_INSTALL_FROM_API-}" ]]
 then
   ohai "HOMEBREW_INSTALL_FROM_API is set."
   echo "Homebrew/homebrew-core will not be tapped during this ${tty_bold}install${tty_reset} run."
@@ -914,7 +914,7 @@ ohai "Downloading and installing Homebrew..."
     fi
   fi
 
-  if [[ -n "${HOMEBREW_INSTALL_FROM_API-}" ]]
+  if [[ -z "${HOMEBREW_NO_INSTALL_FROM_API-}" && -n "${HOMEBREW_INSTALL_FROM_API-}" ]]
   then
     # shellcheck disable=SC2016
     ohai 'Skip tapping homebrew/core because `$HOMEBREW_INSTALL_FROM_API` is set.'
