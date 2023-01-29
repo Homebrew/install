@@ -112,9 +112,11 @@ OS="$(uname)"
 if [[ "${OS}" == "Linux" ]]
 then
   HOMEBREW_ON_LINUX=1
+  USER_HOME="/home/${USER}"
 elif [[ "${OS}" == "Darwin" ]]
 then
   HOMEBREW_ON_MACOS=1
+  USER_HOME="/Users/${USER}"
 else
   abort "Homebrew is only supported on macOS and Linux."
 fi
@@ -136,7 +138,7 @@ then
     HOMEBREW_PREFIX="/usr/local"
     HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
   fi
-  HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
+  HOMEBREW_CACHE="${USER_HOME}/Library/Caches/Homebrew"
 
   STAT_PRINTF=("stat" "-f")
   PERMISSION_FORMAT="%A"
@@ -151,7 +153,7 @@ else
   # On Linux, this script installs to /home/linuxbrew/.linuxbrew only
   HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
   HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
-  HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
+  HOMEBREW_CACHE="${USER_HOME}/.cache/Homebrew"
 
   STAT_PRINTF=("stat" "--printf")
   PERMISSION_FORMAT="%a"
@@ -986,18 +988,18 @@ EOS
 ohai "Next steps:"
 case "${SHELL}" in
   */bash*)
-    if [[ -r "${HOME}/.bash_profile" ]]
+    if [[ -r "${USER_HOME}/.bash_profile" ]]
     then
-      shell_profile="${HOME}/.bash_profile"
+      shell_profile="${USER_HOME}/.bash_profile"
     else
-      shell_profile="${HOME}/.profile"
+      shell_profile="${USER_HOME}/.profile"
     fi
     ;;
   */zsh*)
-    shell_profile="${HOME}/.zprofile"
+    shell_profile="${USER_HOME}/.zprofile"
     ;;
   *)
-    shell_profile="${HOME}/.profile"
+    shell_profile="${USER_HOME}/.profile"
     ;;
 esac
 
