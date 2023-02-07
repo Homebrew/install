@@ -756,7 +756,7 @@ fi
 
 if [[ -n "${HOMEBREW_NO_INSTALL_FROM_API-}" ]]
 then
-  ohai "HOMEBREW_INSTALL_NO_FROM_API is set."
+  ohai "HOMEBREW_NO_INSTALL_FROM_API is set."
   echo "Homebrew/homebrew-core will be tapped during this ${tty_bold}install${tty_reset} run."
 fi
 
