@@ -754,10 +754,10 @@ then
   additional_shellenv_commands+=("export HOMEBREW_CORE_GIT_REMOTE=\"${HOMEBREW_CORE_GIT_REMOTE}\"")
 fi
 
-if [[ -z "${HOMEBREW_NO_INSTALL_FROM_API-}" && -n "${HOMEBREW_INSTALL_FROM_API-}" ]]
+if [[ -n "${HOMEBREW_NO_INSTALL_FROM_API-}" ]]
 then
-  ohai "HOMEBREW_INSTALL_FROM_API is set."
-  echo "Homebrew/homebrew-core will not be tapped during this ${tty_bold}install${tty_reset} run."
+  ohai "HOMEBREW_NO_INSTALL_FROM_API is set."
+  echo "Homebrew/homebrew-core will be tapped during this ${tty_bold}install${tty_reset} run."
 fi
 
 if [[ -z "${NONINTERACTIVE-}" ]]
@@ -914,18 +914,11 @@ ohai "Downloading and installing Homebrew..."
     fi
   fi
 
-  if [[ -z "${HOMEBREW_NO_INSTALL_FROM_API-}" && -n "${HOMEBREW_INSTALL_FROM_API-}" ]]
+  if [[ -n "${HOMEBREW_NO_INSTALL_FROM_API-}" && ! -d "${HOMEBREW_CORE}" ]]
   then
+    # Always use single-quoted strings with `exp` expressions
     # shellcheck disable=SC2016
-    ohai 'Skip tapping homebrew/core because `$HOMEBREW_INSTALL_FROM_API` is set.'
-    # Unset HOMEBREW_DEVELOPER since it is no longer needed and causes warnings during brew update below
-    if [[ -n "${HOMEBREW_ON_LINUX-}" && (-n "${HOMEBREW_CURL_PATH-}" || -n "${HOMEBREW_GIT_PATH-}") ]]
-    then
-      export -n HOMEBREW_DEVELOPER
-    fi
-  elif [[ ! -d "${HOMEBREW_CORE}" ]]
-  then
-    ohai "Tapping homebrew/core"
+    ohai 'Tapping homebrew/core because `$HOMEBREW_NO_INSTALL_FROM_API` is set.'
     (
       execute "${MKDIR[@]}" "${HOMEBREW_CORE}"
       cd "${HOMEBREW_CORE}" >/dev/null || return
