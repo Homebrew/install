@@ -996,7 +996,7 @@ esac
 
 cat <<EOS
 - Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
-    grep -qsF 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"' ${shell_profile} || (echo; echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"') >> ${shell_profile}
+    grep --quiet --no-messages --fixed-strings 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"' ${shell_profile} || (echo; echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"') >> ${shell_profile}
     eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
 if [[ -n "${non_default_repos}" ]]
