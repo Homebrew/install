@@ -995,7 +995,7 @@ case "${SHELL}" in
 esac
 
 # show different instructions if the user already has Homebrew in their PATH
-if grep -q "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}"
+if grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}"
 then
 cat <<EOS
 - Homebrew was already found in your PATH, run this command to activate it in your current shell:
