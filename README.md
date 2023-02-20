@@ -40,4 +40,17 @@ If you want to run the Homebrew uninstaller non-interactively, you can use:
 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
 ```
 
-Download the uninstall script and run `/bin/bash uninstall.sh --help` to view more uninstall options.
+Download the uninstall script and run `/bin/bash uninstall.sh --help` to view more uninstall options (copied below).
+
+```
+Homebrew Uninstaller
+Usage: [NONINTERACTIVE=1] uninstall.sh [options]
+    -p, --path=PATH  Sets Homebrew prefix. Defaults to /home/linuxbrew/.linuxbrew.
+        --skip-cache-and-logs
+                     Skips removal of HOMEBREW_CACHE and HOMEBREW_LOGS.
+    -f, --force      Uninstall without prompting.
+    -q, --quiet      Suppress all output.
+    -n, --dry-run    Simulate uninstall but don't remove anything.
+    -h, --help       Display this message.
+    NONINTERACTIVE   Imply --force if NONINTERACTIVE is non-empty.
+```
