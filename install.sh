@@ -994,11 +994,22 @@ case "${SHELL}" in
     ;;
 esac
 
+# show different instructions if the user already has Homebrew in their PATH
+if grep -q "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}"
+then
 cat <<EOS
-- Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
-    grep --quiet --no-messages --fixed-strings 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"' ${shell_profile} || (echo; echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"') >> ${shell_profile}
+- Homebrew was already found in your PATH, run this command to activate it in your current shell:
     eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
+else
+cat <<EOS
+- Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
+    (echo; echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"') >> ${shell_profile}
+    eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
+EOS
+fi
+
+
 if [[ -n "${non_default_repos}" ]]
 then
   plural=""
