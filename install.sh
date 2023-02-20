@@ -1009,7 +1009,6 @@ cat <<EOS
 EOS
 fi
 
-
 if [[ -n "${non_default_repos}" ]]
 then
   plural=""
