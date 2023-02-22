@@ -1009,9 +1009,7 @@ then
     eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
 else
-  cat <<EOS
-- Homebrew is already set up. Your system is ready to brew.
-EOS
+  :
 fi
 
 if [[ -n "${non_default_repos}" ]]
