@@ -998,7 +998,7 @@ esac
 if grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}" && ! type brew &>/dev/null
 then
   cat <<EOS
-- Homebrew was already found in your PATH, run this command to activate it in your current shell:
+- Run this command in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
     eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
 elif ! grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}"
