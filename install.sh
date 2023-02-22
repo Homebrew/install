@@ -994,14 +994,17 @@ case "${SHELL}" in
     ;;
 esac
 
+in_shell_profile=$(grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}")
+
+# FIXME: figure out why this give a "command not found" error
 # show different instructions on adding Homebrew to path based on if the user has already done so
-if grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}" && ! type brew &>/dev/null
+if "$in_shell_profile" && ! type brew &>/dev/null
 then
   cat <<EOS
 - Run this command in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
     eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
-elif ! grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}"
+elif ! "$in_shell_profile"
 then
   cat <<EOS
 - Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
