@@ -994,7 +994,7 @@ case "${SHELL}" in
     ;;
 esac
 
-in_shell_profile=$(grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}")
+in_shell_profile=$(grep -s "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}")
 
 # FIXME: figure out why this give a "command not found" error
 # show different instructions on adding Homebrew to path based on if the user has already done so
