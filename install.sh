@@ -998,7 +998,7 @@ in_shell_profile=$(grep -s "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "
 
 # FIXME: figure out why this give a "command not found" error
 # show different instructions on adding Homebrew to path based on if the user has already done so
-if "${in_shell_profile}" && ! type brew &>/dev/null
+if [[ -n $in_shell_profile ]] && ! type brew &>/dev/null
 then
   cat <<EOS
 - Run this command in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
