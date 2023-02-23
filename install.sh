@@ -887,7 +887,7 @@ ohai "Downloading and installing Homebrew..."
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
 
   # we do it in four steps to avoid merge errors when reinstalling
-  execute "git" "init" "-q"
+  execute "git" "-c" "init.defaultBranch=master" "init" "--quiet"
 
   # "git remote add" will fail if the remote is defined in the global config
   execute "git" "config" "remote.origin.url" "${HOMEBREW_BREW_GIT_REMOTE}"
@@ -923,7 +923,7 @@ ohai "Downloading and installing Homebrew..."
       execute "${MKDIR[@]}" "${HOMEBREW_CORE}"
       cd "${HOMEBREW_CORE}" >/dev/null || return
 
-      execute "git" "init" "-q"
+      execute "git" "-c" "init.defaultBranch=master" "init" "--quiet"
       execute "git" "config" "remote.origin.url" "${HOMEBREW_CORE_GIT_REMOTE}"
       execute "git" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
       execute "git" "config" "--bool" "core.autocrlf" "false"
