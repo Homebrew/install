@@ -1003,8 +1003,6 @@ then
     - Run this command in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
       eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
-  else
-    :
   fi
 else
   cat <<EOS
