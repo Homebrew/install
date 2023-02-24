@@ -887,7 +887,7 @@ ohai "Downloading and installing Homebrew..."
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
 
   # we do it in four steps to avoid merge errors when reinstalling
-  execute "git" "init" "-q"
+  execute "git" "-c" "init.defaultBranch=master" "init" "--quiet"
 
   # "git remote add" will fail if the remote is defined in the global config
   execute "git" "config" "remote.origin.url" "${HOMEBREW_BREW_GIT_REMOTE}"
@@ -923,7 +923,7 @@ ohai "Downloading and installing Homebrew..."
       execute "${MKDIR[@]}" "${HOMEBREW_CORE}"
       cd "${HOMEBREW_CORE}" >/dev/null || return
 
-      execute "git" "init" "-q"
+      execute "git" "-c" "init.defaultBranch=master" "init" "--quiet"
       execute "git" "config" "remote.origin.url" "${HOMEBREW_CORE_GIT_REMOTE}"
       execute "git" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
       execute "git" "config" "--bool" "core.autocrlf" "false"
@@ -1000,17 +1000,15 @@ then
   if ! [[ -x "$(command -v brew)" ]]
   then
     cat <<EOS
-    - Run this command in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
-      eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
+- Run this command in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
+    eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
-  else
-    :
   fi
 else
   cat <<EOS
-  - Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
-      (echo; echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"') >> ${shell_profile}
-      eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
+- Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
+    (echo; echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"') >> ${shell_profile}
+    eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
 fi
 
