@@ -994,7 +994,6 @@ case "${SHELL}" in
     ;;
 esac
 
-# show different instructions on adding Homebrew to path based on if the user has already done so
 if grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}"
 then
   if ! [[ -x "$(command -v brew)" ]]
