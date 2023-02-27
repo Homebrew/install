@@ -994,11 +994,23 @@ case "${SHELL}" in
     ;;
 esac
 
-cat <<EOS
+if grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}"
+then
+  if ! [[ -x "$(command -v brew)" ]]
+  then
+    cat <<EOS
+- Run this command in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
+    eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
+EOS
+  fi
+else
+  cat <<EOS
 - Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
     (echo; echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"') >> ${shell_profile}
     eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
+fi
+
 if [[ -n "${non_default_repos}" ]]
 then
   plural=""
