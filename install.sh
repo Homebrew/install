@@ -447,7 +447,8 @@ fi
 cd "/usr" || exit 1
 
 ####################################################################### script
-if ! command -v git >/dev/null
+USABLE_GIT="$(command -v git)"
+if [[ -z "${USABLE_GIT}" ]]
 then
   abort "$(
     cat <<EOABORT
@@ -887,22 +888,22 @@ ohai "Downloading and installing Homebrew..."
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
 
   # we do it in four steps to avoid merge errors when reinstalling
-  execute "git" "-c" "init.defaultBranch=master" "init" "--quiet"
+  execute "${USABLE_GIT}" "-c" "init.defaultBranch=master" "init" "--quiet"
 
   # "git remote add" will fail if the remote is defined in the global config
-  execute "git" "config" "remote.origin.url" "${HOMEBREW_BREW_GIT_REMOTE}"
-  execute "git" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
+  execute "${USABLE_GIT}" "config" "remote.origin.url" "${HOMEBREW_BREW_GIT_REMOTE}"
+  execute "${USABLE_GIT}" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
 
   # ensure we don't munge line endings on checkout
-  execute "git" "config" "--bool" "core.autocrlf" "false"
+  execute "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
 
   # make sure symlinks are saved as-is
-  execute "git" "config" "--bool" "core.symlinks" "true"
+  execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
 
-  execute "git" "fetch" "--force" "origin"
-  execute "git" "fetch" "--force" "--tags" "origin"
+  execute "${USABLE_GIT}" "fetch" "--force" "origin"
+  execute "${USABLE_GIT}" "fetch" "--force" "--tags" "origin"
 
-  execute "git" "reset" "--hard" "origin/master"
+  execute "${USABLE_GIT}" "reset" "--hard" "origin/master"
 
   if [[ "${HOMEBREW_REPOSITORY}" != "${HOMEBREW_PREFIX}" ]]
   then
@@ -923,14 +924,14 @@ ohai "Downloading and installing Homebrew..."
       execute "${MKDIR[@]}" "${HOMEBREW_CORE}"
       cd "${HOMEBREW_CORE}" >/dev/null || return
 
-      execute "git" "-c" "init.defaultBranch=master" "init" "--quiet"
-      execute "git" "config" "remote.origin.url" "${HOMEBREW_CORE_GIT_REMOTE}"
-      execute "git" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
-      execute "git" "config" "--bool" "core.autocrlf" "false"
-      execute "git" "config" "--bool" "core.symlinks" "true"
-      execute "git" "fetch" "--force" "origin" "refs/heads/master:refs/remotes/origin/master"
-      execute "git" "remote" "set-head" "origin" "--auto" >/dev/null
-      execute "git" "reset" "--hard" "origin/master"
+      execute "${USABLE_GIT}" "-c" "init.defaultBranch=master" "init" "--quiet"
+      execute "${USABLE_GIT}" "config" "remote.origin.url" "${HOMEBREW_CORE_GIT_REMOTE}"
+      execute "${USABLE_GIT}" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
+      execute "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
+      execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
+      execute "${USABLE_GIT}" "fetch" "--force" "origin" "refs/heads/master:refs/remotes/origin/master"
+      execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
+      execute "${USABLE_GIT}" "reset" "--hard" "origin/master"
 
       cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
     ) || exit 1
@@ -972,8 +973,8 @@ EOS
 
 (
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
-  execute "git" "config" "--replace-all" "homebrew.analyticsmessage" "true"
-  execute "git" "config" "--replace-all" "homebrew.caskanalyticsmessage" "true"
+  execute "${USABLE_GIT}" "config" "--replace-all" "homebrew.analyticsmessage" "true"
+  execute "${USABLE_GIT}" "config" "--replace-all" "homebrew.caskanalyticsmessage" "true"
 ) || exit 1
 
 ohai "Next steps:"
