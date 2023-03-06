@@ -447,7 +447,7 @@ fi
 cd "/usr" || exit 1
 
 ####################################################################### script
-USABLE_GIT="$(command -v git)"
+USABLE_GIT="$(readlink -f "$(command -v git)")"
 if [[ -z "${USABLE_GIT}" ]]
 then
   abort "$(
