@@ -383,8 +383,13 @@ test_git() {
   fi
 
   local git_version_output
-  git_version_output="$("$1" --version 2>/dev/null | awk '{ print $1 " " $2 " " $3 }')"
-  version_ge "$(major_minor "${git_version_output##* }")" "$(major_minor "${REQUIRED_GIT_VERSION}")"
+  git_version_output="$("$1" --version 2>/dev/null)"
+  if [[ "${git_version_output}" =~ "git version "([^ ]*).* ]]
+  then
+    version_ge "$(major_minor "${BASH_REMATCH[1]}")" "$(major_minor "${REQUIRED_GIT_VERSION}")"
+  else
+    abort "Unexpected Git version string '${git_version_output}' reported"
+  fi
 }
 
 # Search for the given executable in PATH (avoids a dependency on the `which` command)
