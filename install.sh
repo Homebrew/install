@@ -388,7 +388,7 @@ test_git() {
   then
     version_ge "$(major_minor "${BASH_REMATCH[1]}")" "$(major_minor "${REQUIRED_GIT_VERSION}")"
   else
-    abort "Unexpected Git version string '${git_version_output}' reported"
+    abort "Unexpected Git version: '${git_version_output}'!"
   fi
 }
 
