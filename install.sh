@@ -73,7 +73,7 @@ ohai() {
 }
 
 warn() {
-  printf "${tty_red}Warning${tty_reset}: %s\n" "$(chomp "$1")"
+  printf "${tty_red}Warning${tty_reset}: %s\n" "$(chomp "$1")" >&2
 }
 
 # Check if script is run non-interactively (e.g. CI)
@@ -384,7 +384,12 @@ test_git() {
 
   local git_version_output
   git_version_output="$("$1" --version 2>/dev/null)"
-  version_ge "$(major_minor "${git_version_output##* }")" "$(major_minor "${REQUIRED_GIT_VERSION}")"
+  if [[ "${git_version_output}" =~ "git version "([^ ]*).* ]]
+  then
+    version_ge "$(major_minor "${BASH_REMATCH[1]}")" "$(major_minor "${REQUIRED_GIT_VERSION}")"
+  else
+    abort "Unexpected Git version: '${git_version_output}'!"
+  fi
 }
 
 # Search for the given executable in PATH (avoids a dependency on the `which` command)
@@ -405,7 +410,10 @@ find_tool() {
   local executable
   while read -r executable
   do
-    if "test_$1" "${executable}"
+    if [[ "${executable}" != /* ]]
+    then
+      warn "Ignoring ${executable} (relative paths don't work)"
+    elif "test_$1" "${executable}"
     then
       echo "${executable}"
       break
@@ -447,65 +455,6 @@ fi
 cd "/usr" || exit 1
 
 ####################################################################### script
-USABLE_GIT="$(command -v git)"
-if [[ -z "${USABLE_GIT}" ]]
-then
-  abort "$(
-    cat <<EOABORT
-You must install Git before installing Homebrew. See:
-  ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
-EOABORT
-  )"
-elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]
-then
-  USABLE_GIT="$(find_tool git)"
-  if [[ -z "${USABLE_GIT}" ]]
-  then
-    abort "$(
-      cat <<EOABORT
-The version of Git that was found does not satisfy requirements for Homebrew.
-Please install Git ${REQUIRED_GIT_VERSION} or newer and add it to your PATH.
-EOABORT
-    )"
-  elif [[ "${USABLE_GIT}" != /usr/bin/git ]]
-  then
-    export HOMEBREW_GIT_PATH="${USABLE_GIT}"
-    ohai "Found Git: ${HOMEBREW_GIT_PATH}"
-  fi
-fi
-
-if ! command -v curl >/dev/null
-then
-  abort "$(
-    cat <<EOABORT
-You must install cURL before installing Homebrew. See:
-  ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
-EOABORT
-  )"
-elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]
-then
-  USABLE_CURL="$(find_tool curl)"
-  if [[ -z "${USABLE_CURL}" ]]
-  then
-    abort "$(
-      cat <<EOABORT
-The version of cURL that was found does not satisfy requirements for Homebrew.
-Please install cURL ${REQUIRED_CURL_VERSION} or newer and add it to your PATH.
-EOABORT
-    )"
-  elif [[ "${USABLE_CURL}" != /usr/bin/curl ]]
-  then
-    export HOMEBREW_CURL_PATH="${USABLE_CURL}"
-    ohai "Found cURL: ${HOMEBREW_CURL_PATH}"
-  fi
-fi
-
-# Set HOMEBREW_DEVELOPER on Linux systems where usable Git/cURL is not in /usr/bin
-if [[ -n "${HOMEBREW_ON_LINUX-}" && (-n "${HOMEBREW_CURL_PATH-}" || -n "${HOMEBREW_GIT_PATH-}") ]]
-then
-  ohai "Setting HOMEBREW_DEVELOPER to use Git/cURL not in /usr/bin"
-  export HOMEBREW_DEVELOPER=1
-fi
 
 # shellcheck disable=SC2016
 ohai 'Checking for `sudo` access (which may request your password)...'
@@ -881,6 +830,66 @@ Xcode.app or running:
     sudo xcodebuild -license
 EOABORT
   )"
+fi
+
+USABLE_GIT="$(find_tool git)"
+if [[ -z "${USABLE_GIT}" ]]
+then
+  abort "$(
+    cat <<EOABORT
+You must install Git before installing Homebrew. See:
+  ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
+EOABORT
+  )"
+elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]
+then
+  USABLE_GIT="$(find_tool git)"
+  if [[ -z "${USABLE_GIT}" ]]
+  then
+    abort "$(
+      cat <<EOABORT
+The version of Git that was found does not satisfy requirements for Homebrew.
+Please install Git ${REQUIRED_GIT_VERSION} or newer and add it to your PATH.
+EOABORT
+    )"
+  elif [[ "${USABLE_GIT}" != /usr/bin/git ]]
+  then
+    export HOMEBREW_GIT_PATH="${USABLE_GIT}"
+    ohai "Found Git: ${HOMEBREW_GIT_PATH}"
+  fi
+fi
+
+if ! command -v curl >/dev/null
+then
+  abort "$(
+    cat <<EOABORT
+You must install cURL before installing Homebrew. See:
+  ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
+EOABORT
+  )"
+elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]
+then
+  USABLE_CURL="$(find_tool curl)"
+  if [[ -z "${USABLE_CURL}" ]]
+  then
+    abort "$(
+      cat <<EOABORT
+The version of cURL that was found does not satisfy requirements for Homebrew.
+Please install cURL ${REQUIRED_CURL_VERSION} or newer and add it to your PATH.
+EOABORT
+    )"
+  elif [[ "${USABLE_CURL}" != /usr/bin/curl ]]
+  then
+    export HOMEBREW_CURL_PATH="${USABLE_CURL}"
+    ohai "Found cURL: ${HOMEBREW_CURL_PATH}"
+  fi
+fi
+
+# Set HOMEBREW_DEVELOPER on Linux systems where usable Git/cURL is not in /usr/bin
+if [[ -n "${HOMEBREW_ON_LINUX-}" && (-n "${HOMEBREW_CURL_PATH-}" || -n "${HOMEBREW_GIT_PATH-}") ]]
+then
+  ohai "Setting HOMEBREW_DEVELOPER to use Git/cURL not in /usr/bin"
+  export HOMEBREW_DEVELOPER=1
 fi
 
 ohai "Downloading and installing Homebrew..."
