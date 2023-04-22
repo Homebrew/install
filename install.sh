@@ -532,7 +532,7 @@ EOABORT
     )"
   elif version_lt "${macos_version}" "10.11"
   then
-    abort "Your OS X version is too old."
+    abort "Your macOS version is too old."
   elif version_ge "${macos_version}" "${MACOS_NEWEST_UNSUPPORTED}" ||
        version_lt "${macos_version}" "${MACOS_OLDEST_SUPPORTED}"
   then
