@@ -941,7 +941,8 @@ ohai "Downloading and installing Homebrew..."
       execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
       execute "${USABLE_GIT}" "fetch" "--force" "origin" "refs/heads/master:refs/remotes/origin/master"
       execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
-      execute "${USABLE_GIT}" "reset" "--hard" "origin/master"
+      HOMEBREW_INSTALL_VERSION="${HOMEBREW_INSTALL_VERSION:-origin/master}"
+      execute "${USABLE_GIT}" "reset" "--hard" "$HOMEBREW_INSTALL_VERSION"
 
       cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
     ) || exit 1
