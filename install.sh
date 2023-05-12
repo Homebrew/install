@@ -950,7 +950,7 @@ ohai "Downloading and installing Homebrew..."
   execute "${HOMEBREW_PREFIX}/bin/brew" "update" "--force" "--quiet"
 ) || exit 1
 
-if [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]
+if [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* && -z "$HOMEBREW_SUPPRESS_PATH_WARNING" ]]
 then
   warn "${HOMEBREW_PREFIX}/bin is not in your PATH.
   Instructions on how to configure your shell for Homebrew
