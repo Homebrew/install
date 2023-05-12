@@ -941,7 +941,7 @@ ohai "Downloading and installing Homebrew..."
       execute "${USABLE_GIT}" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
       execute "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
       execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
-      execute "${USABLE_GIT}" "fetch" "--force" "origin" "refs/heads/master:refs/remotes/origin/master"
+      execute "${USABLE_GIT}" "fetch" --shallow-since=2022-01-01 "--force" "origin" "refs/heads/master:refs/remotes/origin/master"
       execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
       HOMEBREW_INSTALL_VERSION="${HOMEBREW_INSTALL_VERSION:-origin/master}"
       execute "${USABLE_GIT}" "reset" "--hard" "$HOMEBREW_INSTALL_VERSION"
