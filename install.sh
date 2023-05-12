@@ -300,6 +300,7 @@ version_lt() {
 }
 
 check_run_command_as_root() {
+  [[ -z "$HOMEBREW_ROOT_OKIE_DOKIE" ]] || return 1
   [[ "${EUID:-${UID}}" == "0" ]] || return
 
   # Allow Azure Pipelines/GitHub Actions/Docker/Concourse/Kubernetes to do everything as root (as it's normal there)
@@ -482,6 +483,7 @@ EOABORT
 fi
 HOMEBREW_CORE="${HOMEBREW_REPOSITORY}/Library/Taps/homebrew/homebrew-core"
 
+HOMEBREW_ROOT_OKIE_DOKIE="$HOMEBREW_ROOT_OKIE_DOKIE"
 check_run_command_as_root
 
 if [[ -d "${HOMEBREW_PREFIX}" && ! -x "${HOMEBREW_PREFIX}" ]]
