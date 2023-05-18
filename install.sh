@@ -833,7 +833,7 @@ EOABORT
   )"
 fi
 
-USABLE_GIT="$(find_tool git)"
+USABLE_GIT="$(command -v git)"
 if [[ -z "${USABLE_GIT}" ]]
 then
   abort "$(
@@ -844,8 +844,8 @@ EOABORT
   )"
 elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]
 then
-  USABLE_GIT="$(find_tool git)"
-  if [[ -z "${USABLE_GIT}" ]]
+  suitable_git="$(find_tool git)"
+  if [[ -z "${suitable_git}" ]]
   then
     abort "$(
       cat <<EOABORT
@@ -853,7 +853,9 @@ The version of Git that was found does not satisfy requirements for Homebrew.
 Please install Git ${REQUIRED_GIT_VERSION} or newer and add it to your PATH.
 EOABORT
     )"
-  elif [[ "${USABLE_GIT}" != /usr/bin/git ]]
+  fi
+  USABLE_GIT="${suitable_git}"
+  if [[ "${USABLE_GIT}" != /usr/bin/git ]]
   then
     export HOMEBREW_GIT_PATH="${USABLE_GIT}"
     ohai "Found Git: ${HOMEBREW_GIT_PATH}"
