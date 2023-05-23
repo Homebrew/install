@@ -833,28 +833,28 @@ EOABORT
   )"
 fi
 
-USABLE_GIT="$(command -v git)"
-if [[ -z "${USABLE_GIT}" ]]
+USABLE_GIT=/usr/bin/git
+if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
 then
-  abort "$(
-    cat <<EOABORT
-You must install Git before installing Homebrew. See:
-  ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
-EOABORT
-  )"
-elif [[ -n "${HOMEBREW_ON_LINUX-}" ]]
-then
-  suitable_git="$(find_tool git)"
-  if [[ -z "${suitable_git}" ]]
+  USABLE_GIT="$(find_tool git)"
+  if [[ -z "$(command -v git)" ]]
   then
     abort "$(
       cat <<EOABORT
-The version of Git that was found does not satisfy requirements for Homebrew.
-Please install Git ${REQUIRED_GIT_VERSION} or newer and add it to your PATH.
+  You must install Git before installing Homebrew. See:
+    ${tty_underline}https://docs.brew.sh/Installation${tty_reset}
 EOABORT
     )"
   fi
-  USABLE_GIT="${suitable_git}"
+  if [[ -z "${USABLE_GIT}" ]]
+  then
+    abort "$(
+      cat <<EOABORT
+  The version of Git that was found does not satisfy requirements for Homebrew.
+  Please install Git ${REQUIRED_GIT_VERSION} or newer and add it to your PATH.
+EOABORT
+    )"
+  fi
   if [[ "${USABLE_GIT}" != /usr/bin/git ]]
   then
     export HOMEBREW_GIT_PATH="${USABLE_GIT}"
