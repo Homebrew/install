@@ -837,8 +837,7 @@ USABLE_GIT=/usr/bin/git
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
 then
   USABLE_GIT="$(find_tool git)"
-  git_installed="$(command -v git)"
-  if [[ -z "${git_installed}" ]]
+  if [[ -z "$(command -v git)" ]]
   then
     abort "$(
       cat <<EOABORT
