@@ -1,0 +1,48 @@
+steps:
+- uses: actions/checkout@v3
+
+- uses: actions/download-artifact@v3
+
+- name: Display structure of downloaded files
+  run: ls -R
+
+- name: Setup .NET Core SDK
+  uses: actions/setup-dotnet@v3.2.0
+
+
+- name: Cache
+  uses: actions/cache@v1.2.1
+
+
+name: Caching Primes
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Cache Primes
+      id: cache-primes
+      uses: actions/cache@v3
+      with:
+        path: prime-numbers
+        key: ${{ runner.os }}-primes
+
+    - name: Generate Prime Numbers
+      if: steps.cache-primes.outputs.cache-hit != 'true'
+      run: /generate-primes.sh -d prime-numbers
+
+    - name: Use Prime Numbers
+      run: /primes.sh -d prime-numbers
+
+- name: brew-dependency-submission-action
+  uses: advanced-security/brew-dependency-submission-action@v1.1
+
+- uses: actions/upload-artifact@v3
+  with:
+    name: einpunk-ecosystem
+    path: /Users/Einpunk\ Community/einpunk-ecosystem
