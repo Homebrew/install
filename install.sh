@@ -107,6 +107,10 @@ then
   export USER
 fi
 
+# Allow delegating installation to a different user (useful for installs by root)
+INSTALL_USER=${INSTALL_USER-$USER}
+INSTALL_HOME=$(eval echo ~"$INSTALL_USER")
+
 # First check OS.
 OS="$(uname)"
 if [[ "${OS}" == "Linux" ]]
@@ -136,7 +140,7 @@ then
     HOMEBREW_PREFIX="/usr/local"
     HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
   fi
-  HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
+  HOMEBREW_CACHE="${INSTALL_HOME}/Library/Caches/Homebrew"
 
   STAT_PRINTF=("stat" "-f")
   PERMISSION_FORMAT="%A"
@@ -151,7 +155,7 @@ else
   # On Linux, this script installs to /home/linuxbrew/.linuxbrew only
   HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
   HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
-  HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
+  HOMEBREW_CACHE="${INSTALL_HOME}/.cache/Homebrew"
 
   STAT_PRINTF=("stat" "--printf")
   PERMISSION_FORMAT="%a"
@@ -159,7 +163,7 @@ else
   CHGRP=("/bin/chgrp")
   GROUP="$(id -gn)"
   TOUCH=("/bin/touch")
-  INSTALL=("/usr/bin/install" -d -o "${USER}" -g "${GROUP}" -m "0755")
+  INSTALL=("/usr/bin/install" -d -o "${INSTALL_USER}" -g "${GROUP}" -m "0755")
 fi
 CHMOD=("/bin/chmod")
 MKDIR=("/bin/mkdir" "-p")
@@ -231,16 +235,33 @@ have_sudo_access() {
   return "${HAVE_SUDO_ACCESS}"
 }
 
-execute() {
+ex() {
   if ! "$@"
   then
     abort "$(printf "Failed during: %s" "$(shell_join "$@")")"
+  fi
+
+}
+
+execute() {
+  local -a args=("$@")
+  if [[ $INSTALL_USER == $USER ]]
+  then
+    ohai "${args[@]}"
+    ex "${args[@]}"
+  else
+    ohai "/usr/bin/sudo" -u "$INSTALL_USER" -H "${args[@]}"
+    ex "/usr/bin/sudo" -u "$INSTALL_USER" -H "${args[@]}"
   fi
 }
 
 execute_sudo() {
   local -a args=("$@")
-  if have_sudo_access
+  if [[ "${EUID:-${UID}}" == "0" ]]
+  then
+    ohai "${args[@]}"
+    execute "${args[@]}"
+  elif have_sudo_access
   then
     if [[ -n "${SUDO_ASKPASS-}" ]]
     then
@@ -249,6 +270,7 @@ execute_sudo() {
     ohai "/usr/bin/sudo" "${args[@]}"
     execute "/usr/bin/sudo" "${args[@]}"
   else
+    # This is probably redundant. Better to abort here..
     ohai "${args[@]}"
     execute "${args[@]}"
   fi
@@ -307,7 +329,14 @@ check_run_command_as_root() {
   [[ -f /run/.containerenv ]] && return
   [[ -f /proc/1/cgroup ]] && grep -E "azpl_job|actions_job|docker|garden|kubepods" -q /proc/1/cgroup && return
 
-  abort "Don't run this as root!"
+  INSTALL_USER_UID=$(id -u $INSTALL_USER)
+  if [[ "$INSTALL_USER_UID" != "0" ]]
+  then
+    ohai "Delegating installation to $INSTALL_USER"
+    return
+  fi
+
+  abort "Don't run this as root, delegate installation by setting INSTALL_USER=<non-root-user>!"
 }
 
 should_install_command_line_tools() {
@@ -350,7 +379,7 @@ get_group() {
 }
 
 file_not_grpowned() {
-  [[ " $(id -G "${USER}") " != *" $(get_group "$1") "* ]]
+  [[ " $(id -G "${INSTALL_USER}") " != *" $(get_group "$1") "* ]]
 }
 
 # Please sync with 'test_ruby()' in 'Library/Homebrew/utils/ruby.sh' from the Homebrew/brew repository.
@@ -668,7 +697,7 @@ then
 fi
 if [[ "${#chowns[@]}" -gt 0 ]]
 then
-  ohai "The following existing directories will have their owner set to ${tty_underline}${USER}${tty_reset}:"
+  ohai "The following existing directories will have their owner set to ${tty_underline}${INSTALL_USER}${tty_reset}:"
   printf "%s\n" "${chowns[@]}"
 fi
 if [[ "${#chgrps[@]}" -gt 0 ]]
@@ -733,7 +762,7 @@ then
   fi
   if [[ "${#chowns[@]}" -gt 0 ]]
   then
-    execute_sudo "${CHOWN[@]}" "${USER}" "${chowns[@]}"
+    execute_sudo "${CHOWN[@]}" "${INSTALL_USER}" "${chowns[@]}"
   fi
   if [[ "${#chgrps[@]}" -gt 0 ]]
   then
@@ -751,7 +780,7 @@ then
   then
     execute_sudo "${CHMOD[@]}" "go-w" "${mkdirs_user_only[@]}"
   fi
-  execute_sudo "${CHOWN[@]}" "${USER}" "${mkdirs[@]}"
+  execute_sudo "${CHOWN[@]}" "${INSTALL_USER}" "${mkdirs[@]}"
   execute_sudo "${CHGRP[@]}" "${GROUP}" "${mkdirs[@]}"
 fi
 
@@ -759,7 +788,7 @@ if ! [[ -d "${HOMEBREW_REPOSITORY}" ]]
 then
   execute_sudo "${MKDIR[@]}" "${HOMEBREW_REPOSITORY}"
 fi
-execute_sudo "${CHOWN[@]}" "-R" "${USER}:${GROUP}" "${HOMEBREW_REPOSITORY}"
+execute_sudo "${CHOWN[@]}" "-R" "${INSTALL_USER}:${GROUP}" "${HOMEBREW_REPOSITORY}"
 
 if ! [[ -d "${HOMEBREW_CACHE}" ]]
 then
@@ -776,7 +805,7 @@ then
 fi
 if file_not_owned "${HOMEBREW_CACHE}"
 then
-  execute_sudo "${CHOWN[@]}" "-R" "${USER}" "${HOMEBREW_CACHE}"
+  execute_sudo "${CHOWN[@]}" "-R" "${INSTALL_USER}" "${HOMEBREW_CACHE}"
 fi
 if file_not_grpowned "${HOMEBREW_CACHE}"
 then
