@@ -108,8 +108,8 @@ then
 fi
 
 # Allow delegating installation to a different user (useful for installs by root)
-INSTALL_USER="${INSTALL_USER-$USER}"
-INSTALL_HOME=$(eval echo ~"$INSTALL_USER")
+INSTALL_USER="${INSTALL_USER-${USER}}"
+INSTALL_HOME=$(eval echo ~"${INSTALL_USER}")
 
 # First check OS.
 OS="$(uname)"
@@ -316,10 +316,10 @@ version_lt() {
 }
 
 check_run_command_as_root() {
-  INSTALL_USER_UID=$(id -u $INSTALL_USER)
-  if [[ "$INSTALL_USER_UID" != "0" ]]
+  INSTALL_USER_UID=$(id -u "${INSTALL_USER}")
+  if [[ "${INSTALL_USER_UID}" != "0" ]]
   then
-    ohai "Installing homebrew for user $INSTALL_USER"
+    ohai "Installing homebrew for user ${INSTALL_USER}"
     return
   fi
 
