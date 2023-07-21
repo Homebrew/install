@@ -108,7 +108,7 @@ then
 fi
 
 # Allow delegating installation to a different user (useful for installs by root)
-INSTALL_USER=${INSTALL_USER-$USER}
+INSTALL_USER="${INSTALL_USER-$USER}"
 INSTALL_HOME=$(eval echo ~"$INSTALL_USER")
 
 # First check OS.
@@ -235,33 +235,28 @@ have_sudo_access() {
   return "${HAVE_SUDO_ACCESS}"
 }
 
-ex() {
+execute() {
   if ! "$@"
   then
     abort "$(printf "Failed during: %s" "$(shell_join "$@")")"
   fi
-
 }
 
-execute() {
+execute_user() {
   local -a args=("$@")
-  if [[ $INSTALL_USER == $USER ]]
+  if [[ "${INSTALL_USER}" == "${USER}" ]]
   then
     ohai "${args[@]}"
-    ex "${args[@]}"
+    execute "${args[@]}"
   else
-    ohai "/usr/bin/sudo" -u "$INSTALL_USER" -H "${args[@]}"
-    ex "/usr/bin/sudo" -u "$INSTALL_USER" -H "${args[@]}"
+    ohai "/usr/bin/sudo" "-Hu" "${INSTALL_USER}" "${args[@]}"
+    execute "/usr/bin/sudo" "-Hu" "${INSTALL_USER}" "${args[@]}"
   fi
 }
 
 execute_sudo() {
   local -a args=("$@")
-  if [[ "${EUID:-${UID}}" == "0" ]]
-  then
-    ohai "${args[@]}"
-    execute "${args[@]}"
-  elif have_sudo_access
+  if [[ "${EUID:-${UID}}" != "0" ]] && have_sudo_access
   then
     if [[ -n "${SUDO_ASKPASS-}" ]]
     then
@@ -270,7 +265,6 @@ execute_sudo() {
     ohai "/usr/bin/sudo" "${args[@]}"
     execute "/usr/bin/sudo" "${args[@]}"
   else
-    # This is probably redundant. Better to abort here..
     ohai "${args[@]}"
     execute "${args[@]}"
   fi
@@ -322,21 +316,19 @@ version_lt() {
 }
 
 check_run_command_as_root() {
-  [[ "${EUID:-${UID}}" == "0" ]] || return
+  INSTALL_USER_UID=$(id -u $INSTALL_USER)
+  if [[ "$INSTALL_USER_UID" != "0" ]]
+  then
+    ohai "Installing homebrew for user $INSTALL_USER"
+    return
+  fi
 
   # Allow Azure Pipelines/GitHub Actions/Docker/Concourse/Kubernetes to do everything as root (as it's normal there)
   [[ -f /.dockerenv ]] && return
   [[ -f /run/.containerenv ]] && return
   [[ -f /proc/1/cgroup ]] && grep -E "azpl_job|actions_job|docker|garden|kubepods" -q /proc/1/cgroup && return
 
-  INSTALL_USER_UID=$(id -u $INSTALL_USER)
-  if [[ "$INSTALL_USER_UID" != "0" ]]
-  then
-    ohai "Delegating installation to $INSTALL_USER"
-    return
-  fi
-
-  abort "Don't run this as root, delegate installation by setting INSTALL_USER=<non-root-user>!"
+  abort "Refusing install as root. Define INSTALL_USER=<user> to delegate installation to a user"
 }
 
 should_install_command_line_tools() {
@@ -796,7 +788,7 @@ then
   then
     execute_sudo "${MKDIR[@]}" "${HOMEBREW_CACHE}"
   else
-    execute "${MKDIR[@]}" "${HOMEBREW_CACHE}"
+    execute_user "${MKDIR[@]}" "${HOMEBREW_CACHE}"
   fi
 fi
 if exists_but_not_writable "${HOMEBREW_CACHE}"
@@ -813,7 +805,7 @@ then
 fi
 if [[ -d "${HOMEBREW_CACHE}" ]]
 then
-  execute "${TOUCH[@]}" "${HOMEBREW_CACHE}/.cleaned"
+  execute_user "${TOUCH[@]}" "${HOMEBREW_CACHE}/.cleaned"
 fi
 
 if should_install_command_line_tools && version_ge "${macos_version}" "10.13"
@@ -844,7 +836,7 @@ fi
 if should_install_command_line_tools && test -t 0
 then
   ohai "Installing the Command Line Tools (expect a GUI popup):"
-  execute "/usr/bin/xcode-select" "--install"
+  execute_user "/usr/bin/xcode-select" "--install"
   echo "Press any key when the installation has completed."
   getc
   execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
@@ -929,28 +921,28 @@ ohai "Downloading and installing Homebrew..."
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
 
   # we do it in four steps to avoid merge errors when reinstalling
-  execute "${USABLE_GIT}" "-c" "init.defaultBranch=master" "init" "--quiet"
+  execute_user "${USABLE_GIT}" "-c" "init.defaultBranch=master" "init" "--quiet"
 
   # "git remote add" will fail if the remote is defined in the global config
-  execute "${USABLE_GIT}" "config" "remote.origin.url" "${HOMEBREW_BREW_GIT_REMOTE}"
-  execute "${USABLE_GIT}" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
+  execute_user "${USABLE_GIT}" "config" "remote.origin.url" "${HOMEBREW_BREW_GIT_REMOTE}"
+  execute_user "${USABLE_GIT}" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
 
   # ensure we don't munge line endings on checkout
-  execute "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
+  execute_user "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
 
   # make sure symlinks are saved as-is
-  execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
+  execute_user "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
 
-  execute "${USABLE_GIT}" "fetch" "--force" "origin"
-  execute "${USABLE_GIT}" "fetch" "--force" "--tags" "origin"
+  execute_user "${USABLE_GIT}" "fetch" "--force" "origin"
+  execute_user "${USABLE_GIT}" "fetch" "--force" "--tags" "origin"
 
-  execute "${USABLE_GIT}" "reset" "--hard" "origin/master"
+  execute_user "${USABLE_GIT}" "reset" "--hard" "origin/master"
 
   if [[ "${HOMEBREW_REPOSITORY}" != "${HOMEBREW_PREFIX}" ]]
   then
     if [[ "${HOMEBREW_REPOSITORY}" == "${HOMEBREW_PREFIX}/Homebrew" ]]
     then
-      execute "ln" "-sf" "../Homebrew/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
+      execute_user "ln" "-sf" "../Homebrew/bin/brew" "${HOMEBREW_PREFIX}/bin/brew"
     else
       abort "The Homebrew/brew repository should be placed in the Homebrew prefix directory."
     fi
@@ -962,23 +954,23 @@ ohai "Downloading and installing Homebrew..."
     # shellcheck disable=SC2016
     ohai 'Tapping homebrew/core because `$HOMEBREW_NO_INSTALL_FROM_API` is set.'
     (
-      execute "${MKDIR[@]}" "${HOMEBREW_CORE}"
+      execute_user "${MKDIR[@]}" "${HOMEBREW_CORE}"
       cd "${HOMEBREW_CORE}" >/dev/null || return
 
-      execute "${USABLE_GIT}" "-c" "init.defaultBranch=master" "init" "--quiet"
-      execute "${USABLE_GIT}" "config" "remote.origin.url" "${HOMEBREW_CORE_GIT_REMOTE}"
-      execute "${USABLE_GIT}" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
-      execute "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
-      execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
-      execute "${USABLE_GIT}" "fetch" "--force" "origin" "refs/heads/master:refs/remotes/origin/master"
-      execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
-      execute "${USABLE_GIT}" "reset" "--hard" "origin/master"
+      execute_user "${USABLE_GIT}" "-c" "init.defaultBranch=master" "init" "--quiet"
+      execute_user "${USABLE_GIT}" "config" "remote.origin.url" "${HOMEBREW_CORE_GIT_REMOTE}"
+      execute_user "${USABLE_GIT}" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
+      execute_user "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
+      execute_user "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
+      execute_user "${USABLE_GIT}" "fetch" "--force" "origin" "refs/heads/master:refs/remotes/origin/master"
+      execute_user "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
+      execute_user "${USABLE_GIT}" "reset" "--hard" "origin/master"
 
       cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
     ) || exit 1
   fi
 
-  execute "${HOMEBREW_PREFIX}/bin/brew" "update" "--force" "--quiet"
+  execute_user "${HOMEBREW_PREFIX}/bin/brew" "update" "--force" "--quiet"
 ) || exit 1
 
 if [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]
@@ -1014,8 +1006,8 @@ EOS
 
 (
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
-  execute "${USABLE_GIT}" "config" "--replace-all" "homebrew.analyticsmessage" "true"
-  execute "${USABLE_GIT}" "config" "--replace-all" "homebrew.caskanalyticsmessage" "true"
+  execute_user "${USABLE_GIT}" "config" "--replace-all" "homebrew.analyticsmessage" "true"
+  execute_user "${USABLE_GIT}" "config" "--replace-all" "homebrew.caskanalyticsmessage" "true"
 ) || exit 1
 
 ohai "Next steps:"
