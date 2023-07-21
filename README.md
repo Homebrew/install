@@ -28,6 +28,12 @@ If you want to run the Homebrew installer non-interactively without prompting fo
 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
+If you want to run the Homebrew installer as root whithout prompting for passwords, while installing for a non-root user, you can use:
+
+```bash
+INSTALL_USER=<user> /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
 ## Uninstall Homebrew
 
 ```bash
