@@ -39,6 +39,29 @@ then
   abort 'Bash must not run in POSIX mode. Please unset POSIXLY_CORRECT and try again.'
 fi
 
+usage() {
+  cat <<EOS
+Homebrew Installer
+Usage: [NONINTERACTIVE=1] [CI=1] $0 [options]
+    -h, --help       Display this message.
+    NONINTERACTIVE   Install without prompting.
+    CI               Imply NONINTERACTIVE.
+EOS
+  exit "${1:-0}"
+}
+
+while [[ $# -gt 0 ]]
+do
+  case "$1" in
+    -h | --help) usage ;;
+    *)
+      warn "Unrecognized option: '$1'"
+      usage 1
+      ;;
+  esac
+  # shift # Command appears to be unreachable. Check usage (or ignore if invoked indirectly). shellcheck (SC2317)
+done
+
 # string formatters
 if [[ -t 1 ]]
 then
