@@ -42,7 +42,7 @@ fi
 usage() {
   cat <<EOS
 Homebrew Installer
-Usage: [NONINTERACTIVE=1] [CI=1] $0 [options]
+Usage: [NONINTERACTIVE=1] [CI=1] install.sh [options]
     -h, --help       Display this message.
     NONINTERACTIVE   Install without prompting for user input
     CI               Imply NONINTERACTIVE.
