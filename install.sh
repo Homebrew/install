@@ -50,8 +50,8 @@ EOS
   exit "${1:-0}"
 }
 
-while [[ $# -gt 0 ]]
-do
+if [[ $# -gt 0 ]]
+then
   case "$1" in
     -h | --help) usage ;;
     *)
@@ -59,7 +59,7 @@ do
       usage 1
       ;;
   esac
-done
+fi
 
 # string formatters
 if [[ -t 1 ]]
