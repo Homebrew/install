@@ -45,7 +45,7 @@ Homebrew Installer
 Usage: [NONINTERACTIVE=1] [CI=1] install.sh [options]
     -h, --help       Display this message.
     NONINTERACTIVE   Install without prompting for user input
-    CI               Imply NONINTERACTIVE.
+    CI               Install in CI mode (e.g. do not prompt for user input)
 EOS
   exit "${1:-0}"
 }
