@@ -59,7 +59,6 @@ do
       usage 1
       ;;
   esac
-  # shift # Command appears to be unreachable. Check usage (or ignore if invoked indirectly). shellcheck (SC2317)
 done
 
 # string formatters
