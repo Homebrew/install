@@ -44,7 +44,7 @@ usage() {
 Homebrew Installer
 Usage: [NONINTERACTIVE=1] [CI=1] $0 [options]
     -h, --help       Display this message.
-    NONINTERACTIVE   Install without prompting.
+    NONINTERACTIVE   Install without prompting for user input
     CI               Imply NONINTERACTIVE.
 EOS
   exit "${1:-0}"
