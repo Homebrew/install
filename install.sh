@@ -1017,7 +1017,7 @@ case "${SHELL}" in
     shell_rcfile="${HOME}/.bashrc"
     ;;
   */zsh*)
-    shell_rcfile="${HOME}/.zshrc"
+    shell_rcfile="${ZDOTDIR:-"${HOME}"}/.zshrc"
     ;;
   *)
     shell_rcfile="${ENV:-"${HOME}/.profile"}"
