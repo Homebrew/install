@@ -1014,10 +1014,20 @@ EOS
 ohai "Next steps:"
 case "${SHELL}" in
   */bash*)
-    shell_rcfile="${HOME}/.bashrc"
+    if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
+    then
+      shell_rcfile="${HOME}/.bashrc"
+    else
+      shell_rcfile="${HOME}/.bash_profile"
+    fi
     ;;
   */zsh*)
-    shell_rcfile="${ZDOTDIR:-"${HOME}"}/.zshrc"
+    if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
+    then
+      shell_rcfile="${ZDOTDIR:-"${HOME}"}/.zshrc"
+    else
+      shell_rcfile="${ZDOTDIR:-"${HOME}"}/.zprofile"
+    fi
     ;;
   *)
     shell_rcfile="${ENV:-"${HOME}/.profile"}"
