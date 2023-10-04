@@ -817,9 +817,7 @@ then
   execute_sudo "${TOUCH[@]}" "${clt_placeholder}"
 
   clt_label_command="/usr/sbin/softwareupdate -l |
-                      grep -B 1 -E 'Command Line Tools' |
-                      awk -F'*' '/^ *\\*/ {print \$2}' |
-                      sed -e 's/^ *Label: //' -e 's/^ *//' |
+                      awk '/Label:[[:blank:]]+Command Line Tools/ {\$1=\$1; sub(/^.*Label:[[:blank:]]+/,\"\"); print; next}' |
                       sort -V |
                       tail -n1"
   clt_label="$(chomp "$(/bin/bash -c "${clt_label_command}")")"
