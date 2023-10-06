@@ -1014,22 +1014,27 @@ EOS
 ohai "Next steps:"
 case "${SHELL}" in
   */bash*)
-    if [[ -r "${HOME}/.bash_profile" ]]
+    if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
     then
-      shell_profile="${HOME}/.bash_profile"
+      shell_rcfile="${HOME}/.bashrc"
     else
-      shell_profile="${HOME}/.profile"
+      shell_rcfile="${HOME}/.bash_profile"
     fi
     ;;
   */zsh*)
-    shell_profile="${HOME}/.zprofile"
+    if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
+    then
+      shell_rcfile="${ZDOTDIR:-"${HOME}"}/.zshrc"
+    else
+      shell_rcfile="${ZDOTDIR:-"${HOME}"}/.zprofile"
+    fi
     ;;
   *)
-    shell_profile="${HOME}/.profile"
+    shell_rcfile="${ENV:-"${HOME}/.profile"}"
     ;;
 esac
 
-if grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_profile}"
+if grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_rcfile}"
 then
   if ! [[ -x "$(command -v brew)" ]]
   then
@@ -1041,7 +1046,7 @@ EOS
 else
   cat <<EOS
 - Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
-    (echo; echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"') >> ${shell_profile}
+    (echo; echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"') >> ${shell_rcfile}
     eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
 fi
@@ -1054,8 +1059,8 @@ then
     plural="s"
   fi
   printf -- "- Run these commands in your terminal to add the non-default Git remote%s for %s:\n" "${plural}" "${non_default_repos}"
-  printf "    echo '# Set PATH, MANPATH, etc., for Homebrew.' >> %s\n" "${shell_profile}"
-  printf "    echo '%s' >> ${shell_profile}\n" "${additional_shellenv_commands[@]}"
+  printf "    echo '# Set PATH, MANPATH, etc., for Homebrew.' >> %s\n" "${shell_rcfile}"
+  printf "    echo '%s' >> ${shell_rcfile}\n" "${additional_shellenv_commands[@]}"
   printf "    %s\n" "${additional_shellenv_commands[@]}"
 fi
 
