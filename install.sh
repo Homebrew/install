@@ -1029,6 +1029,9 @@ case "${SHELL}" in
       shell_rcfile="${ZDOTDIR:-"${HOME}"}/.zprofile"
     fi
     ;;
+  */fish*)
+    shell_rcfile="${HOME}/.config/fish/config.fish"
+    ;;
   *)
     shell_rcfile="${ENV:-"${HOME}/.profile"}"
     ;;
