@@ -262,7 +262,7 @@ execute() {
 
 execute_sudo() {
   local -a args=("$@")
-  if have_sudo_access
+  if [[ "${EUID:-${UID}}" != "0" ]] && have_sudo_access
   then
     if [[ -n "${SUDO_ASKPASS-}" ]]
     then
@@ -484,7 +484,7 @@ ohai 'Checking for `sudo` access (which may request your password)...'
 
 if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
 then
-  have_sudo_access
+  [[ "${EUID:-${UID}}" == "0" ]] || have_sudo_access
 elif ! [[ -w "${HOMEBREW_PREFIX}" ]] &&
      ! [[ -w "/home/linuxbrew" ]] &&
      ! [[ -w "/home" ]] &&
