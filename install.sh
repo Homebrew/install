@@ -910,13 +910,6 @@ EOABORT
   fi
 fi
 
-# Set HOMEBREW_DEVELOPER on Linux systems where usable Git/cURL is not in /usr/bin
-if [[ -n "${HOMEBREW_ON_LINUX-}" && (-n "${HOMEBREW_CURL_PATH-}" || -n "${HOMEBREW_GIT_PATH-}") ]]
-then
-  ohai "Setting HOMEBREW_DEVELOPER to use Git/cURL not in /usr/bin"
-  export HOMEBREW_DEVELOPER=1
-fi
-
 ohai "Downloading and installing Homebrew..."
 (
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
