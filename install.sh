@@ -929,8 +929,14 @@ ohai "Downloading and installing Homebrew..."
 
   execute "${USABLE_GIT}" "fetch" "--force" "origin"
   execute "${USABLE_GIT}" "fetch" "--force" "--tags" "origin"
+  execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
 
-  execute "${USABLE_GIT}" "reset" "--hard" "origin/master"
+  LATEST_GIT_TAG="$("${USABLE_GIT}" tag --list --sort="-version:refname" | head -n1)"
+  if [[ -z "${LATEST_GIT_TAG}" ]]
+  then
+    abort "Failed to query latest Homebrew/brew Git tag."
+  fi
+  execute "${USABLE_GIT}" "checkout" "--force" "-B" "stable" "${LATEST_GIT_TAG}"
 
   if [[ "${HOMEBREW_REPOSITORY}" != "${HOMEBREW_PREFIX}" ]]
   then
