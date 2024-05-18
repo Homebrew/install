@@ -160,7 +160,7 @@ then
   fi
   HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
 
-  STAT_PRINTF=("stat" "-f")
+  STAT_PRINTF=("/usr/bin/stat" "-f")
   PERMISSION_FORMAT="%A"
   CHOWN=("/usr/sbin/chown")
   CHGRP=("/usr/bin/chgrp")
@@ -175,7 +175,7 @@ else
   HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
 
-  STAT_PRINTF=("stat" "--printf")
+  STAT_PRINTF=("/usr/bin/stat" "--printf")
   PERMISSION_FORMAT="%a"
   CHOWN=("/bin/chown")
   CHGRP=("/bin/chgrp")
