@@ -12,8 +12,6 @@ AllCops:
   - Taps/*/*/vendor/**/*
   SuggestExtensions:
     rubocop-minitest: false
-Homebrew:
-  Enabled: true
 Layout/ArgumentAlignment:
   Exclude:
   - Taps/*/*/*.rb
