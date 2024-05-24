@@ -42,4 +42,11 @@ If you want to run the Homebrew uninstaller non-interactively, you can use:
 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
 ```
 
-Download the uninstall script and run `/bin/bash uninstall.sh --help` to view more uninstall options.
+If you want to to uninstall Homebrew from a specific prefix (e.g. when migrating from Intel to Apple Silicon processors), download the uninstall script and run it with `--path`:
+
+```
+curl -fsSLO https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh
+/bin/bash uninstall.sh --path /usr/local
+```
+
+Run the downloaded script with `/bin/bash uninstall.sh --help` to view more uninstall options.
