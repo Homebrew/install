@@ -1,11 +1,17 @@
 name: CI
+
 on:
   push:
     branches:
       - master
   pull_request:
+
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   tests:
@@ -21,21 +27,14 @@ jobs:
           - os: ubuntu-latest
             shell: bash
           - os: windows-latest
-            shell: "wsl-bash {0}"
-    runs-on: ${{matrix.os}}
+            shell: wsl -- dos2unix <"$(wslpath '{0}')" | bash --noprofile --norc -euo pipefail
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: ${{ matrix.shell }}
     steps:
-      - name: Set up WSL
-        if: runner.os == 'windows'
-        shell: powershell
-        run: |
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-
       - name: Set up Git repository
-        uses: actions/checkout@main
+        uses: actions/checkout@v4
 
       - name: Cleanup macOS
         if: runner.os == 'macOS'
@@ -44,13 +43,23 @@ jobs:
                       /Library/Developer/CommandLineTools
           sudo xcode-select --reset
 
-      - name: Install WSL
-        if: runner.os == 'windows'
-        uses: Vampire/setup-wsl@6f87de3102a29ac6b92800f33bf1e8d9164ac0a1
-        with:
-          distribution: Ubuntu-22.04
-          wsl-shell-user: runner
-          additional-packages: build-essential
+      - name: Set up WSL
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          wsl --update
+          wsl --version
+          wsl --set-default-version 2
+          wsl --install Ubuntu-22.04 --no-launch
+          ubuntu2204 install --root
+          wsl --set-default Ubuntu-22.04
+          wsl --list --verbose
+          wsl --exec apt-get update
+          wsl --exec apt-get install -y --no-install-recommends build-essential dos2unix
+          wsl --exec /usr/sbin/useradd --create-home runner
+          wsl -- --% echo "runner ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/runner
+          ubuntu2204 config --default-user runner
+          echo "WSLENV=CI:GITHUB_ACTIONS:RUNNER_OS:GITHUB_PATH/p" >> $env:GITHUB_ENV # allow some basic envs to be passed in
 
       - name: Check Bash 3.x syntax
         if: runner.os == 'macOS'
@@ -59,11 +68,13 @@ jobs:
           /bin/bash -u -O extglob -n uninstall.sh
 
       - name: Set up Homebrew PATH
-        if: runner.os != 'windows'
         run: |
-          if [[ "${{ runner.os }}" = "macOS" ]]
+          if [[ "${RUNNER_OS}" = "macOS" ]]
           then
             echo "/usr/local/bin:/usr/bin:/bin" >> "${GITHUB_PATH}"
+          elif [[ "${RUNNER_OS}" = "Windows" ]]
+          then
+            echo "$(wslpath -w /home/linuxbrew/.linuxbrew/bin)" >> "${GITHUB_PATH}"
           else
             echo "/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin" >> "${GITHUB_PATH}"
           fi
@@ -76,15 +87,6 @@ jobs:
             /bin/bash uninstall.sh -f >/dev/null
           fi
 
-      - name: Set up WSL environment
-        if: runner.os == 'windows'
-        shell: "wsl-bash -u root {0}"
-        run: |
-          echo "runner ALL=(ALL) NOPASSWD:ALL" | tee /etc/sudoers.d/runner
-          chmod 644 /etc/sudoers.d/runner
-          echo -e "#!/bin/bash\nexec /home/linuxbrew/.linuxbrew/bin/brew \"\$@\"" | tee /usr/local/bin/brew
-          chmod 755 /usr/local/bin/brew
-
       - run: /bin/bash -c "$(cat install.sh)"
 
       - run: brew config
@@ -96,14 +98,13 @@ jobs:
       - run: /bin/bash -c "$(cat install.sh)"
 
       - name: Uninstall and reinstall with sudo NOPASSWD
-        if: runner.os == 'linux'
+        if: runner.os == 'Linux'
         run: |
           echo "${USER} ALL=(ALL) NOPASSWD:ALL" | sudo tee "/etc/sudoers.d/${USER}"
           /bin/bash uninstall.sh -f >/dev/null
           /bin/bash -c "$(cat install.sh)"
 
       - name: Check code styles
-        if: runner.os != 'windows'
         run: |
           brew install shellcheck shfmt diffutils
           brew style *.sh
