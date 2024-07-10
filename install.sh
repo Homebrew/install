@@ -1048,7 +1048,7 @@ EOS
 else
   cat <<EOS
 - Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
-    (echo; echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"') >> ${shell_rcfile}
+    grep -qxF 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"' /Users/$(id -un)/.zprofile || (echo; echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"') >> /Users/$(id -un)/.zprofile
     eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 EOS
 fi
