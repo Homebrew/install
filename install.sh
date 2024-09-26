@@ -927,8 +927,15 @@ ohai "Downloading and installing Homebrew..."
   # make sure symlinks are saved as-is
   execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
 
-  execute "${USABLE_GIT}" "fetch" "--quiet" "--progress" "--force" "origin"
-  execute "${USABLE_GIT}" "fetch" "--quiet" "--progress" "--force" "--tags" "origin"
+  if [[ -z "${NONINTERACTIVE-}" ]]
+  then
+    quiet_progress=("--quiet" "--progress")
+  else
+    quiet_progress=("--quiet")
+  fi
+  execute "${USABLE_GIT}" "fetch" "${quiet_progress[@]}" "--force" "origin"
+  execute "${USABLE_GIT}" "fetch" "${quiet_progress[@]}" "--force" "--tags" "origin"
+
   execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
 
   LATEST_GIT_TAG="$("${USABLE_GIT}" tag --list --sort="-version:refname" | head -n1)"
@@ -962,7 +969,7 @@ ohai "Downloading and installing Homebrew..."
       execute "${USABLE_GIT}" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
       execute "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
       execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
-      execute "${USABLE_GIT}" "fetch" "--force" "--quiet" "--progress" \
+      execute "${USABLE_GIT}" "fetch" "--force" "${quiet_progress[@]}" \
         "origin" "refs/heads/master:refs/remotes/origin/master"
       execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
       execute "${USABLE_GIT}" "reset" "--hard" "origin/master"
