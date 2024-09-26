@@ -927,8 +927,15 @@ ohai "Downloading and installing Homebrew..."
   # make sure symlinks are saved as-is
   execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
 
-  execute "${USABLE_GIT}" "fetch" "--force" "origin"
-  execute "${USABLE_GIT}" "fetch" "--force" "--tags" "origin"
+  if [[ -z "${NONINTERACTIVE-}" ]]
+  then
+    quiet_progress=("--quiet" "--progress")
+  else
+    quiet_progress=("--quiet")
+  fi
+  execute "${USABLE_GIT}" "fetch" "${quiet_progress[@]}" "--force" "origin"
+  execute "${USABLE_GIT}" "fetch" "${quiet_progress[@]}" "--force" "--tags" "origin"
+
   execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
 
   LATEST_GIT_TAG="$("${USABLE_GIT}" tag --list --sort="-version:refname" | head -n1)"
@@ -936,7 +943,7 @@ ohai "Downloading and installing Homebrew..."
   then
     abort "Failed to query latest Homebrew/brew Git tag."
   fi
-  execute "${USABLE_GIT}" "checkout" "--force" "-B" "stable" "${LATEST_GIT_TAG}"
+  execute "${USABLE_GIT}" "checkout" "--quiet" "--force" "-B" "stable" "${LATEST_GIT_TAG}"
 
   if [[ "${HOMEBREW_REPOSITORY}" != "${HOMEBREW_PREFIX}" ]]
   then
@@ -962,7 +969,8 @@ ohai "Downloading and installing Homebrew..."
       execute "${USABLE_GIT}" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
       execute "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
       execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
-      execute "${USABLE_GIT}" "fetch" "--force" "origin" "refs/heads/master:refs/remotes/origin/master"
+      execute "${USABLE_GIT}" "fetch" "--force" "${quiet_progress[@]}" \
+        "origin" "refs/heads/master:refs/remotes/origin/master"
       execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
       execute "${USABLE_GIT}" "reset" "--hard" "origin/master"
 
