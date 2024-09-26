@@ -963,7 +963,7 @@ ohai "Downloading and installing Homebrew..."
       execute "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
       execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
       execute "${USABLE_GIT}" "fetch" "--force" "--quiet" "--progress" \
-                                      "origin" "refs/heads/master:refs/remotes/origin/master"
+        "origin" "refs/heads/master:refs/remotes/origin/master"
       execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
       execute "${USABLE_GIT}" "reset" "--hard" "origin/master"
 
