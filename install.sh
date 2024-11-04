@@ -1082,6 +1082,9 @@ then
   if [[ -x "$(command -v apt-get)" ]]
   then
     echo "    sudo apt-get install build-essential"
+  elif [[ -x "$(command -v dnf)" ]]
+  then
+    echo "    sudo dnf group install development-tools"
   elif [[ -x "$(command -v yum)" ]]
   then
     echo "    sudo yum groupinstall 'Development Tools'"
