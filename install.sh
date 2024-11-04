@@ -1084,7 +1084,10 @@ then
     echo "    sudo apt-get install build-essential"
   elif [[ -x "$(command -v dnf)" ]]
   then
-    echo "    sudo dnf groupinstall development-tools"
+    echo "    sudo dnf group install development-tools"
+  elif [[ -x "$(command -v yum)" ]]
+  then
+    echo "    sudo yum groupinstall 'Development Tools'"
   elif [[ -x "$(command -v pacman)" ]]
   then
     echo "    sudo pacman -S base-devel"
