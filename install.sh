@@ -492,7 +492,7 @@ elif ! [[ -w "${HOMEBREW_PREFIX}" ]] &&
 then
   abort "$(
     cat <<EOABORT
-Insufficient permissions to install Homebrew to \"${HOMEBREW_PREFIX}\" (the default prefix).
+Insufficient permissions to install Homebrew to "${HOMEBREW_PREFIX}" (the default prefix).
 
 Alternative (unsupported) installation methods are available at:
 https://docs.brew.sh/Installation#alternative-installs
