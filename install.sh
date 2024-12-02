@@ -393,6 +393,12 @@ test_curl() {
     return 1
   fi
 
+  if [[ "$1" == "/snap/bin/curl" ]]
+  then
+    warn "Ignoring $1 (curl snap is too restricted)"
+    return 1
+  fi
+
   local curl_version_output curl_name_and_version
   curl_version_output="$("$1" --version 2>/dev/null)"
   curl_name_and_version="${curl_version_output%% (*}"
