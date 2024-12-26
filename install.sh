@@ -39,28 +39,6 @@ then
   abort 'Bash must not run in POSIX mode. Please unset POSIXLY_CORRECT and try again.'
 fi
 
-usage() {
-  cat <<EOS
-Homebrew Installer
-Usage: [NONINTERACTIVE=1] [CI=1] install.sh [options]
-    -h, --help       Display this message.
-    NONINTERACTIVE   Install without prompting for user input
-    CI               Install in CI mode (e.g. do not prompt for user input)
-EOS
-  exit "${1:-0}"
-}
-
-while [[ $# -gt 0 ]]
-do
-  case "$1" in
-    -h | --help) usage ;;
-    *)
-      warn "Unrecognized option: '$1'"
-      usage 1
-      ;;
-  esac
-done
-
 # string formatters
 if [[ -t 1 ]]
 then
@@ -97,6 +75,28 @@ ohai() {
 warn() {
   printf "${tty_red}Warning${tty_reset}: %s\n" "$(chomp "$1")" >&2
 }
+
+usage() {
+  cat <<EOS
+Homebrew Installer
+Usage: [NONINTERACTIVE=1] [CI=1] install.sh [options]
+    -h, --help       Display this message.
+    NONINTERACTIVE   Install without prompting for user input
+    CI               Install in CI mode (e.g. do not prompt for user input)
+EOS
+  exit "${1:-0}"
+}
+
+while [[ $# -gt 0 ]]
+do
+  case "$1" in
+    -h | --help) usage ;;
+    *)
+      warn "Unrecognized option: '$1'"
+      usage 1
+      ;;
+  esac
+done
 
 # Check if script is run non-interactively (e.g. CI)
 # If it is run non-interactively we should not prompt for passwords.
