@@ -174,7 +174,8 @@ else
 
   HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
 
-  if [[ -z "$HOMEBREW_PREFIX" ]]; then
+  if [[ -z "${HOMEBREW_PREFIX}" ]]
+  then
       echo "HOMEBREW_PREFIX is not set. Installing to ${HOMEBREW_PREFIX}"
   else
       echo "HOMEBREW_PREFIX is set to: ${HOMEBREW_PREFIX}"
