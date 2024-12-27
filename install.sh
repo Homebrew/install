@@ -170,8 +170,16 @@ then
 else
   UNAME_MACHINE="$(uname -m)"
 
-  # On Linux, this script installs to /home/linuxbrew/.linuxbrew only
-  HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
+  # On Linux, this script installs to /home/linuxbrew/.linuxbrew only if HOMEBREW_PREFIX is not set.
+
+  if [ -z "$HOMEBREW_PREFIX" ]; then
+      HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
+      echo "HOMEBREW_PREFIX is not set. Installing to $HOMEBREW_PREFIX"
+  else
+      echo "HOMEBREW_PREFIX is set to: $HOMEBREW_PREFIX"
+      echo "Installing to $HOMEBREW_PREFIX"
+  fi
+
   HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
 
