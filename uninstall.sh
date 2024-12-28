@@ -462,6 +462,8 @@ fi
 dir_children "${HOMEBREW_REPOSITORY}" "${HOMEBREW_PREFIX}" |
   sort -u >"${tmpdir}/residual_files"
 
+grep -v "MacGPG2" "${tmpdir}/residual_files" >"${tmpdir}/filtered_residual_files"
+
 if [[ -s "${tmpdir}/residual_files" && -z "${opt_quiet}" ]]
 then
   echo "The following possible Homebrew files were not deleted:"
