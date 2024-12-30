@@ -459,7 +459,12 @@ then
   fi
 fi
 
-dir_children "${HOMEBREW_REPOSITORY}" "${HOMEBREW_PREFIX}" |
+residual_dirs=("${HOMEBREW_REPOSITORY}")
+if [[ "${HOMEBREW_PREFIX}" != "/usr/local" ]]
+then
+  residual_dirs+=("${HOMEBREW_PREFIX}")
+fi
+dir_children "${residual_dirs[@]}" |
   sort -u >"${tmpdir}/residual_files"
 
 if [[ -s "${tmpdir}/residual_files" && -z "${opt_quiet}" ]]
