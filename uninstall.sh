@@ -459,7 +459,7 @@ then
   fi
 fi
 
-residual_dirs=("${HOMEREW_REPOSITORY}")
+residual_dirs=("${HOMEBREW_REPOSITORY}")
 if [[ "${HOMEBREW_PREFIX}" != "/usr/local" ]]
 then
   residual_dirs+=("${HOMEBREW_PREFIX}")
