@@ -20,13 +20,13 @@ jobs:
         os:
           - macOS-latest
           - ubuntu-latest
-          - windows-latest
+          - windows-2025
         include:
           - os: macOS-latest
             shell: bash
           - os: ubuntu-latest
             shell: bash
-          - os: windows-latest
+          - os: windows-2025
             shell: wsl -- dos2unix <"$(wslpath '{0}')" | bash --noprofile --norc -euo pipefail
     runs-on: ${{ matrix.os }}
     defaults:
@@ -49,25 +49,10 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          wsl --update
-          wsl --version
-          wsl --set-default-version 2
-          # `wsl --install Ubuntu-22.04 --no-launch` has been having issues in CI since 2024-06-14
-          Invoke-WebRequest https://github.com/microsoft/WSL/raw/master/distributions/DistributionInfo.json |
-            Select-Object -ExpandProperty Content |
-            ConvertFrom-JSON |
-            Select-Object -ExpandProperty Distributions |
-            Where-Object Name -EQ "Ubuntu-22.04" |
-            Select-Object -ExpandProperty Amd64PackageUrl |
-            % { Invoke-WebRequest $_ -OutFile Ubuntu2204.appx }
-          Add-AppxPackage Ubuntu2204.appx
-          ubuntu2204 install --root
-          wsl --set-default Ubuntu-22.04
-          wsl --list --verbose
-          wsl --exec apt-get update
-          wsl --exec apt-get install -y --no-install-recommends build-essential dos2unix
-          wsl --exec /usr/sbin/useradd --create-home runner
-          wsl -- --% echo "runner ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/runner
+          mkdir "$env:USERPROFILE\.cloud-init"
+          cp "$env:GITHUB_WORKSPACE\.github\wsl-init.yml" "$env:USERPROFILE\.cloud-init\Ubuntu-22.04.user-data"
+          winget install --id 9PN20MSR04DW --exact --source msstore --accept-source-agreements --accept-package-agreements
+          ubuntu2204 install
           ubuntu2204 config --default-user runner
           echo "WSLENV=CI:GITHUB_ACTIONS:RUNNER_OS:GITHUB_PATH/p" >> $env:GITHUB_ENV # allow some basic envs to be passed in
 
