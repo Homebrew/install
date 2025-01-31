@@ -39,6 +39,12 @@ then
   abort 'Bash must not run in POSIX mode. Please unset POSIXLY_CORRECT and try again.'
 fi
 
+# Check for existing broken installation
+if [[ -d "/opt/homebrew" && ! -x "/opt/homebrew" ]]
+then
+  abort "Existing broken installation detected. Please remove /opt/homebrew and try again."
+fi
+
 # string formatters
 if [[ -t 1 ]]
 then
