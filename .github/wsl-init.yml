@@ -1,0 +1,11 @@
+#cloud-config
+users:
+  - name: runner
+    sudo: ALL=(ALL) NOPASSWD:ALL
+
+apt:
+  conf: APT::Install-Recommends "0";
+
+packages:
+  - build-essential
+  - dos2unix
