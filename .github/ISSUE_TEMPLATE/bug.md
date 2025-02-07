@@ -7,6 +7,7 @@ about: "If you're sure it's reproducible and not just your machine: submit an is
 # Please note we will close your issue without comment if you delete, do not read or do not fill out the issue checklist below and provide ALL the requested information. If you repeatedly fail to use the issue template, we will block you from ever submitting issues to Homebrew again.
 
 - [ ] your problem was from running the official `install` or `uninstall` script?
+- [ ] you carefully read the output and it was not a `git fetch` or other connection issue to GitHub (that Homebrew has no control over)?
 - [ ] after installation: ran `brew config` and `brew doctor` and included their output with your issue? If you couldn't install: provided your OS version with the output of your issue?
 
 <!-- To help us debug your issue, please complete these sections: -->
