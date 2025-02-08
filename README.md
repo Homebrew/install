@@ -13,7 +13,10 @@ If you're on macOS, try out our new `.pkg` installer. Download it from [Homebrew
 If you are running Linux or WSL, [there are some pre-requisite packages to install](https://docs.brew.sh/Homebrew-on-Linux#requirements).
 
 You can set `HOMEBREW_NO_INSTALL_FROM_API` to tap Homebrew/homebrew-core; by default, it will not be tapped as it is no longer necessary.
-
+To install Homebrew to a user-specified directory, use `HOMEBREW_INSTALL_PREFIX` like so:
+```bash
+HOMEBREW_INSTALL_PREFIX='/where/to/install/homebrew' curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
+````
 You can set `HOMEBREW_BREW_GIT_REMOTE` and/or `HOMEBREW_CORE_GIT_REMOTE` in your shell environment to use geolocalized Git mirrors to speed up Homebrew's installation with this script and, after installation, `brew update`.
 
 ```bash
@@ -42,7 +45,7 @@ If you want to run the Homebrew uninstaller non-interactively, you can use:
 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
 ```
 
-If you want to to uninstall Homebrew from a specific prefix (e.g. when migrating from Intel to Apple Silicon processors), download the uninstall script and run it with `--path`:
+If you want to uninstall Homebrew from a specific prefix (e.g. when migrating from Intel to Apple Silicon processors), download the uninstall script and run it with `--path`:
 
 ```
 curl -fsSLO https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh
