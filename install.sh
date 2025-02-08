@@ -260,6 +260,25 @@ execute() {
   fi
 }
 
+retry() {
+  local tries="$1" n="$1" pause=2
+  shift
+  if ! "$@"
+  then
+    while [[ $((--n)) -gt 0 ]]
+    do
+      warn "$(printf "Trying again in %d seconds: %s" "${pause}" "$(shell_join "$@")")"
+      sleep "${pause}"
+      ((pause *= 2))
+      if "$@"
+      then
+        return
+      fi
+    done
+    abort "$(printf "Failed %d times doing: %s" "${tries}" "$(shell_join "$@")")"
+  fi
+}
+
 execute_sudo() {
   local -a args=("$@")
   if [[ "${EUID:-${UID}}" != "0" ]] && have_sudo_access
@@ -939,8 +958,8 @@ ohai "Downloading and installing Homebrew..."
   else
     quiet_progress=("--quiet")
   fi
-  execute "${USABLE_GIT}" "fetch" "${quiet_progress[@]}" "--force" "origin"
-  execute "${USABLE_GIT}" "fetch" "${quiet_progress[@]}" "--force" "--tags" "origin"
+  retry 5 "${USABLE_GIT}" "fetch" "${quiet_progress[@]}" "--force" "origin"
+  retry 5 "${USABLE_GIT}" "fetch" "${quiet_progress[@]}" "--force" "--tags" "origin"
 
   execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
 
@@ -975,7 +994,7 @@ ohai "Downloading and installing Homebrew..."
       execute "${USABLE_GIT}" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
       execute "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
       execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
-      execute "${USABLE_GIT}" "fetch" "--force" "${quiet_progress[@]}" \
+      retry 5 "${USABLE_GIT}" "fetch" "--force" "${quiet_progress[@]}" \
         "origin" "refs/heads/master:refs/remotes/origin/master"
       execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
       execute "${USABLE_GIT}" "reset" "--hard" "origin/master"
