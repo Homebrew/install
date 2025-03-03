@@ -252,15 +252,16 @@ have_sudo_access() {
 
   if [[ -n "${HOMEBREW_ON_MACOS-}" ]] && [[ "${HAVE_SUDO_ACCESS}" -ne 0 ]]
   then
-    abort "$(cat <<EOABORT
+    abort "$(
+      cat <<EOABORT
 Need sudo access on macOS (e.g. the user ${USER} needs to be an Administrator)!
 
-If you want to use Homebrew from a standard (non-admin) macOS account without sudo, run these commands using an admin account:
+Or for a standard (non-admin) user, run:
 
-  sudo mkdir -p "${HOMEBREW_PREFIX}"
-  sudo chown -R "${USER}:${GROUP}" "${HOMEBREW_PREFIX}"
+sudo mkdir -p "${HOMEBREW_PREFIX}"
+sudo chown -R "${USER}:${GROUP}" "${HOMEBREW_PREFIX}"
 
-Then you can rerun this script entirely without admin privileges.
+Then run this installer script again.
 EOABORT
     )"
   fi
