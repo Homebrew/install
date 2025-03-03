@@ -225,6 +225,11 @@ have_sudo_access() {
     return 1
   fi
 
+  if [[ -n "${HOMEBREW_ON_MACOS-}" ]] && [[ -w "${HOMEBREW_PREFIX}" ]]
+  then
+    return 1
+  fi
+
   local -a SUDO=("/usr/bin/sudo")
   if [[ -n "${SUDO_ASKPASS-}" ]]
   then
@@ -247,7 +252,17 @@ have_sudo_access() {
 
   if [[ -n "${HOMEBREW_ON_MACOS-}" ]] && [[ "${HAVE_SUDO_ACCESS}" -ne 0 ]]
   then
-    abort "Need sudo access on macOS (e.g. the user ${USER} needs to be an Administrator)!"
+    abort "$(cat <<EOABORT
+Need sudo access on macOS (e.g. the user ${USER} needs to be an Administrator)!
+
+If you want to use Homebrew from a standard (non-admin) macOS account without sudo, run these commands using an admin account:
+
+  sudo mkdir -p "${HOMEBREW_PREFIX}"
+  sudo chown -R "${USER}:${GROUP}" "${HOMEBREW_PREFIX}"
+
+Then you can rerun this script entirely without admin privileges.
+EOABORT
+    )"
   fi
 
   return "${HAVE_SUDO_ACCESS}"
