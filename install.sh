@@ -217,6 +217,18 @@ REQUIRED_GIT_VERSION=2.7.0   # HOMEBREW_MINIMUM_GIT_VERSION in brew.sh in Homebr
 export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
 export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 
+macos_sudoless_mode() {
+  if [[ -n "${MACOS_SUDOLESS_SATISFIED-}" ]]
+  then
+    return "${MACOS_SUDOLESS_SATISFIED}"
+  fi
+ 
+  [[ -d "${HOMEBREW_PREFIX}" ]] && "${CHMOD[@]}" -R "ug+w" "${HOMEBREW_PREFIX}"
+  MACOS_SUDOLESS_SATISFIED=$?
+  
+  return "${MACOS_SUDOLESS_SATISFIED}"
+}
+
 unset HAVE_SUDO_ACCESS # unset this from the environment
 
 have_sudo_access() {
@@ -225,7 +237,7 @@ have_sudo_access() {
     return 1
   fi
 
-  if [[ -n "${HOMEBREW_ON_MACOS-}" ]] && [[ -w "${HOMEBREW_PREFIX}" ]]
+  if [[ -n "${HOMEBREW_ON_MACOS-}" ]] && macos_sudoless_mode
   then
     return 1
   fi
@@ -260,6 +272,7 @@ Or for a standard (non-admin) user, run:
 
 sudo mkdir -p "${HOMEBREW_PREFIX}"
 sudo chown -R "${USER}:${GROUP}" "${HOMEBREW_PREFIX}"
+sudo chmod -R "ug+w" "${HOMEBREW_PREFIX}"
 
 Then run this installer script again.
 EOABORT
@@ -877,11 +890,24 @@ fi
 # Headless install may have failed, so fallback to original 'xcode-select' method
 if should_install_command_line_tools && test -t 0
 then
-  ohai "Installing the Command Line Tools (expect a GUI popup):"
-  execute "/usr/bin/xcode-select" "--install"
-  echo "Press any key when the installation has completed."
-  getc
-  execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
+  if macos_sudoless_mode
+  then
+    abort "$(
+      cat <<EOABORT
+Installing without sudo on macOS requires manual Command Line Tools installation.  Run:
+
+  sudo xcode-select --install
+
+Then run this installer script again.
+EOABORT
+    )"
+  else
+    ohai "Installing the Command Line Tools (expect a GUI popup):"
+    execute "/usr/bin/xcode-select" "--install"
+    echo "Press any key when the installation has completed."
+    getc
+    execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
+  fi
 fi
 
 if [[ -n "${HOMEBREW_ON_MACOS-}" ]] && ! output="$(/usr/bin/xcrun clang 2>&1)" && [[ "${output}" == *"license"* ]]
