@@ -352,18 +352,28 @@ check_run_command_as_root() {
 }
 
 should_install_command_line_tools() {
-  if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
-  then
+  if [[ -n "${SHOULD_INSTALL_CLT-}" ]]; then
+    return "${SHOULD_INSTALL_CLT}"
+  fi
+
+  if [[ -n "${HOMEBREW_ON_LINUX-}" ]]; then
+    SHOULD_INSTALL_CLT=1
     return 1
   fi
 
-  if version_gt "${macos_version}" "10.13"
-  then
+  local ret
+
+  if version_gt "${macos_version}" "10.13"; then
     ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]]
+    ret=$?
   else
-    ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]] ||
+    ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]] || \
       ! [[ -e "/usr/include/iconv.h" ]]
+    ret=$?
   fi
+
+  SHOULD_INSTALL_CLT=$ret
+  return "$ret"
 }
 
 get_permission() {
