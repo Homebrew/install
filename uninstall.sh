@@ -248,10 +248,13 @@ done
 # Attempt to locate Homebrew unless `--path` is passed
 if [[ "${#homebrew_prefix_candidates[@]}" -eq 0 ]]
 then
-  prefix="$("${homebrew_prefix_default}"/bin/brew --prefix)"
-  [[ -n "${prefix}" ]] && homebrew_prefix_candidates+=("${prefix}")
-  prefix="$(command -v "${homebrew_prefix_default}"/bin/brew)" || prefix=""
-  [[ -n "${prefix}" ]] && homebrew_prefix_candidates+=("$(dirname "$(dirname "$(strip_s "${prefix}")")")")
+  if [[ -x "${homebrew_prefix_default}"/bin/brew ]]
+  then
+    prefix="$("${homebrew_prefix_default}"/bin/brew --prefix)"
+    [[ -n "${prefix}" ]] && homebrew_prefix_candidates+=("${prefix}")
+    prefix="$(command -v "${homebrew_prefix_default}"/bin/brew)" || prefix=""
+    [[ -n "${prefix}" ]] && homebrew_prefix_candidates+=("$(dirname "$(dirname "$(strip_s "${prefix}")")")")
+  fi
   homebrew_prefix_candidates+=("${homebrew_prefix_default}")                   # Homebrew default path
   homebrew_prefix_candidates+=("${HOME}/.linuxbrew")                           # Linuxbrew default path
   [[ "$(uname -m)" == "arm64" ]] && homebrew_prefix_candidates+=("/usr/local") # If migrated from Intel to ARM old path will remain
@@ -442,6 +445,10 @@ fi
 if [[ "${HOMEBREW_PREFIX}" != "${homebrew_prefix_default}" && -e "${HOMEBREW_PREFIX}" ]]
 then
   execute_sudo rmdir "${HOMEBREW_PREFIX}"
+fi
+if [[ "${ostype}" == "linux" && "${HOMEBREW_PREFIX}" == "${homebrew_prefix_default}" && ! -e "${HOMEBREW_PREFIX}" ]]
+then
+  execute_sudo rmdir "$(dirname "${HOMEBREW_PREFIX}")"
 fi
 if [[ "${HOMEBREW_PREFIX}" != "${HOMEBREW_REPOSITORY}" && -e "${HOMEBREW_REPOSITORY}" ]]
 then
