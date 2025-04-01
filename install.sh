@@ -553,7 +553,7 @@ then
 else
   if [[ "${UNAME_MACHINE}" != "x86_64" ]] && [[ "${UNAME_MACHINE}" != "aarch64" ]]
   then
-    abort "Homebrew on Linux is only supported on Intel & ARM processors!"
+    abort "Homebrew on Linux is only supported on Intel x86_64 and ARM64 processors!"
   fi
 fi
 
