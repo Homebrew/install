@@ -39,6 +39,18 @@ then
   abort 'Bash must not run in POSIX mode. Please unset POSIXLY_CORRECT and try again.'
 fi
 
+# Check for file that prevents Homebrew installation
+if [[ -f "/etc/homebrew/brew.no_install" ]]
+then
+  BREW_NO_INSTALL="$(cat "/etc/homebrew/brew.no_install" 2>/dev/null)"
+  if [[ -n "${BREW_NO_INSTALL}" ]]
+  then
+    abort "Homebrew cannot be installed because ${BREW_NO_INSTALL}."
+  else
+    abort "Homebrew cannot be installed because /etc/homebrew/brew.no_install exists!"
+  fi
+fi
+
 # string formatters
 if [[ -t 1 ]]
 then
