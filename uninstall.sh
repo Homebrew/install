@@ -326,6 +326,7 @@ fi
   fi
   echo "${HOMEBREW_CELLAR}"
   echo "${HOMEBREW_PREFIX}/Caskroom"
+  echo "/etc/paths.d/homebrew"
 
   [[ -n ${opt_skip_cache_and_logs} ]] || cat <<-EOS
 ${HOME}/Library/Caches/Homebrew
