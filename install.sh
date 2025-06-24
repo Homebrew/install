@@ -1009,7 +1009,14 @@ ohai "Downloading and installing Homebrew..."
   execute "${HOMEBREW_PREFIX}/bin/brew" "update" "--force" "--quiet"
 ) || exit 1
 
-if [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]
+# create paths.d file for /opt/homebrew installs
+# (/usr/local/bin is already in the PATH)
+if [[ -d "/etc/paths.d" && "${HOMEBREW_PREFIX}" != "/usr/local" && -x "$(command -v tee)" ]]
+then
+  execute_sudo "${MKDIR[@]}" /etc/paths.d
+  echo "${HOMEBREW_PREFIX}/bin" | execute_sudo tee /etc/paths.d/homebrew
+  execute_sudo "${CHOWN[@]}" root:wheel /etc/paths.d/homebrew
+elif [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]
 then
   warn "${HOMEBREW_PREFIX}/bin is not in your PATH.
   Instructions on how to configure your shell for Homebrew
