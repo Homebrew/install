@@ -943,7 +943,7 @@ ohai "Downloading and installing Homebrew..."
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
 
   # we do it in four steps to avoid merge errors when reinstalling
-  execute "${USABLE_GIT}" "init" "--quiet"
+  execute "${USABLE_GIT}" "-c" "init.defaultBranch=main" "init" "--quiet"
 
   # "git remote add" will fail if the remote is defined in the global config
   execute "${USABLE_GIT}" "config" "remote.origin.url" "${HOMEBREW_BREW_GIT_REMOTE}"
