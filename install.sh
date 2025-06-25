@@ -154,7 +154,7 @@ else
 fi
 
 # Required installation paths. To install elsewhere (which is unsupported)
-# you can untar https://github.com/Homebrew/brew/tarball/master
+# you can untar https://github.com/Homebrew/brew/tarball/main
 # anywhere you like.
 if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
 then
@@ -620,7 +620,7 @@ echo "${HOMEBREW_PREFIX}/etc/bash_completion.d/brew"
 echo "${HOMEBREW_REPOSITORY}"
 
 # Keep relatively in sync with
-# https://github.com/Homebrew/brew/blob/master/Library/Homebrew/keg.rb
+# https://github.com/Homebrew/brew/blob/HEAD/Library/Homebrew/keg.rb
 directories=(
   bin etc include lib sbin share opt var
   Frameworks
@@ -943,11 +943,12 @@ ohai "Downloading and installing Homebrew..."
   cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
 
   # we do it in four steps to avoid merge errors when reinstalling
-  execute "${USABLE_GIT}" "-c" "init.defaultBranch=master" "init" "--quiet"
+  execute "${USABLE_GIT}" "init" "--quiet"
 
   # "git remote add" will fail if the remote is defined in the global config
   execute "${USABLE_GIT}" "config" "remote.origin.url" "${HOMEBREW_BREW_GIT_REMOTE}"
   execute "${USABLE_GIT}" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
+  execute "${USABLE_GIT}" "config" "--bool" "fetch.prune" "true"
 
   # ensure we don't munge line endings on checkout
   execute "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
