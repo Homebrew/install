@@ -993,15 +993,16 @@ ohai "Downloading and installing Homebrew..."
       execute "${MKDIR[@]}" "${HOMEBREW_CORE}"
       cd "${HOMEBREW_CORE}" >/dev/null || return
 
-      execute "${USABLE_GIT}" "-c" "init.defaultBranch=master" "init" "--quiet"
+      execute "${USABLE_GIT}" "-c" "init.defaultBranch=main" "init" "--quiet"
       execute "${USABLE_GIT}" "config" "remote.origin.url" "${HOMEBREW_CORE_GIT_REMOTE}"
       execute "${USABLE_GIT}" "config" "remote.origin.fetch" "+refs/heads/*:refs/remotes/origin/*"
+      execute "${USABLE_GIT}" "config" "--bool" "fetch.prune" "true"
       execute "${USABLE_GIT}" "config" "--bool" "core.autocrlf" "false"
       execute "${USABLE_GIT}" "config" "--bool" "core.symlinks" "true"
       retry 5 "${USABLE_GIT}" "fetch" "--force" "${quiet_progress[@]}" \
-        "origin" "refs/heads/master:refs/remotes/origin/master"
+        "origin" "refs/heads/main:refs/remotes/origin/main"
       execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
-      execute "${USABLE_GIT}" "reset" "--hard" "origin/master"
+      execute "${USABLE_GIT}" "reset" "--hard" "origin/main"
 
       cd "${HOMEBREW_REPOSITORY}" >/dev/null || return
     ) || exit 1
