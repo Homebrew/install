@@ -231,6 +231,13 @@ export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 
 unset HAVE_SUDO_ACCESS # unset this from the environment
 
+# create paths.d file for /opt/homebrew installs
+# (/usr/local/bin is already in the PATH)
+if [[ -d "/etc/paths.d" && "${HOMEBREW_PREFIX}" != "/usr/local" && -x "$(command -v tee)" ]]
+then
+  ADD_PATHS_D=1
+fi
+
 have_sudo_access() {
   if [[ ! -x "/usr/bin/sudo" ]]
   then
@@ -618,6 +625,10 @@ echo "${HOMEBREW_PREFIX}/share/man/man1/brew.1"
 echo "${HOMEBREW_PREFIX}/share/zsh/site-functions/_brew"
 echo "${HOMEBREW_PREFIX}/etc/bash_completion.d/brew"
 echo "${HOMEBREW_REPOSITORY}"
+if [[ -n "${ADD_PATHS_D-}" ]]
+then
+  echo "/etc/paths.d/homebrew"
+fi
 
 # Keep relatively in sync with
 # https://github.com/Homebrew/brew/blob/HEAD/Library/Homebrew/keg.rb
@@ -1011,9 +1022,7 @@ ohai "Downloading and installing Homebrew..."
   execute "${HOMEBREW_PREFIX}/bin/brew" "update" "--force" "--quiet"
 ) || exit 1
 
-# create paths.d file for /opt/homebrew installs
-# (/usr/local/bin is already in the PATH)
-if [[ -d "/etc/paths.d" && "${HOMEBREW_PREFIX}" != "/usr/local" && -x "$(command -v tee)" ]]
+if [[ -n "${ADD_PATHS_D-}" ]]
 then
   execute_sudo "${MKDIR[@]}" /etc/paths.d
   echo "${HOMEBREW_PREFIX}/bin" | execute_sudo tee /etc/paths.d/homebrew
