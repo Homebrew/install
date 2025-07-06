@@ -1027,6 +1027,7 @@ then
   execute_sudo "${MKDIR[@]}" /etc/paths.d
   echo "${HOMEBREW_PREFIX}/bin" | execute_sudo tee /etc/paths.d/homebrew
   execute_sudo "${CHOWN[@]}" root:wheel /etc/paths.d/homebrew
+  execute_sudo "${CHMOD[@]}" "a+r" /etc/paths.d/homebrew
 elif [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]
 then
   warn "${HOMEBREW_PREFIX}/bin is not in your PATH.
