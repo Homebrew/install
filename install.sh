@@ -1027,12 +1027,17 @@ ohai "Downloading and installing Homebrew..."
     execute_sudo "${CHMOD[@]}" "a+r" /etc/paths.d/homebrew
   elif [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]
   then
-    warn "${HOMEBREW_PREFIX}/bin is not in your PATH.
-    Instructions on how to configure your shell for Homebrew
-    can be found in the 'Next steps' section below."
+    PATH_WARN=1
   fi
 
   execute "${HOMEBREW_PREFIX}/bin/brew" "update" "--force" "--quiet"
+
+  if [[ -n "${PATH_WARN-}" ]]
+  then
+    warn "${HOMEBREW_PREFIX}/bin is not in your PATH.
+  Instructions on how to configure your shell for Homebrew
+  can be found in the 'Next steps' section below."
+  fi
 ) || exit 1
 
 ohai "Installation successful!"
