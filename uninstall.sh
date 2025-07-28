@@ -385,7 +385,9 @@ do
 done
 if [[ "${#paths[@]}" -gt 0 ]]
 then
-  args=("${paths[@]}" -type l -lname '*/Cellar/*')
+  # We want expand in subcommand, not here
+  # shellcheck disable=SC2016
+  args=("${paths[@]}" -type l -exec /bin/sh -c 'case $(ls -l "$1") in *-\>\ */Cellar/*)exit;esac;exit 1' _ {} \;)
   if [[ -n "${opt_dry_run}" ]]
   then
     args+=(-print)
