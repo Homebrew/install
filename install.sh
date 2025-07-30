@@ -978,7 +978,7 @@ ohai "Downloading and installing Homebrew..."
 
   execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
 
-  LATEST_GIT_TAG="$("${USABLE_GIT}" tag --list --sort="-version:refname" | head -n1)"
+  LATEST_GIT_TAG="$("${USABLE_GIT}" -c "column.ui=never" tag --list --sort="-version:refname" | head -n1)"
   if [[ -z "${LATEST_GIT_TAG}" ]]
   then
     abort "Failed to query latest Homebrew/brew Git tag."
