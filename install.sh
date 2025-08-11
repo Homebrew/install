@@ -220,7 +220,7 @@ MACOS_NEWEST_UNSUPPORTED="16.0"
 MACOS_OLDEST_SUPPORTED="13.0"
 
 # For Homebrew on Linux
-REQUIRED_RUBY_VERSION=2.6    # https://github.com/Homebrew/brew/pull/6556
+REQUIRED_RUBY_VERSION=3.4    # https://github.com/Homebrew/brew/pull/19779
 REQUIRED_GLIBC_VERSION=2.13  # https://docs.brew.sh/Homebrew-on-Linux#requirements
 REQUIRED_CURL_VERSION=7.41.0 # HOMEBREW_MINIMUM_CURL_VERSION in brew.sh in Homebrew/brew
 REQUIRED_GIT_VERSION=2.7.0   # HOMEBREW_MINIMUM_GIT_VERSION in brew.sh in Homebrew/brew
@@ -421,8 +421,8 @@ test_ruby() {
   fi
 
   "$1" --enable-frozen-string-literal --disable=gems,did_you_mean,rubyopt -rrubygems -e \
-    "abort if Gem::Version.new(RUBY_VERSION.to_s.dup).to_s.split('.').first(2) != \
-              Gem::Version.new('${REQUIRED_RUBY_VERSION}').to_s.split('.').first(2)" 2>/dev/null
+    "abort if Gem::Version.new(RUBY_VERSION) < \
+              Gem::Version.new('${REQUIRED_RUBY_VERSION}')" 2>/dev/null
 }
 
 test_curl() {
@@ -489,7 +489,7 @@ find_tool() {
 }
 
 no_usable_ruby() {
-  [[ -z "$(find_tool ruby)" ]]
+  [[ -z "$(find_tool ruby)" ]] || ! ruby -e "require 'erb'"
 }
 
 outdated_glibc() {
@@ -498,17 +498,22 @@ outdated_glibc() {
   version_lt "${glibc_version}" "${REQUIRED_GLIBC_VERSION}"
 }
 
-if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && no_usable_ruby && outdated_glibc
+if [[ -n "${HOMEBREW_ON_LINUX-}" ]] && no_usable_ruby
 then
-  abort "$(
-    cat <<EOABORT
+  if outdated_glibc
+  then
+    abort "$(
+      cat <<EOABORT
 Homebrew requires Ruby ${REQUIRED_RUBY_VERSION} which was not found on your system.
 Homebrew portable Ruby requires Glibc version ${REQUIRED_GLIBC_VERSION} or newer,
 and your Glibc version is too old. See:
   ${tty_underline}https://docs.brew.sh/Homebrew-on-Linux#requirements${tty_reset}
 Please install Ruby ${REQUIRED_RUBY_VERSION} and add its location to your PATH.
 EOABORT
-  )"
+    )"
+  else
+    export HOMEBREW_FORCE_VENDOR_RUBY=1
+  fi
 fi
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
