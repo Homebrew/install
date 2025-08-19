@@ -553,7 +553,10 @@ EOABORT
 fi
 HOMEBREW_CORE="${HOMEBREW_REPOSITORY}/Library/Taps/homebrew/homebrew-core"
 
-check_run_command_as_root
+if [[ -z "${ALLOWROOT-}" ]]
+then
+  check_run_command_as_root
+fi
 
 if [[ -d "${HOMEBREW_PREFIX}" && ! -x "${HOMEBREW_PREFIX}" ]]
 then
