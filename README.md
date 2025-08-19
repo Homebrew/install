@@ -30,6 +30,8 @@ If you want to run the Homebrew installer non-interactively without prompting fo
 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
+By default the script will not run as root as this gives exessively high permissions which could potentially lead to issues. If you need to overide this you can prefix `ALLOWROOT=1` to the command (similarly to `NONINTERACTIVE` above).
+
 ## Uninstall Homebrew
 
 ```bash
