@@ -813,12 +813,7 @@ execute_sudo "${CHOWN[@]}" "-R" "${USER}:${GROUP}" "${HOMEBREW_REPOSITORY}"
 
 if ! [[ -d "${HOMEBREW_CACHE}" ]]
 then
-  if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
-  then
-    execute_sudo "${MKDIR[@]}" "${HOMEBREW_CACHE}"
-  else
-    execute "${MKDIR[@]}" "${HOMEBREW_CACHE}"
-  fi
+  execute "${MKDIR[@]}" "${HOMEBREW_CACHE}"
 fi
 if exists_but_not_writable "${HOMEBREW_CACHE}"
 then
