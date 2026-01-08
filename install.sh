@@ -1072,6 +1072,7 @@ EOS
 ohai "Next steps:"
 case "${SHELL}" in
   */bash*)
+    shellenv_suffix=" bash"
     if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
     then
       shell_rcfile="${HOME}/.bashrc"
@@ -1080,6 +1081,7 @@ case "${SHELL}" in
     fi
     ;;
   */zsh*)
+    shellenv_suffix=" zsh"
     if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
     then
       shell_rcfile="${ZDOTDIR:-"${HOME}"}/.zshrc"
@@ -1088,28 +1090,30 @@ case "${SHELL}" in
     fi
     ;;
   */fish*)
+    shellenv_suffix=" fish"
     shell_rcfile="${HOME}/.config/fish/config.fish"
     ;;
   *)
+    shellenv_suffix=""
     shell_rcfile="${ENV:-"${HOME}/.profile"}"
     ;;
 esac
 
-if grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"" "${shell_rcfile}"
+if grep -qs "eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv[^\"]*)\"" "${shell_rcfile}"
 then
   if ! [[ -x "$(command -v brew)" ]]
   then
     cat <<EOS
 - Run this command in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
-    eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
+    eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv${shellenv_suffix})"
 EOS
   fi
 else
   cat <<EOS
 - Run these commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:
     echo >> ${shell_rcfile}
-    echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"' >> ${shell_rcfile}
-    eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
+    echo 'eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv${shellenv_suffix})"' >> ${shell_rcfile}
+    eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv${shellenv_suffix})"
 EOS
 fi
 
