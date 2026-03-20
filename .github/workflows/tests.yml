@@ -50,10 +50,11 @@ jobs:
         shell: powershell
         run: |
           mkdir "$env:USERPROFILE\.cloud-init"
-          cp "$env:GITHUB_WORKSPACE\.github\wsl-init.yml" "$env:USERPROFILE\.cloud-init\Ubuntu-22.04.user-data"
-          winget install --id 9PN20MSR04DW --exact --source msstore --accept-source-agreements --accept-package-agreements
-          ubuntu2204 install
-          ubuntu2204 config --default-user runner
+          cp "$env:GITHUB_WORKSPACE\.github\wsl-init.yml" "$env:USERPROFILE\.cloud-init\Ubuntu-24.04.user-data"
+          wsl --install --distribution Ubuntu-24.04 --no-launch
+          wsl --set-default Ubuntu-24.04
+          wsl -- cloud-init status --wait
+          wsl --manage Ubuntu-24.04 --set-default-user runner
           echo "WSLENV=CI:GITHUB_ACTIONS:RUNNER_OS:GITHUB_PATH/p" >> $env:GITHUB_ENV # allow some basic envs to be passed in
 
       - name: Check Bash 3.x syntax
