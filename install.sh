@@ -975,6 +975,14 @@ ohai "Downloading and installing Homebrew..."
   retry 5 "${USABLE_GIT}" "fetch" "${quiet_progress[@]}" "--force" "origin"
   retry 5 "${USABLE_GIT}" "fetch" "${quiet_progress[@]}" "--force" "--tags" "origin"
 
+  # Recover from partial installs created by older scripts that tracked origin/master.
+  # Keeping this stale ref can make post-install `brew update` fail when the checked-out
+  # brew revision no longer references `origin/master`.
+  if "${USABLE_GIT}" "show-ref" --verify --quiet "refs/remotes/origin/master"
+  then
+    execute "${USABLE_GIT}" "update-ref" "-d" "refs/remotes/origin/master"
+  fi
+
   execute "${USABLE_GIT}" "remote" "set-head" "origin" "--auto" >/dev/null
 
   LATEST_GIT_TAG="$("${USABLE_GIT}" -c "column.ui=never" tag --list --sort="-version:refname" | head -n1)"
