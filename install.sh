@@ -1147,7 +1147,15 @@ then
     echo "    sudo apt-get install build-essential"
   elif [[ -x "$(command -v dnf)" ]]
   then
-    echo "    sudo dnf group install development-tools"
+    # Fedora uses the lowercase `development-tools` group id; most other
+    # dnf-based distros use the `Development Tools` name instead.
+    # shellcheck disable=SC1091
+    if [[ -r /etc/os-release ]] && (. /etc/os-release && [[ "${ID:-}" == "fedora" ]])
+    then
+      echo "    sudo dnf group install development-tools"
+    else
+      echo "    sudo dnf group install 'Development Tools'"
+    fi
   elif [[ -x "$(command -v yum)" ]]
   then
     echo "    sudo yum groupinstall 'Development Tools'"
