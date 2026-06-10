@@ -323,10 +323,7 @@ getc() {
 
 ring_bell() {
   # Use the shell's audible bell.
-  if [[ -t 1 ]]
-  then
-    printf "\a"
-  fi
+  [[ -t 1 ]] && printf "\a"
 }
 
 wait_for_user() {
