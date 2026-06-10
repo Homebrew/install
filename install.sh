@@ -141,16 +141,11 @@ then
 fi
 
 # First check OS.
-OS="$(uname)"
-if [[ "${OS}" == "Linux" ]]
-then
-  HOMEBREW_ON_LINUX=1
-elif [[ "${OS}" == "Darwin" ]]
-then
-  HOMEBREW_ON_MACOS=1
-else
-  abort "Homebrew is only supported on macOS and Linux."
-fi
+case $(uname) in
+  Linux) HOMEBREW_ON_LINUX=1 ;;
+  Darwin) HOMEBREW_ON_MACOS=1 ;;
+  *) abort "Homebrew is only supported on macOS and Linux." ;;
+esac
 
 # Required installation paths. To install elsewhere (which is unsupported)
 # you can untar https://github.com/Homebrew/brew/tarball/main
