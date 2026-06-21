@@ -1142,10 +1142,12 @@ then
     echo "    sudo apt-get install build-essential bubblewrap"
   elif [[ -x "$(command -v dnf)" ]]
   then
-    # Fedora uses the lowercase `development-tools` group id; most other
-    # dnf-based distros use the `Development Tools` name instead.
+    # Fedora and RHEL-like distros use the lowercase `development-tools`
+    # group id; most other dnf-based distros use the `Development Tools` name instead.
     # shellcheck disable=SC1091
-    if [[ -r /etc/os-release ]] && (. /etc/os-release && [[ "${ID:-}" == "fedora" ]])
+    if [[ -r /etc/os-release ]] && (. /etc/os-release &&
+       [[ "${ID:-}" == *fedora* || "${ID:-}" == *rhel* ||
+          "${ID_LIKE:-}" == *fedora* || "${ID_LIKE:-}" == *rhel* ]])
     then
       echo "    sudo dnf group install development-tools && sudo dnf install bubblewrap"
     else
