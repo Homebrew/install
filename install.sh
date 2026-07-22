@@ -1144,8 +1144,11 @@ then
   then
     # Fedora and RHEL-like distros use the lowercase `development-tools`
     # group id; most other dnf-based distros use the `Development Tools` name instead.
+    # Amazon Linux 2023 sets ID_LIKE=fedora but only ships `Development Tools`
+    # (group id: development); `development-tools` does not exist there.
     # shellcheck disable=SC1091
     if [[ -r /etc/os-release ]] && (. /etc/os-release &&
+       [[ "${ID:-}" != "amzn" ]] &&
        [[ "${ID:-}" == *fedora* || "${ID:-}" == *rhel* ||
           "${ID_LIKE:-}" == *fedora* || "${ID_LIKE:-}" == *rhel* ]])
     then
