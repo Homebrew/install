@@ -1139,7 +1139,7 @@ then
 
   if [[ -x "$(command -v apt-get)" ]]
   then
-    echo "    sudo apt-get install build-essential bubblewrap"
+    echo "    sudo apt-get install build-essential"
   elif [[ -x "$(command -v dnf)" ]]
   then
     # Fedora and RHEL-like distros use the lowercase `development-tools`
@@ -1152,19 +1152,19 @@ then
        [[ "${ID:-}" == *fedora* || "${ID:-}" == *rhel* ||
           "${ID_LIKE:-}" == *fedora* || "${ID_LIKE:-}" == *rhel* ]])
     then
-      echo "    sudo dnf group install development-tools && sudo dnf install bubblewrap"
+      echo "    sudo dnf group install development-tools"
     else
-      echo "    sudo dnf group install 'Development Tools' && sudo dnf install bubblewrap"
+      echo "    sudo dnf group install 'Development Tools'"
     fi
   elif [[ -x "$(command -v yum)" ]]
   then
-    echo "    sudo yum groupinstall 'Development Tools' && sudo yum install bubblewrap"
+    echo "    sudo yum groupinstall 'Development Tools'"
   elif [[ -x "$(command -v pacman)" ]]
   then
-    echo "    sudo pacman -S base-devel bubblewrap"
+    echo "    sudo pacman -S base-devel"
   elif [[ -x "$(command -v apk)" ]]
   then
-    echo "    sudo apk add build-base bubblewrap"
+    echo "    sudo apk add build-base"
   fi
 
   cat <<EOS
