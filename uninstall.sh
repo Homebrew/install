@@ -245,6 +245,30 @@ do
   shift
 done
 
+homebrew_prefix_markers=(
+  bin/brew
+  etc/bash_completion.d/brew
+  share/doc/homebrew
+  share/man/man1/brew.1
+  share/man/man1/brew-cask.1
+  share/zsh/site-functions/_brew
+  share/zsh/site-functions/_brew_cask
+  share/fish/vendor_completions.d/brew.fish
+  var/homebrew
+)
+homebrew_prefix_paths=(
+  "${homebrew_prefix_markers[@]}"
+  share/man/man1/README.md
+)
+homebrew_path_markers=(
+  .git
+  Homebrew
+  Library/Homebrew
+  Cellar
+  Caskroom
+  "${homebrew_prefix_markers[@]}"
+)
+
 # Attempt to locate Homebrew unless `--path` is passed
 if [[ "${#homebrew_prefix_candidates[@]}" -eq 0 ]]
 then
@@ -264,8 +288,10 @@ HOMEBREW_PREFIX="$(
   for p in "${homebrew_prefix_candidates[@]}"
   do
     [[ -d "${p}" ]] || continue
-    [[ ${p} == "${homebrew_prefix_default}" && -d "${p}/Homebrew/.git" ]] && echo "${p}" && break
-    [[ -d "${p}/.git" || -x "${p}/bin/brew" ]] && echo "${p}" && break
+    for f in "${homebrew_path_markers[@]}"
+    do
+      [[ -e "${p}/${f}" || -L "${p}/${f}" ]] && echo "${p}" && break 2
+    done
   done
 )"
 [[ -n "${HOMEBREW_PREFIX}" ]] || abort "Failed to locate Homebrew!"
@@ -273,11 +299,20 @@ HOMEBREW_PREFIX="$(
 if [[ -d "${HOMEBREW_PREFIX}/.git" ]]
 then
   HOMEBREW_REPOSITORY="$(dirname "$(realpath "${HOMEBREW_PREFIX}/.git")")"
+elif [[ -d "${HOMEBREW_PREFIX}/Library/Homebrew" ]]
+then
+  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}"
+elif [[ -d "${HOMEBREW_PREFIX}/Homebrew" ]]
+then
+  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
 elif [[ -x "${HOMEBREW_PREFIX}/bin/brew" ]]
 then
   HOMEBREW_REPOSITORY="$(dirname "$(dirname "$(realpath "${HOMEBREW_PREFIX}/bin/brew")")")"
+elif [[ "${HOMEBREW_PREFIX}" == "/opt/homebrew" ]]
+then
+  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}"
 else
-  abort "Failed to locate Homebrew!"
+  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
 fi
 
 if [[ -d "${HOMEBREW_PREFIX}/Cellar" ]]
@@ -286,6 +321,27 @@ then
 else
   HOMEBREW_CELLAR="${HOMEBREW_REPOSITORY}/Cellar"
 fi
+
+homebrew_paths_file=""
+if [[ -f "/etc/paths.d/homebrew" && ! -L "/etc/paths.d/homebrew" ]] &&
+   /usr/bin/grep -Fxq "${HOMEBREW_PREFIX}/bin" "/etc/paths.d/homebrew"
+then
+  homebrew_paths_file="/etc/paths.d/homebrew"
+fi
+
+sudo_removal_paths=(
+  "${HOMEBREW_PREFIX}/Cellar"
+  "${HOMEBREW_PREFIX}/Caskroom"
+  "${HOMEBREW_PREFIX}/Homebrew/Cellar"
+)
+if [[ "${HOMEBREW_PREFIX}" == "${HOMEBREW_REPOSITORY}" ]]
+then
+  sudo_removal_paths+=("${HOMEBREW_REPOSITORY}/.git")
+elif [[ "${HOMEBREW_REPOSITORY}" == "${HOMEBREW_PREFIX}/Homebrew" ]]
+then
+  sudo_removal_paths+=("${HOMEBREW_REPOSITORY}")
+fi
+[[ -n "${homebrew_paths_file}" ]] && sudo_removal_paths+=("${homebrew_paths_file}")
 
 if [[ -s "${HOMEBREW_REPOSITORY}/.gitignore" ]]
 then
@@ -307,20 +363,8 @@ fi
 
   if [[ "${HOMEBREW_PREFIX}" != "${HOMEBREW_REPOSITORY}" ]]
   then
-    echo "${HOMEBREW_REPOSITORY}"
-    directories=(
-      bin/brew
-      etc/bash_completion.d/brew
-      share/doc/homebrew
-      share/man/man1/brew.1
-      share/man/man1/brew-cask.1
-      share/man/man1/README.md
-      share/zsh/site-functions/_brew
-      share/zsh/site-functions/_brew_cask
-      share/fish/vendor_completions.d/brew.fish
-      var/homebrew
-    )
-    for p in "${directories[@]}"
+    [[ "${HOMEBREW_REPOSITORY}" != "/usr/local" ]] && echo "${HOMEBREW_REPOSITORY}"
+    for p in "${homebrew_prefix_paths[@]}"
     do
       echo "${HOMEBREW_PREFIX}/${p}"
     done
@@ -329,7 +373,7 @@ fi
   fi
   echo "${HOMEBREW_CELLAR}"
   echo "${HOMEBREW_PREFIX}/Caskroom"
-  echo "/etc/paths.d/homebrew"
+  [[ -n "${homebrew_paths_file}" ]] && echo "${homebrew_paths_file}"
 
   [[ -n ${opt_skip_cache_and_logs} ]] || cat <<-EOS
 ${HOME}/Library/Caches/Homebrew
@@ -347,7 +391,8 @@ EOS
     done
   fi
 } | while read -r l; do
-  [[ -e "${l}" ]] && echo "${l}"
+  [[ "${l%/}" == "/usr/local" ]] && continue
+  [[ -e "${l}" || -L "${l}" ]] && echo "${l}"
 done | sort -u >"${tmpdir}/homebrew_files"
 homebrew_files=()
 while read -r l
@@ -377,36 +422,58 @@ then
 fi
 
 [[ -n "${opt_quiet}" ]] || ohai "Removing Homebrew installation..."
-paths=()
-for p in Frameworks bin etc include lib opt sbin share var
-do
-  p="${HOMEBREW_PREFIX}/${p}"
-  [[ -e "${p}" ]] && paths+=("${p}")
-done
-if [[ "${#paths[@]}" -gt 0 ]]
+remove_path() {
+  local file="$1"
+  local p
+  local err
+  if err="$(rm -fr "${file}" 2>&1)"
+  then
+    return
+  fi
+  for p in "${sudo_removal_paths[@]}"
+  do
+    if [[ "${file}" == "${p}" ]]
+    then
+      execute_sudo rm -fr "${file}"
+      return
+    fi
+  done
+  warn "Failed to delete ${file}"
+  echo "${err}"
+}
+
+if [[ -e "${HOMEBREW_CELLAR}" || -L "${HOMEBREW_CELLAR}" ]]
 then
-  args=("${paths[@]}" -type l -lname '*/Cellar/*')
+  if [[ -n "${opt_dry_run}" ]]
+  then
+    echo "Would delete ${HOMEBREW_CELLAR}"
+  else
+    remove_path "${HOMEBREW_CELLAR}"
+  fi
+fi
+
+if [[ -d "${HOMEBREW_PREFIX}" ]]
+then
+  args=("${HOMEBREW_PREFIX}" -type l ! -exec /usr/bin/test -e '{}' ';')
   if [[ -n "${opt_dry_run}" ]]
   then
     args+=(-print)
+    echo "Would delete broken symlinks:"
+    system /usr/bin/find "${args[@]}"
   else
-    args+=(-exec unlink '{}' ';')
+    args+=(-delete)
+    /usr/bin/find "${args[@]}" &>/dev/null || execute_sudo /usr/bin/find "${args[@]}"
   fi
-  [[ -n "${opt_dry_run}" ]] && echo "Would delete:"
-  system /usr/bin/find "${args[@]}"
 fi
 
 for file in "${homebrew_files[@]}"
 do
+  [[ "${file}" == "${HOMEBREW_CELLAR}" ]] && continue
   if [[ -n "${opt_dry_run}" ]]
   then
     echo "Would delete ${file}"
   else
-    if ! err="$(rm -fr "${file}" 2>&1)"
-    then
-      warn "Failed to delete ${file}"
-      echo "${err}"
-    fi
+    remove_path "${file}"
   fi
 done
 
@@ -443,7 +510,9 @@ then
 fi
 
 [[ -n "${opt_dry_run}" ]] && exit
-if [[ "${HOMEBREW_PREFIX}" != "${homebrew_prefix_default}" && -e "${HOMEBREW_PREFIX}" ]]
+if [[ "${HOMEBREW_PREFIX}" != "/usr/local" &&
+      "${HOMEBREW_PREFIX}" != "${homebrew_prefix_default}" &&
+      -e "${HOMEBREW_PREFIX}" ]]
 then
   execute_sudo rmdir "${HOMEBREW_PREFIX}"
 fi
@@ -451,7 +520,9 @@ if [[ "${ostype}" == "linux" && "${HOMEBREW_PREFIX}" == "${homebrew_prefix_defau
 then
   execute_sudo rmdir "$(dirname "${HOMEBREW_PREFIX}")"
 fi
-if [[ "${HOMEBREW_PREFIX}" != "${HOMEBREW_REPOSITORY}" && -e "${HOMEBREW_REPOSITORY}" ]]
+if [[ "${HOMEBREW_REPOSITORY}" != "/usr/local" &&
+      "${HOMEBREW_PREFIX}" != "${HOMEBREW_REPOSITORY}" &&
+      -e "${HOMEBREW_REPOSITORY}" ]]
 then
   execute_sudo rmdir "${HOMEBREW_REPOSITORY}"
 fi
