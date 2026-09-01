@@ -454,7 +454,7 @@ fi
 
 if [[ -d "${HOMEBREW_PREFIX}" ]]
 then
-  args=("${HOMEBREW_PREFIX}" -type l ! -exec /usr/bin/test -e '{}' ';')
+  args=("${HOMEBREW_PREFIX}" -type l ! -exec /bin/test -e '{}' ';')
   if [[ -n "${opt_dry_run}" ]]
   then
     args+=(-print)
