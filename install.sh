@@ -154,16 +154,15 @@ if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
 then
   UNAME_MACHINE="$(/usr/bin/uname -m)"
 
-  if [[ "${UNAME_MACHINE}" == "arm64" ]]
+  # On macOS, support Apple Silicon only
+  if [[ "${UNAME_MACHINE}" != "arm64" ]]
   then
-    # On ARM macOS, this script installs to /opt/homebrew only
-    HOMEBREW_PREFIX="/opt/homebrew"
-    HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}"
-  else
-    # On Intel macOS, this script installs to /usr/local only
-    HOMEBREW_PREFIX="/usr/local"
-    HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
+    abort "Homebrew on macOS is only supported on Apple Silicon processors!"
   fi
+
+  # On macOS, this script installs to /opt/homebrew only
+  HOMEBREW_PREFIX="/opt/homebrew"
+  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}"
   HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
 
   STAT_PRINTF=("/usr/bin/stat" "-f")
@@ -226,8 +225,7 @@ export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 unset HAVE_SUDO_ACCESS # unset this from the environment
 
 # create paths.d file for /opt/homebrew installs
-# (/usr/local/bin is already in the PATH)
-if [[ -d "/etc/paths.d" && "${HOMEBREW_PREFIX}" != "/usr/local" && -x "$(command -v tee)" ]]
+if [[ -d "/etc/paths.d" && -x "$(command -v tee)" ]]
 then
   ADD_PATHS_D=1
 fi
@@ -343,9 +341,6 @@ major_minor() {
   )"
 }
 
-version_gt() {
-  [[ "${1%.*}" -gt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -gt "${2#*.}" ]]
-}
 version_ge() {
   [[ "${1%.*}" -gt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -ge "${2#*.}" ]]
 }
@@ -370,13 +365,7 @@ should_install_command_line_tools() {
     return 1
   fi
 
-  if version_gt "${macos_version}" "10.13"
-  then
-    ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]]
-  else
-    ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]] ||
-      ! [[ -e "/usr/include/iconv.h" ]]
-  fi
+  ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]]
 }
 
 get_permission() {
@@ -561,36 +550,17 @@ EOABORT
   )"
 fi
 
-if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
+if [[ -n "${HOMEBREW_ON_LINUX-}" ]] &&
+   [[ "${UNAME_MACHINE}" != "x86_64" ]] && [[ "${UNAME_MACHINE}" != "aarch64" ]]
 then
-  # On macOS, support 64-bit Intel and ARM
-  if [[ "${UNAME_MACHINE}" != "arm64" ]] && [[ "${UNAME_MACHINE}" != "x86_64" ]]
-  then
-    abort "Homebrew is only supported on Intel and ARM processors!"
-  fi
-else
-  if [[ "${UNAME_MACHINE}" != "x86_64" ]] && [[ "${UNAME_MACHINE}" != "aarch64" ]]
-  then
-    abort "Homebrew on Linux is only supported on Intel x86_64 and ARM64 processors!"
-  fi
+  abort "Homebrew on Linux is only supported on Intel x86_64 and ARM64 processors!"
 fi
 
 if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
 then
   macos_version="$(major_minor "$(/usr/bin/sw_vers -productVersion)")"
-  if version_lt "${macos_version}" "10.7"
-  then
-    abort "$(
-      cat <<EOABORT
-Your Mac OS X version is too old. See:
-  ${tty_underline}https://github.com/mistydemeo/tigerbrew${tty_reset}
-EOABORT
-    )"
-  elif version_lt "${macos_version}" "10.11"
-  then
-    abort "Your OS X version is too old."
-  elif version_ge "${macos_version}" "${MACOS_NEWEST_UNSUPPORTED}" ||
-       version_lt "${macos_version}" "${MACOS_OLDEST_SUPPORTED}"
+  if version_ge "${macos_version}" "${MACOS_NEWEST_UNSUPPORTED}" ||
+     version_lt "${macos_version}" "${MACOS_OLDEST_SUPPORTED}"
   then
     who="We"
     what=""
@@ -842,7 +812,7 @@ then
   execute "${TOUCH[@]}" "${HOMEBREW_CACHE}/.cleaned"
 fi
 
-if should_install_command_line_tools && version_ge "${macos_version}" "10.13"
+if should_install_command_line_tools
 then
   ohai "Searching online for the Command Line Tools"
   # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools

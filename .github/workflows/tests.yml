@@ -67,7 +67,7 @@ jobs:
         run: |
           if [[ "${RUNNER_OS}" = "macOS" ]]
           then
-            echo "/usr/local/bin:/usr/bin:/bin" >> "${GITHUB_PATH}"
+            echo "/opt/homebrew/bin:/usr/bin:/bin" >> "${GITHUB_PATH}"
           elif [[ "${RUNNER_OS}" = "Windows" ]]
           then
             echo "$(wslpath -w /home/linuxbrew/.linuxbrew/bin)" >> "${GITHUB_PATH}"
