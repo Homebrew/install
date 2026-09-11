@@ -209,9 +209,9 @@ fi
 export HOMEBREW_{BREW,CORE}_GIT_REMOTE
 
 # TODO: bump version when new macOS is released or announced
-MACOS_NEWEST_UNSUPPORTED="27.0"
+MACOS_NEWEST_UNSUPPORTED="28.0"
 # TODO: bump version when new macOS is released
-MACOS_OLDEST_SUPPORTED="14.0"
+MACOS_OLDEST_SUPPORTED="15.0"
 
 # For Homebrew on Linux
 REQUIRED_RUBY_VERSION=3.4    # https://github.com/Homebrew/brew/pull/19779
