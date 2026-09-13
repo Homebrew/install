@@ -91,6 +91,7 @@ usage() {
   cat <<EOS
 Homebrew Installer
 Usage: [NONINTERACTIVE=1] [CI=1] install.sh [options]
+    -p, --path=PATH  Set the installation prefix (no longer than the default).
     -h, --help       Display this message.
     NONINTERACTIVE   Install without prompting for user input
     CI               Install in CI mode (e.g. do not prompt for user input)
@@ -98,15 +99,27 @@ EOS
   exit "${1:-0}"
 }
 
+HOMEBREW_PREFIX=""
 while [[ $# -gt 0 ]]
 do
   case "$1" in
+    -p | --path)
+      [[ -n "${2-}" ]] || abort "$1 requires a path."
+      HOMEBREW_PREFIX="$2"
+      shift
+      ;;
+    -p*) HOMEBREW_PREFIX="${1#-p}" ;;
+    --path=*)
+      HOMEBREW_PREFIX="${1#--path=}"
+      [[ -n "${HOMEBREW_PREFIX}" ]] || abort "--path requires a path."
+      ;;
     -h | --help) usage ;;
     *)
       warn "Unrecognized option: '$1'"
       usage 1
       ;;
   esac
+  shift
 done
 
 # Check if script is run non-interactively (e.g. CI)
@@ -147,9 +160,7 @@ case $(uname) in
   *) abort "Homebrew is only supported on macOS and Linux." ;;
 esac
 
-# Required installation paths. To install elsewhere (which is unsupported)
-# you can untar https://github.com/Homebrew/brew/tarball/main
-# anywhere you like.
+# Default installation paths.
 if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
 then
   UNAME_MACHINE="$(/usr/bin/uname -m)"
@@ -160,9 +171,7 @@ then
     abort "Homebrew on macOS is only supported on Apple Silicon processors!"
   fi
 
-  # On macOS, this script installs to /opt/homebrew only
-  HOMEBREW_PREFIX="/opt/homebrew"
-  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}"
+  HOMEBREW_PREFIX_DEFAULT="/opt/homebrew"
   HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
 
   STAT_PRINTF=("/usr/bin/stat" "-f")
@@ -175,9 +184,7 @@ then
 else
   UNAME_MACHINE="$(uname -m)"
 
-  # On Linux, this script installs to /home/linuxbrew/.linuxbrew only
-  HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
-  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
+  HOMEBREW_PREFIX_DEFAULT="/home/linuxbrew/.linuxbrew"
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
 
   STAT_PRINTF=("/usr/bin/stat" "-c")
@@ -187,6 +194,42 @@ else
   GROUP="$(id -gn)"
   TOUCH=("/bin/touch")
   INSTALL=("/usr/bin/install" -d -o "${USER}" -g "${GROUP}" -m "0755")
+fi
+
+HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-"${HOMEBREW_PREFIX_DEFAULT}"}"
+HOMEBREW_PREFIX="${HOMEBREW_PREFIX%/}"
+if [[ "${HOMEBREW_PREFIX}" != /* ]]
+then
+  abort "The Homebrew prefix must be an absolute path."
+fi
+prefix_parent="${HOMEBREW_PREFIX}"
+while ! [[ -e "${prefix_parent}" ]]
+do
+  prefix_parent="${prefix_parent%/*}"
+  prefix_parent="${prefix_parent:-/}"
+done
+if [[ "${HOMEBREW_PREFIX}" != "${HOMEBREW_PREFIX_DEFAULT}" ]]
+then
+  HOMEBREW_PREFIX="$(
+    cd -P "${prefix_parent}" && printf "%s%s" "${PWD%/}" "${HOMEBREW_PREFIX#"${prefix_parent%/}"}"
+  )" || abort "Cannot access ${prefix_parent}."
+fi
+case "${HOMEBREW_PREFIX}/" in
+  / | /usr/ | *[[:space:]:]* | *//* | */./* | */../*)
+    abort "Invalid Homebrew prefix: ${HOMEBREW_PREFIX}"
+    ;;
+  *) ;;
+esac
+(
+  LC_ALL=C
+  [[ "${#HOMEBREW_PREFIX}" -le "${#HOMEBREW_PREFIX_DEFAULT}" ]]
+) || abort "The Homebrew prefix \"${HOMEBREW_PREFIX}\" is longer than the default prefix \"${HOMEBREW_PREFIX_DEFAULT}\"."
+
+if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
+then
+  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}"
+else
+  HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
 fi
 CHMOD=("/bin/chmod")
 MKDIR=("/bin/mkdir" "-p")
@@ -225,7 +268,7 @@ export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 unset HAVE_SUDO_ACCESS # unset this from the environment
 
 # create paths.d file for /opt/homebrew installs
-if [[ -d "/etc/paths.d" && -x "$(command -v tee)" ]]
+if [[ -d "/etc/paths.d" && "${HOMEBREW_PREFIX}" == "/opt/homebrew" && -x "$(command -v tee)" ]]
 then
   ADD_PATHS_D=1
 fi
@@ -517,22 +560,9 @@ ohai 'Checking for `sudo` access (which may request your password)...'
 if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
 then
   [[ "${EUID:-${UID}}" == "0" ]] || have_sudo_access
-elif ! [[ -w "${HOMEBREW_PREFIX}" ]] &&
-     ! [[ -w "/home/linuxbrew" ]] &&
-     ! [[ -w "/home" ]] &&
-     ! have_sudo_access
+elif ! [[ -d "${prefix_parent}" && -w "${prefix_parent}" && -x "${prefix_parent}" ]] && ! have_sudo_access
 then
-  abort "$(
-    cat <<EOABORT
-Insufficient permissions to install Homebrew to "${HOMEBREW_PREFIX}" (the default prefix).
-
-Alternative (unsupported) installation methods are available at:
-https://docs.brew.sh/Installation#alternative-installs
-
-Please note this will require most formula to build from source, a buggy, slow and energy-inefficient experience.
-We will close any issues without response for these unsupported configurations.
-EOABORT
-  )"
+  abort "Insufficient permissions to install Homebrew to \"${HOMEBREW_PREFIX}\"."
 fi
 HOMEBREW_CORE="${HOMEBREW_REPOSITORY}/Library/Taps/homebrew/homebrew-core"
 

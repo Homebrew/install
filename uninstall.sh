@@ -364,13 +364,16 @@ fi
   if [[ "${HOMEBREW_PREFIX}" != "${HOMEBREW_REPOSITORY}" ]]
   then
     [[ "${HOMEBREW_REPOSITORY}" != "/usr/local" ]] && echo "${HOMEBREW_REPOSITORY}"
-    for p in "${homebrew_prefix_paths[@]}"
-    do
-      echo "${HOMEBREW_PREFIX}/${p}"
-    done
   else
-    echo "${HOMEBREW_REPOSITORY}/.git"
+    for repository_file in .git .gitattributes AGENTS.md CLAUDE.md
+    do
+      echo "${HOMEBREW_REPOSITORY}/${repository_file}"
+    done
   fi
+  for prefix_path in "${homebrew_prefix_paths[@]}"
+  do
+    echo "${HOMEBREW_PREFIX}/${prefix_path}"
+  done
   echo "${HOMEBREW_CELLAR}"
   echo "${HOMEBREW_PREFIX}/Caskroom"
   [[ -n "${homebrew_paths_file}" ]] && echo "${homebrew_paths_file}"

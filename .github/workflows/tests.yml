@@ -91,6 +91,39 @@ jobs:
 
       - run: /bin/bash uninstall.sh -f >/dev/null
 
+      - name: Install into custom prefixes non-interactively
+        run: |
+          case "$(uname)" in
+            Darwin) prefix=/opt/homebrew ;;
+            *) prefix=/home/linuxbrew/.linuxbrew ;;
+          esac
+          printf -v prefix "/opt/%*s" "$((${#prefix} - 5))" ""
+          prefix="${prefix// /x}"
+          if NONINTERACTIVE=1 /bin/bash install.sh --path "${prefix}x" >install.log 2>&1
+          then
+            echo "An overlong prefix was accepted."
+            exit 1
+          fi
+          grep -q "longer than the default prefix" install.log
+          for prefix in "${prefix}" /opt/brew
+          do
+            NONINTERACTIVE=1 /bin/bash -c "$(cat install.sh)" -- --path "${prefix}" </dev/null
+            test "$("${prefix}/bin/brew" --prefix)" = "${prefix}"
+            "${prefix}/bin/brew" config
+            "${prefix}/bin/brew" install --force-bottle ack
+            "${prefix}/bin/ack" --version
+            # These generated files survive removal of the Cellar.
+            for residual in lib/ld.so share/info/dir
+            do
+              if [[ -e "${prefix}/${residual}" || -L "${prefix}/${residual}" ]]
+              then
+                ls -l "${prefix}/${residual}"
+                rm "${prefix}/${residual}"
+              fi
+            done
+            NONINTERACTIVE=1 /bin/bash uninstall.sh --path "${prefix}"
+          done
+
       - run: /bin/bash -c "$(cat install.sh)"
 
       - name: Uninstall and reinstall with sudo NOPASSWD
