@@ -30,6 +30,14 @@ If you want to run the Homebrew installer non-interactively without prompting fo
 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
+Use `--path` to choose an installation prefix. It must be an absolute path and, after resolving symlinks, no longer than the platform's default: `/opt/homebrew` on macOS or `/home/linuxbrew/.linuxbrew` on Linux. This allows bottles to be relocated into the chosen prefix.
+
+For example, to install non-interactively into `/opt/brew`:
+
+```bash
+NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" -- --path /opt/brew
+```
+
 ## Uninstall Homebrew
 
 ```bash
