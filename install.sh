@@ -161,6 +161,7 @@ case $(uname) in
 esac
 
 # Default installation paths.
+GROUP_CHMOD="g+rwx"
 if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
 then
   UNAME_MACHINE="$(/usr/bin/uname -m)"
@@ -179,8 +180,18 @@ then
   CHOWN=("/usr/sbin/chown")
   CHGRP=("/usr/bin/chgrp")
   GROUP="admin"
+  # Use admin only for members, so group changes can work without sudo.
+  if [[ " $(id -Gn) " != *" admin "* ]]
+  then
+    GROUP="$(id -gn)"
+    if [[ "${GROUP}" == staff ]]
+    then
+      # Other standard macOS accounts also belong to staff.
+      GROUP_CHMOD="go-w"
+      umask go-w
+    fi
+  fi
   TOUCH=("/usr/bin/touch")
-  INSTALL=("/usr/bin/install" -d -o "root" -g "wheel" -m "0755")
 else
   UNAME_MACHINE="$(uname -m)"
 
@@ -193,8 +204,8 @@ else
   CHGRP=("/bin/chgrp")
   GROUP="$(id -gn)"
   TOUCH=("/bin/touch")
-  INSTALL=("/usr/bin/install" -d -o "${USER}" -g "${GROUP}" -m "0755")
 fi
+INSTALL=("/usr/bin/install" -d -o "${USER}" -g "${GROUP}" -m "0755")
 
 HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-"${HOMEBREW_PREFIX_DEFAULT}"}"
 HOMEBREW_PREFIX="${HOMEBREW_PREFIX%/}"
@@ -255,11 +266,12 @@ MACOS_NEWEST_UNSUPPORTED="28.0"
 # TODO: bump version when new macOS is released
 MACOS_OLDEST_SUPPORTED="15.0"
 
+REQUIRED_GIT_VERSION=2.7.0 # HOMEBREW_MINIMUM_GIT_VERSION in brew.sh in Homebrew/brew
+
 # For Homebrew on Linux
 REQUIRED_RUBY_VERSION=3.4    # https://github.com/Homebrew/brew/pull/19779
 REQUIRED_GLIBC_VERSION=2.13  # https://docs.brew.sh/Homebrew-on-Linux#requirements
 REQUIRED_CURL_VERSION=7.41.0 # HOMEBREW_MINIMUM_CURL_VERSION in brew.sh in Homebrew/brew
-REQUIRED_GIT_VERSION=2.7.0   # HOMEBREW_MINIMUM_GIT_VERSION in brew.sh in Homebrew/brew
 
 # no analytics during installation
 export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
@@ -267,14 +279,30 @@ export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 
 unset HAVE_SUDO_ACCESS # unset this from the environment
 
-# create paths.d file for /opt/homebrew installs
-if [[ -d "/etc/paths.d" && "${HOMEBREW_PREFIX}" == "/opt/homebrew" && -x "$(command -v tee)" ]]
+# Keep conservative detection in sync with Homebrew/brew's Library/Homebrew/brew.sh.
+if [[ -z "${HOMEBREW_NO_SUDO-}" ]]
 then
-  ADD_PATHS_D=1
+  if [[ ! -x /usr/bin/sudo ]]
+  then
+    export HOMEBREW_NO_SUDO=1
+  # Do not update cached credentials while checking privileges.
+  elif ! sudo_output="$(LC_ALL=C /usr/bin/sudo -n -k -l 2>&1)"
+  then
+    case "${sudo_output}" in
+      *'The "no new privileges" flag is set'* | \
+        *"effective uid is not 0"* | \
+        *"must be owned by uid 0 and have the setuid bit set"* | \
+        *" is not in the sudoers file."* | *" is not allowed to run sudo on "* | *" may not run sudo on "*)
+        export HOMEBREW_NO_SUDO=1
+        ;;
+      *) ;;
+    esac
+  fi
 fi
+unset sudo_output
 
 have_sudo_access() {
-  if [[ ! -x "/usr/bin/sudo" ]]
+  if [[ -n "${HOMEBREW_NO_SUDO-}" || ! -x "/usr/bin/sudo" ]]
   then
     return 1
   fi
@@ -292,16 +320,13 @@ have_sudo_access() {
   then
     if [[ -n "${NONINTERACTIVE-}" ]]
     then
+      ohai "Checking for \`sudo\` access..."
       "${SUDO[@]}" -l mkdir &>/dev/null
     else
+      ohai "Checking for \`sudo\` access (which may request your password)..."
       "${SUDO[@]}" -v && "${SUDO[@]}" -l mkdir &>/dev/null
     fi
     HAVE_SUDO_ACCESS="$?"
-  fi
-
-  if [[ -n "${HOMEBREW_ON_MACOS-}" ]] && [[ "${HAVE_SUDO_ACCESS}" -ne 0 ]]
-  then
-    abort "Need sudo access on macOS (e.g. the user ${USER} needs to be an Administrator)!"
   fi
 
   return "${HAVE_SUDO_ACCESS}"
@@ -334,6 +359,11 @@ retry() {
 }
 
 execute_sudo() {
+  if "$@" 2>/dev/null
+  then
+    return
+  fi
+
   local -a args=("$@")
   if [[ "${EUID:-${UID}}" != "0" ]] && have_sudo_access
   then
@@ -408,7 +438,7 @@ should_install_command_line_tools() {
     return 1
   fi
 
-  ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]]
+  ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]] && have_sudo_access
 }
 
 get_permission() {
@@ -470,13 +500,14 @@ test_curl() {
 }
 
 test_git() {
-  if [[ ! -x "$1" ]]
+  # Use the real developer-tools Git instead of Apple's installer stub.
+  if [[ ! -x "$1" ]] || [[ -n "${HOMEBREW_ON_MACOS-}" && "$1" == "/usr/bin/git" ]]
   then
     return 1
   fi
 
   local git_version_output
-  git_version_output="$("$1" --version 2>/dev/null)"
+  git_version_output="$("$1" --version 2>/dev/null)" || return 1
   if [[ "${git_version_output}" =~ "git version "([^ ]*).* ]]
   then
     version_ge "$(major_minor "${BASH_REMATCH[1]}")" "$(major_minor "${REQUIRED_GIT_VERSION}")"
@@ -543,7 +574,7 @@ EOABORT
 fi
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
-if [[ -x /usr/bin/sudo ]] && ! /usr/bin/sudo -n -v 2>/dev/null
+if [[ -z "${HOMEBREW_NO_SUDO-}" && -x /usr/bin/sudo ]] && ! /usr/bin/sudo -n -v 2>/dev/null
 then
   trap '/usr/bin/sudo -k' EXIT
 fi
@@ -554,15 +585,15 @@ cd "/usr" || exit 1
 
 ####################################################################### script
 
-# shellcheck disable=SC2016
-ohai 'Checking for `sudo` access (which may request your password)...'
-
-if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
-then
-  [[ "${EUID:-${UID}}" == "0" ]] || have_sudo_access
-elif ! [[ -d "${prefix_parent}" && -w "${prefix_parent}" && -x "${prefix_parent}" ]] && ! have_sudo_access
+if ! [[ -d "${prefix_parent}" && -w "${prefix_parent}" && -x "${prefix_parent}" ]] && ! have_sudo_access
 then
   abort "Insufficient permissions to install Homebrew to \"${HOMEBREW_PREFIX}\"."
+fi
+
+# Create the system PATH entry only when it can be managed.
+if [[ -d /etc/paths.d && "${HOMEBREW_PREFIX}" == /opt/homebrew ]] && have_sudo_access
+then
+  ADD_PATHS_D=1
 fi
 HOMEBREW_CORE="${HOMEBREW_REPOSITORY}/Library/Taps/homebrew/homebrew-core"
 
@@ -718,7 +749,7 @@ fi
 
 if [[ "${#group_chmods[@]}" -gt 0 ]]
 then
-  ohai "The following existing directories will be made group writable:"
+  ohai "The following existing directories will be made writable:"
   printf "%s\n" "${group_chmods[@]}"
 fi
 if [[ "${#user_chmods[@]}" -gt 0 ]]
@@ -785,7 +816,7 @@ then
   fi
   if [[ "${#group_chmods[@]}" -gt 0 ]]
   then
-    execute_sudo "${CHMOD[@]}" "g+rwx" "${group_chmods[@]}"
+    execute_sudo "${CHMOD[@]}" "${GROUP_CHMOD}" "${group_chmods[@]}"
   fi
   if [[ "${#user_chmods[@]}" -gt 0 ]]
   then
@@ -806,7 +837,7 @@ fi
 if [[ "${#mkdirs[@]}" -gt 0 ]]
 then
   execute_sudo "${MKDIR[@]}" "${mkdirs[@]}"
-  execute_sudo "${CHMOD[@]}" "ug=rwx" "${mkdirs[@]}"
+  execute_sudo "${CHMOD[@]}" "u=rwx,${GROUP_CHMOD}" "${mkdirs[@]}"
   if [[ "${#mkdirs_user_only[@]}" -gt 0 ]]
   then
     execute_sudo "${CHMOD[@]}" "go-w" "${mkdirs_user_only[@]}"
@@ -827,7 +858,7 @@ then
 fi
 if exists_but_not_writable "${HOMEBREW_CACHE}"
 then
-  execute_sudo "${CHMOD[@]}" "g+rwx" "${HOMEBREW_CACHE}"
+  execute_sudo "${CHMOD[@]}" "u+rwx,${GROUP_CHMOD}" "${HOMEBREW_CACHE}"
 fi
 if file_not_owned "${HOMEBREW_CACHE}"
 then
@@ -837,6 +868,10 @@ if file_not_grpowned "${HOMEBREW_CACHE}"
 then
   execute_sudo "${CHGRP[@]}" "-R" "${GROUP}" "${HOMEBREW_CACHE}"
 fi
+if [[ "${GROUP_CHMOD}" == go-w ]]
+then
+  execute_sudo "${CHMOD[@]}" -R go-w "${HOMEBREW_PREFIX}" "${HOMEBREW_CACHE}"
+fi
 if [[ -d "${HOMEBREW_CACHE}" ]]
 then
   execute "${TOUCH[@]}" "${HOMEBREW_CACHE}/.cleaned"
@@ -844,39 +879,50 @@ fi
 
 if should_install_command_line_tools
 then
-  ohai "Searching online for the Command Line Tools"
-  # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
-  clt_placeholder="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
-  execute_sudo "${TOUCH[@]}" "${clt_placeholder}"
+  (
+    ohai "Searching online for the Command Line Tools"
+    # This temporary file prompts the 'softwareupdate' utility to list the Command Line Tools
+    clt_placeholder="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
+    trap 'execute_sudo /bin/rm -f "${clt_placeholder}"' EXIT
+    execute_sudo "${TOUCH[@]}" "${clt_placeholder}"
 
-  clt_label_command="/usr/sbin/softwareupdate -l |
+    clt_label_command="/usr/sbin/softwareupdate -l |
                       grep -B 1 -E 'Command Line Tools' |
                       awk -F'*' '/^ *\\*/ {print \$2}' |
                       sed -e 's/^ *Label: //' -e 's/^ *//' |
                       sort -V |
                       tail -n1"
-  clt_label="$(chomp "$(/bin/bash -c "${clt_label_command}")")"
+    clt_label="$(chomp "$(/bin/bash -c "${clt_label_command}")")"
 
-  if [[ -n "${clt_label}" ]]
-  then
-    ohai "Installing ${clt_label}"
-    execute_sudo "/usr/sbin/softwareupdate" "-i" "${clt_label}"
-    execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
-  fi
-  execute_sudo "/bin/rm" "-f" "${clt_placeholder}"
+    if [[ -n "${clt_label}" ]]
+    then
+      ohai "Installing ${clt_label}"
+      execute_sudo "/usr/sbin/softwareupdate" "-i" "${clt_label}"
+      execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
+    fi
+  ) || warn "Command Line Tools installation failed. Continuing Homebrew installation."
 fi
 
 # Headless install may have failed, so fallback to original 'xcode-select' method
 if should_install_command_line_tools && test -t 0
 then
-  ohai "Installing the Command Line Tools (expect a GUI popup):"
-  execute "/usr/bin/xcode-select" "--install"
-  echo "Press any key when the installation has completed."
-  getc
-  execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
+  (
+    ohai "Installing the Command Line Tools (expect a GUI popup):"
+    execute "/usr/bin/xcode-select" "--install"
+    echo "Press any key when the installation has completed."
+    getc
+    execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
+  ) || warn "Command Line Tools installation failed. Continuing Homebrew installation."
 fi
 
-if [[ -n "${HOMEBREW_ON_MACOS-}" ]] && ! output="$(/usr/bin/xcrun clang 2>&1)" && [[ "${output}" == *"license"* ]]
+xcode_path=""
+if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
+then
+  xcode_path="$(/usr/bin/xcode-select --print-path 2>/dev/null)"
+fi
+
+if [[ -n "${xcode_path}" && "${xcode_path}" != / && -x "${xcode_path}/usr/bin/clang" ]] &&
+   ! output="$(/usr/bin/xcrun clang 2>&1)" && [[ "${output}" == *"license"* ]]
 then
   abort "$(
     cat <<EOABORT
@@ -888,10 +934,9 @@ EOABORT
   )"
 fi
 
-USABLE_GIT=/usr/bin/git
+USABLE_GIT="$(find_tool git)"
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
 then
-  USABLE_GIT="$(find_tool git)"
   if [[ -z "$(command -v git)" ]]
   then
     abort "$(
@@ -910,11 +955,20 @@ EOABORT
 EOABORT
     )"
   fi
-  if [[ "${USABLE_GIT}" != /usr/bin/git ]]
+else
+  if [[ -z "${USABLE_GIT}" && -n "${xcode_path}" && "${xcode_path}" != / ]]
   then
-    export HOMEBREW_GIT_PATH="${USABLE_GIT}"
-    ohai "Found Git: ${HOMEBREW_GIT_PATH}"
+    USABLE_GIT="${xcode_path}/usr/bin/git"
   fi
+  if ! test_git "${USABLE_GIT}"
+  then
+    abort "A usable Git is required to install Homebrew. Install Git, Xcode or the Xcode Command Line Tools."
+  fi
+fi
+if [[ "${USABLE_GIT}" != /usr/bin/git ]]
+then
+  export HOMEBREW_GIT_PATH="${USABLE_GIT}"
+  ohai "Found Git: ${HOMEBREW_GIT_PATH}"
 fi
 
 if ! command -v curl >/dev/null
@@ -1024,7 +1078,8 @@ ohai "Downloading and installing Homebrew..."
   if [[ -n "${ADD_PATHS_D-}" ]]
   then
     execute_sudo "${MKDIR[@]}" /etc/paths.d
-    echo "${HOMEBREW_PREFIX}/bin" | execute_sudo tee /etc/paths.d/homebrew
+    # Pass the path as an argument so an unprivileged attempt cannot consume stdin.
+    execute_sudo /bin/bash -c "echo \"\$1\" > /etc/paths.d/homebrew" -- "${HOMEBREW_PREFIX}/bin"
     execute_sudo "${CHOWN[@]}" root:wheel /etc/paths.d/homebrew
     execute_sudo "${CHMOD[@]}" "a+r" /etc/paths.d/homebrew
   elif [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]
