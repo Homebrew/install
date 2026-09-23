@@ -75,6 +75,15 @@ jobs:
             echo "/home/linuxbrew/.linuxbrew/bin:/usr/bin:/bin" >> "${GITHUB_PATH}"
           fi
 
+      - name: Test installation permissions
+        run: |
+          if [[ "${RUNNER_OS}" != "macOS" ]]
+          then
+            sudo apt-get update
+            sudo apt-get install --yes ruby ruby-minitest
+          fi
+          /usr/bin/ruby tests/test_install.rb
+
       - name: Uninstall GitHub Actions Homebrew
         run: |
           if which brew &>/dev/null
@@ -90,6 +99,34 @@ jobs:
       - run: brew install ack
 
       - run: /bin/bash uninstall.sh -f >/dev/null
+
+      - name: Install as a non-admin user into a provisioned prefix
+        run: |
+          if [[ "${RUNNER_OS}" = "macOS" ]]
+          then
+            sudo sysadminctl -addUser brewtest -password "$(uuidgen)" -shell /bin/bash
+          else
+            sudo useradd --create-home --user-group --shell /bin/bash brewtest
+          fi
+          if id -Gn brewtest | grep -Eq '(^| )(admin|sudo|wheel)( |$)'
+          then
+            echo "The test account must not be an administrator."
+            exit 1
+          fi
+          sudo install -d -o brewtest -g "$(id -gn brewtest)" -m 0755 /opt/brew
+          sudo -i -u brewtest /usr/bin/env HOMEBREW_NO_SUDO=1 NONINTERACTIVE=1 \
+            /bin/bash -s -- --path /opt/brew < install.sh
+          if [[ "${RUNNER_OS}" = "macOS" && "$(id -gn brewtest)" = staff ]]
+          then
+            test -z "$(find /opt/brew ! -type l \( -perm -0020 -o -perm -0002 \))"
+          fi
+          sudo -i -u brewtest /usr/bin/env HOMEBREW_NO_SUDO=1 /opt/brew/bin/brew config
+          sudo -i -u brewtest /usr/bin/env HOMEBREW_NO_SUDO=1 /opt/brew/bin/brew install --force-bottle ack
+          sudo -i -u brewtest /opt/brew/bin/ack --version
+          test -z "$(find /opt/brew ! -user brewtest -o ! -group "$(id -gn brewtest)")"
+          # These generated files survive removal of the Cellar.
+          sudo -i -u brewtest /bin/rm -f /opt/brew/lib/ld.so /opt/brew/share/info/dir
+          sudo /usr/bin/env NONINTERACTIVE=1 /bin/bash uninstall.sh --path /opt/brew
 
       - name: Install into custom prefixes non-interactively
         run: |

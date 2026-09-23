@@ -8,7 +8,9 @@
 
 More installation information and options: <https://docs.brew.sh/Installation>.
 
-If you're on macOS, try out our new `.pkg` installer. Download it from [Homebrew's latest GitHub release](https://github.com/Homebrew/brew/releases/latest).
+For MDM deployments on Apple Silicon Macs, we recommend the `.pkg` installer from [Homebrew's latest GitHub release](https://github.com/Homebrew/brew/releases/latest).
+Use [`HOMEBREW_PKG_USER`](https://docs.brew.sh/Installation) to select an existing non-root account to own the installation.
+Installing without Git or developer tools requires a package release containing [Homebrew/brew#24062](https://github.com/Homebrew/brew/pull/24062).
 
 If you are running Linux or WSL, [there are some pre-requisite packages to install](https://docs.brew.sh/Homebrew-on-Linux#requirements).
 
@@ -37,6 +39,14 @@ For example, to install non-interactively into `/opt/brew`:
 ```bash
 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" -- --path /opt/brew
 ```
+
+The installing account does not need administrator membership when the prefix is writable.
+On macOS, falling back to the `staff` group removes group and other write permissions from the prefix and cache.
+Set `HOMEBREW_NO_SUDO=1` to prevent sudo calls; missing sudo, recognised privilege failures and explicit policy denials are also detected automatically.
+Filesystem operations try without sudo before requesting elevation when needed.
+Installations without sudo skip the system PATH file; follow the printed shell setup instructions instead.
+Command Line Tools installation is skipped without sudo and CLT installation failures are non-fatal.
+The shell installer aborts if Git is missing or unusable; a working Git on `PATH` or supplied by Xcode is supported.
 
 ## Uninstall Homebrew
 
