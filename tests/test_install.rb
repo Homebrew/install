@@ -102,6 +102,37 @@ class InstallPermissionsTest < Minitest::Test
     assert_equal "1\n", stdout
   end
 
+  def test_system_path_entry_retries_without_an_elevated_shell
+    stdout, stderr, status = run_system_path_entry
+    assert_predicate status, :success?, stderr
+    assert_equal "Continuing installation\n", stdout
+    target = File.join(@directory, "paths.d/homebrew")
+    assert_equal "/opt/homebrew/bin\n", File.read(target)
+    assert_equal 0o644, File.stat(target).mode & 0o777
+    attempts = File.readlines(File.join(@directory, "install.log"), chomp: true)
+    assert_equal 2, attempts.length
+    assert_equal attempts.first, attempts.last
+    assert_equal @environment["TMPDIR"], File.dirname(attempts.last)
+    refute File.exist?(attempts.last)
+    assert File.exist?(File.join(@directory, "parent-cleanup"))
+  end
+
+  def test_system_path_entry_failures_abort_and_clean_up
+    %w[mktemp write install].each do |failure|
+      stdout, stderr, status = run_system_path_entry(failure: failure)
+      refute_predicate status, :success?, "#{failure}: #{stderr}"
+      refute_includes stdout, "Continuing installation", failure
+      assert_equal "old entry\n", File.read(File.join(@directory, "paths.d/homebrew")), failure
+      assert_empty Dir.children(@environment["TMPDIR"]), failure
+      assert File.exist?(File.join(@directory, "parent-cleanup")), failure
+      if failure == "install"
+        assert_equal 2, File.readlines(File.join(@directory, "install.log")).length
+      else
+        refute File.exist?(File.join(@directory, "install.log")), failure
+      end
+    end
+  end
+
   def test_noninteractive_sudo_notice_omits_password
     @environment["NONINTERACTIVE"] = "1"
     @environment["SUDO_TEST_STATUS"] = "0"
@@ -257,6 +288,64 @@ class InstallPermissionsTest < Minitest::Test
   end
 
   private
+
+  def run_system_path_entry(failure: "")
+    @environment.merge!("PATHS_TEST_DIRECTORY" => @directory, "PATHS_TEST_FAILURE" => failure,
+                        "TMPDIR" => File.join(@directory, "temporary files"))
+    FileUtils.mkdir_p(@environment["TMPDIR"])
+    target = File.join(@directory, "paths.d/homebrew")
+    FileUtils.mkdir_p(File.dirname(target))
+    FileUtils.rm_f(target)
+    File.write(target, "old entry\n")
+    File.chmod(0o444, target)
+    FileUtils.rm_f(File.join(@directory, "install.log"))
+    FileUtils.rm_f(File.join(@directory, "parent-cleanup"))
+    File.write(@sudo, <<~'BASH')
+      #!/bin/bash
+      case "$1" in
+        -v | -l) exit 0 ;;
+        "$PATHS_TEST_DIRECTORY/install") PATHS_TEST_ELEVATED=1 exec "$@" ;;
+        *) echo "Elevation denied: $*" >&2; exit 1 ;;
+      esac
+    BASH
+    File.write(File.join(@directory, "install"), <<~'BASH')
+      #!/bin/bash
+      [[ "$1" == -o && "$2" == root && "$3" == -g && "$4" == wheel && "$5" == -m && "$6" == 0644 ]] || exit 1
+      shift 6
+      printf '%s\n' "$1" >> "$PATHS_TEST_DIRECTORY/install.log"
+      [[ "${PATHS_TEST_ELEVATED-}" == 1 && "$PATHS_TEST_FAILURE" != install ]] || exit 1
+      # Exercise the file copy without changing ownership or requiring real sudo.
+      exec /usr/bin/install -m 0644 "$@"
+    BASH
+    File.chmod(0755, File.join(@directory, "install"))
+    block = 'if [[ -n "${ADD_PATHS_D-}" ]]' +
+            INSTALL.split('  if [[ -n "${ADD_PATHS_D-}" ]]', 2).last
+                   .split('  execute "${HOMEBREW_PREFIX}/bin/brew"', 2).first
+    run_shell(
+      shell_function("shell_join") + <<~'BASH' +
+        set -u
+        HOMEBREW_PREFIX=/opt/homebrew
+        ADD_PATHS_D=1
+        MKDIR=(/bin/mkdir -p)
+        paths_mktemp() {
+          [[ "$PATHS_TEST_FAILURE" != mktemp ]] || return 1
+          /usr/bin/mktemp "$TMPDIR/tmp.XXXXXXXX"
+        }
+        printf() {
+          [[ "$PATHS_TEST_FAILURE" != write ]] || return 1
+          builtin printf "$@"
+        }
+        (
+        trap '/usr/bin/touch "$PATHS_TEST_DIRECTORY/parent-cleanup"' EXIT
+      BASH
+      block.gsub("/etc/paths.d", File.join(@directory, "paths.d"))
+           .gsub("/usr/bin/install", File.join(@directory, "install"))
+           .gsub("/usr/bin/mktemp", "paths_mktemp") + <<~'BASH',
+        echo "Continuing installation"
+        ) || exit 1
+      BASH
+    )
+  end
 
   def run_permission_setup(existing: false, macos: "1", groups: "staff", primary_group: "staff")
     directory = Dir.mktmpdir("permissions", @directory)
