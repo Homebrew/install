@@ -1078,10 +1078,12 @@ ohai "Downloading and installing Homebrew..."
   if [[ -n "${ADD_PATHS_D-}" ]]
   then
     execute_sudo "${MKDIR[@]}" /etc/paths.d
-    # Pass the path as an argument so an unprivileged attempt cannot consume stdin.
-    execute_sudo /bin/bash -c "echo \"\$1\" > /etc/paths.d/homebrew" -- "${HOMEBREW_PREFIX}/bin"
-    execute_sudo "${CHOWN[@]}" root:wheel /etc/paths.d/homebrew
-    execute_sudo "${CHMOD[@]}" "a+r" /etc/paths.d/homebrew
+    (
+      paths_file="$(/usr/bin/mktemp)" || abort "Failed to create a temporary file for /etc/paths.d/homebrew."
+      trap '/bin/rm -f "${paths_file}"' EXIT
+      printf "%s\n" "${HOMEBREW_PREFIX}/bin" >"${paths_file}" || abort "Failed to write to ${paths_file}."
+      execute_sudo /usr/bin/install -o root -g wheel -m 0644 "${paths_file}" /etc/paths.d/homebrew
+    ) || exit 1
   elif [[ ":${PATH}:" != *":${HOMEBREW_PREFIX}/bin:"* ]]
   then
     PATH_WARN=1

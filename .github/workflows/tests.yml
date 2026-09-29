@@ -94,6 +94,12 @@ jobs:
 
       - run: /bin/bash -c "$(cat install.sh)"
 
+      - name: Check system PATH entry
+        if: runner.os == 'macOS'
+        run: |
+          [[ "$(stat -f '%Su:%Sg %Lp' /etc/paths.d/homebrew)" == "root:wheel 644" &&
+             "$(cat /etc/paths.d/homebrew)" == /opt/homebrew/bin ]] || exit 1
+
       - run: brew config
 
       - run: brew install ack
