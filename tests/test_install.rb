@@ -15,6 +15,7 @@ class InstallPermissionsTest < Minitest::Test
     File.write(@sudo, <<~'BASH')
       #!/bin/bash
       printf "%s\n" "$*" >> "$SUDO_TEST_LOG"
+      if [[ "$*" == "-n -v" ]]; then exit "${SUDO_TEST_TIMESTAMP_STATUS:-0}"; fi
       printf "%s" "$SUDO_TEST_OUTPUT" >&2
       exit "${SUDO_TEST_STATUS:-1}"
     BASH
@@ -28,6 +29,7 @@ class InstallPermissionsTest < Minitest::Test
       "SUDO_ASKPASS" => "",
       "SUDO_TEST_OUTPUT" => "",
       "SUDO_TEST_STATUS" => "1",
+      "SUDO_TEST_TIMESTAMP_STATUS" => "0",
       "USER" => "brewer",
       "SUDO_TEST_LOG" => @log,
     }
@@ -49,6 +51,23 @@ class InstallPermissionsTest < Minitest::Test
     end
   end
 
+  def test_startup_does_not_probe_sudo
+    _, stderr, status = run_shell(
+      (INSTALL.split("unset HAVE_SUDO_ACCESS", 2).last.split("\nexecute()", 2).first.split("\n", 2).last +
+       INSTALL.split("outdated_glibc() {", 2).last.split("\n}\n", 2).last
+              .split("# Things can fail later", 2).first).gsub("/usr/bin/sudo", @sudo),
+    )
+
+    assert_equal [true, false], [status.success?, File.exist?(@log)], stderr
+  end
+
+  def test_inactive_sudo_credentials_are_invalidated_on_exit
+    @environment.merge!("SUDO_TEST_STATUS" => "0", "SUDO_TEST_TIMESTAMP_STATUS" => "1")
+    run_shell("have_sudo_access; have_sudo_access")
+
+    assert_equal ["-n -k -l", "-n -v", "-v", "-l mkdir", "-k"], File.readlines(@log, chomp: true)
+  end
+
   def test_sudo_detection_preserves_credentials_and_inconclusive_failures
     [
       ["Sorry, user brewer may not run sudo on localhost.", "1", "1"],
@@ -60,7 +79,9 @@ class InstallPermissionsTest < Minitest::Test
       stdout, = run_sudo_detection
       assert_equal "#{expected}\n", stdout, message
     end
-    assert_equal Array.new(4, "-n -k -l"), File.readlines(@log, chomp: true)
+    calls = File.readlines(@log, chomp: true)
+    assert_equal Array.new(4, "-n -k -l"), calls.grep("-n -k -l")
+    refute_includes calls, "-k"
   end
 
   def test_explicit_no_sudo_does_not_probe
@@ -85,7 +106,8 @@ class InstallPermissionsTest < Minitest::Test
       have_sudo_access; have_sudo_access
     BASH
     assert_predicate status, :success?, stderr
-    assert_equal ["Checking for `sudo` access (which may request your password)...", "-v", "-l mkdir"],
+    assert_equal ["Checking for `sudo` access (which may request your password)...",
+                  "-n -k -l", "-n -v", "-v", "-l mkdir"],
                  File.readlines(@log, chomp: true)
   end
 
@@ -103,6 +125,7 @@ class InstallPermissionsTest < Minitest::Test
   end
 
   def test_system_path_entry_retries_without_an_elevated_shell
+    @environment["SUDO_TEST_TIMESTAMP_STATUS"] = "1"
     stdout, stderr, status = run_system_path_entry
     assert_predicate status, :success?, stderr
     assert_equal "Continuing installation\n", stdout
@@ -115,16 +138,19 @@ class InstallPermissionsTest < Minitest::Test
     assert_equal @environment["TMPDIR"], File.dirname(attempts.last)
     refute File.exist?(attempts.last)
     assert File.exist?(File.join(@directory, "parent-cleanup"))
+    assert_equal 1, File.readlines(@log, chomp: true).count("-k")
   end
 
   def test_system_path_entry_failures_abort_and_clean_up
-    %w[mktemp write install].each do |failure|
+    %w[0 1].product(%w[mktemp write install]).each do |timestamp_status, failure|
+      @environment["SUDO_TEST_TIMESTAMP_STATUS"] = timestamp_status
       stdout, stderr, status = run_system_path_entry(failure: failure)
       refute_predicate status, :success?, "#{failure}: #{stderr}"
       refute_includes stdout, "Continuing installation", failure
       assert_equal "old entry\n", File.read(File.join(@directory, "paths.d/homebrew")), failure
       assert_empty Dir.children(@environment["TMPDIR"]), failure
       assert File.exist?(File.join(@directory, "parent-cleanup")), failure
+      assert_equal timestamp_status.to_i, File.readlines(@log, chomp: true).count("-k"), failure
       if failure == "install"
         assert_equal 2, File.readlines(File.join(@directory, "install.log")).length
       else
@@ -139,7 +165,7 @@ class InstallPermissionsTest < Minitest::Test
     stdout, stderr, status = run_shell('ohai() { echo "$*"; }; have_sudo_access')
     assert_predicate status, :success?, stderr
     assert_equal "Checking for `sudo` access...\n", stdout
-    assert_equal ["-n -l mkdir"], File.readlines(@log, chomp: true)
+    assert_equal ["-n -k -l", "-n -v", "-n -l mkdir"], File.readlines(@log, chomp: true)
   end
 
   def test_command_line_tools_require_sudo
@@ -246,7 +272,7 @@ class InstallPermissionsTest < Minitest::Test
     @environment["SUDO_TEST_STATUS"] = "0"
     _, stderr, status = run_shell("execute_sudo /usr/bin/false")
     assert_predicate status, :success?, stderr
-    assert_equal ["-v", "-l mkdir", "/usr/bin/false"], File.readlines(@log, chomp: true)
+    assert_equal ["-n -k -l", "-n -v", "-v", "-l mkdir", "/usr/bin/false"], File.readlines(@log, chomp: true)
   end
 
   def test_non_admin_prefix_uses_own_group
@@ -300,10 +326,14 @@ class InstallPermissionsTest < Minitest::Test
     File.chmod(0o444, target)
     FileUtils.rm_f(File.join(@directory, "install.log"))
     FileUtils.rm_f(File.join(@directory, "parent-cleanup"))
+    File.write(@log, "")
     File.write(@sudo, <<~'BASH')
       #!/bin/bash
+      printf "%s\n" "$*" >> "$SUDO_TEST_LOG"
+      if [[ "$*" == "-n -v" ]]; then exit "$SUDO_TEST_TIMESTAMP_STATUS"; fi
+      if [[ "$*" == "-n -k -l" ]]; then exit 0; fi
       case "$1" in
-        -v | -l) exit 0 ;;
+        -k | -v | -l) exit 0 ;;
         "$PATHS_TEST_DIRECTORY/install") PATHS_TEST_ELEVATED=1 exec "$@" ;;
         *) echo "Elevation denied: $*" >&2; exit 1 ;;
       esac
@@ -325,6 +355,7 @@ class InstallPermissionsTest < Minitest::Test
       shell_function("shell_join") + <<~'BASH' +
         set -u
         HOMEBREW_PREFIX=/opt/homebrew
+        have_sudo_access || exit 1
         ADD_PATHS_D=1
         MKDIR=(/bin/mkdir -p)
         paths_mktemp() {
@@ -400,9 +431,7 @@ class InstallPermissionsTest < Minitest::Test
   end
 
   def run_sudo_detection
-    detection = INSTALL.split("# Keep conservative detection", 2).last
-                       .split("have_sudo_access()", 2).first.split("\n", 2).last
-    run_shell(detection.gsub("/usr/bin/sudo", @sudo) + 'printf "%s\n" "$HOMEBREW_NO_SUDO"')
+    run_shell('have_sudo_access; printf "%s\n" "$HOMEBREW_NO_SUDO"')
   end
 
   def shell_function(name)
