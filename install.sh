@@ -279,27 +279,10 @@ export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 
 unset HAVE_SUDO_ACCESS # unset this from the environment
 
-# Keep conservative detection in sync with Homebrew/brew's Library/Homebrew/brew.sh.
-if [[ -z "${HOMEBREW_NO_SUDO-}" ]]
+if [[ -z "${HOMEBREW_NO_SUDO-}" && ! -x /usr/bin/sudo ]]
 then
-  if [[ ! -x /usr/bin/sudo ]]
-  then
-    export HOMEBREW_NO_SUDO=1
-  # Do not update cached credentials while checking privileges.
-  elif ! sudo_output="$(LC_ALL=C /usr/bin/sudo -n -k -l 2>&1)"
-  then
-    case "${sudo_output}" in
-      *'The "no new privileges" flag is set'* | \
-        *"effective uid is not 0"* | \
-        *"must be owned by uid 0 and have the setuid bit set"* | \
-        *" is not in the sudoers file."* | *" is not allowed to run sudo on "* | *" may not run sudo on "*)
-        export HOMEBREW_NO_SUDO=1
-        ;;
-      *) ;;
-    esac
-  fi
+  export HOMEBREW_NO_SUDO=1
 fi
-unset sudo_output
 
 have_sudo_access() {
   if [[ -n "${HOMEBREW_NO_SUDO-}" || ! -x "/usr/bin/sudo" ]]
@@ -321,9 +304,37 @@ have_sudo_access() {
     if [[ -n "${NONINTERACTIVE-}" ]]
     then
       ohai "Checking for \`sudo\` access..."
-      "${SUDO[@]}" -l mkdir &>/dev/null
     else
       ohai "Checking for \`sudo\` access (which may request your password)..."
+    fi
+
+    # Keep conservative detection in sync with Homebrew/brew's Library/Homebrew/utils/sudo.sh.
+    # Do not update cached credentials while checking privileges.
+    local sudo_output
+    if ! sudo_output="$(LC_ALL=C /usr/bin/sudo -n -k -l 2>&1)"
+    then
+      case "${sudo_output}" in
+        *'The "no new privileges" flag is set'* | \
+          *"effective uid is not 0"* | \
+          *"must be owned by uid 0 and have the setuid bit set"* | \
+          *" is not in the sudoers file."* | *" is not allowed to run sudo on "* | *" may not run sudo on "*)
+          export HOMEBREW_NO_SUDO=1
+          return 1
+          ;;
+        *) ;;
+      esac
+    fi
+
+    # Invalidate sudo timestamp before exiting (if it wasn't active before).
+    if ! /usr/bin/sudo -n -v 2>/dev/null
+    then
+      trap '/usr/bin/sudo -k' EXIT
+    fi
+
+    if [[ -n "${NONINTERACTIVE-}" ]]
+    then
+      "${SUDO[@]}" -l mkdir &>/dev/null
+    else
       "${SUDO[@]}" -v && "${SUDO[@]}" -l mkdir &>/dev/null
     fi
     HAVE_SUDO_ACCESS="$?"
@@ -571,12 +582,6 @@ EOABORT
   else
     export HOMEBREW_FORCE_VENDOR_RUBY=1
   fi
-fi
-
-# Invalidate sudo timestamp before exiting (if it wasn't active before).
-if [[ -z "${HOMEBREW_NO_SUDO-}" && -x /usr/bin/sudo ]] && ! /usr/bin/sudo -n -v 2>/dev/null
-then
-  trap '/usr/bin/sudo -k' EXIT
 fi
 
 # Things can fail later if `pwd` doesn't exist.
