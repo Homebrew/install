@@ -179,7 +179,7 @@ jobs:
       - name: Check code styles
         run: |
           brew install shellcheck shfmt diffutils
-          brew style *.sh
+          HOMEBREW_DEVELOPER=1 brew style *.sh
 
       - run: /bin/bash uninstall.sh -n >/dev/null
 
