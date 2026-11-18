@@ -357,7 +357,7 @@ fi
     [[ "${l}" == \!* ]] || continue
     l="${l#\!}"
     l="${l#/}"
-    [[ "${l}" == @(bin|share|share/doc) ]] && echo "REJECT: ${l}" >&2 && continue
+    [[ "${l%/}" == @(bin|libexec|share|share/doc) ]] && echo "REJECT: ${l}" >&2 && continue
     echo "${HOMEBREW_REPOSITORY}/${l}"
   done <<<"${gitignore}"
 
@@ -482,7 +482,7 @@ done
 
 [[ -n "${opt_quiet}" ]] || ohai "Removing empty directories..."
 paths=()
-for p in bin etc include lib opt sbin share var Caskroom Cellar Homebrew Frameworks
+for p in bin etc include lib libexec opt sbin share var Caskroom Cellar Homebrew Frameworks
 do
   p="${HOMEBREW_PREFIX}/${p}"
   [[ -e "${p}" ]] && paths+=("${p}")
