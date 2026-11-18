@@ -289,6 +289,7 @@ class InstallPermissionsTest < Minitest::Test
     [false, true].each do |existing|
       prefix, cache, stdout, stderr, status = run_permission_setup(existing: existing)
       assert_predicate status, :success?, "#{stdout}\n#{stderr}"
+      assert File.directory?(File.join(prefix, "libexec"))
       [prefix, cache].each do |root|
         [root, *Dir.glob("#{root}/**/*", File::FNM_DOTMATCH)].each do |path|
           next if [".", ".."].include?(File.basename(path))
@@ -310,6 +311,35 @@ class InstallPermissionsTest < Minitest::Test
       prefix, _, stdout, stderr, status = run_permission_setup(macos: macos, groups: groups, primary_group: primary_group)
       assert_predicate status, :success?, "#{stdout}\n#{stderr}"
       assert_equal 0o020, File.stat(File.join(prefix, "bin")).mode & 0o020
+    end
+  end
+
+  def test_uninstall_previews_shared_prefix_directories
+    prefix = File.realpath(@directory)
+    Dir.mkdir(File.join(prefix, ".git"))
+    File.write(File.join(prefix, ".gitignore"), "!bin\n!/libexec/\n")
+    %w[bin libexec].each do |dir|
+      FileUtils.mkdir_p(File.join(prefix, dir, "empty"))
+      FileUtils.touch(File.join(prefix, dir, "keep"))
+      File.symlink("missing", File.join(prefix, dir, "dangling"))
+    end
+
+    # Run the preview's find commands as the test user.
+    File.write(@sudo, <<~'SH')
+      #!/bin/sh
+      case "$1" in -l|-k) exit 0;; esac
+      exec "$@"
+    SH
+    script = File.read(File.expand_path("../uninstall.sh", __dir__)).gsub("/usr/bin/sudo", @sudo)
+    stdout, stderr, status = Open3.capture3(@environment, "/bin/bash", "-c", script, "uninstall.sh",
+                                            "--dry-run", "--skip-cache-and-logs", "--path", prefix)
+    assert_predicate status, :success?, stderr
+    preview = stdout.lines(chomp: true).map { |line| line.delete_suffix("/") }
+    %w[bin libexec].each do |dir|
+      path = File.join(prefix, dir)
+      assert_includes preview, File.join(path, "empty")
+      assert_includes preview, File.join(path, "dangling")
+      refute_includes preview, "Would delete #{path}"
     end
   end
 
@@ -384,6 +414,7 @@ class InstallPermissionsTest < Minitest::Test
     cache = File.join(directory, "cache")
     FileUtils.mkdir_p(prefix)
     if existing
+      Dir.mkdir(File.join(prefix, "libexec"), 0o555)
       %w[prefix/bin prefix/.git cache].each do |path|
         FileUtils.mkdir_p(File.join(directory, path))
         File.chmod(0o777, File.join(directory, path))

@@ -668,7 +668,7 @@ fi
 # Keep relatively in sync with
 # https://github.com/Homebrew/brew/blob/HEAD/Library/Homebrew/keg.rb
 directories=(
-  bin etc include lib sbin share opt var
+  bin etc include lib libexec sbin share opt var
   Frameworks
   etc/bash_completion.d lib/pkgconfig
   share/aclocal share/doc share/info share/locale share/man
@@ -695,7 +695,7 @@ do
 done
 
 directories=(
-  bin etc include lib sbin share var opt
+  bin etc include lib libexec sbin share var opt
   share/zsh share/zsh/site-functions
   var/homebrew var/homebrew/linked
   Cellar Caskroom Frameworks
