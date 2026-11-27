@@ -562,7 +562,7 @@ no_usable_ruby() {
 
 outdated_glibc() {
   local glibc_version
-  glibc_version="$(ldd --version | head -n1 | grep -o '[0-9.]*$' | grep -o '^[0-9]\+\.[0-9]\+')"
+  glibc_version="$(ldd --version | sed -n '1p' | grep -o '[0-9.]*$' | grep -o '^[0-9]\+\.[0-9]\+')"
   version_lt "${glibc_version}" "${REQUIRED_GLIBC_VERSION}"
 }
 

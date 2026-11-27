@@ -61,6 +61,21 @@ class InstallPermissionsTest < Minitest::Test
     assert_equal [true, false], [status.success?, File.exist?(@log)], stderr
   end
 
+  def test_glibc_probe_drains_ldd_output
+    _, stderr, status = run_shell(shell_function("version_lt") + shell_function("outdated_glibc") + <<~'BASH')
+      ldd() {
+        trap '' PIPE
+        printf '%s\n' 'ldd (Ubuntu GLIBC) 2.39'
+        # Exceed the pipe buffer so an early close reliably triggers a write error.
+        printf '%1048576s\n' '2.12'
+      }
+      REQUIRED_GLIBC_VERSION=2.13
+      ! outdated_glibc
+    BASH
+    assert_predicate status, :success?, stderr
+    assert_empty stderr
+  end
+
   def test_inactive_sudo_credentials_are_invalidated_on_exit
     @environment.merge!("SUDO_TEST_STATUS" => "0", "SUDO_TEST_TIMESTAMP_STATUS" => "1")
     run_shell("have_sudo_access; have_sudo_access")
